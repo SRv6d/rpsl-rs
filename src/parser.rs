@@ -42,4 +42,14 @@ mod tests {
         assert_eq!(rest, "");
         assert_eq!(result, "example-value");
     }
+
+    #[test]
+    fn parse_multi_value() {
+        let input = "        example-value\n                continuation-value\n";
+
+        let (rest, result) = attribute_value(input).unwrap();
+
+        assert_eq!(rest, "");
+        assert_eq!(result, "example-value\n                continuation-value");
+    }
 }
