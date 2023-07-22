@@ -45,11 +45,17 @@ mod tests {
 
     #[test]
     fn parse_multi_value() {
-        let input = "        example-value\n                continuation-value\n";
+        let input = concat!(
+            "        first value\n",
+            "                continued value\n",
+            "                last value\n",
+            "remarks:                the next attribute\n",
+        );
+        let expected = "first value\n                continued value\n                last value\n";
 
         let (rest, result) = attribute_value(input).unwrap();
 
-        assert_eq!(rest, "");
-        assert_eq!(result, "example-value\n                continuation-value");
+        assert_eq!(rest, "remarks:                the next attribute\n");
+        assert_eq!(result, expected);
     }
 }
