@@ -1,5 +1,6 @@
 use nom::{
-    bytes::complete::{take_while, take_while1},
+    bytes::complete::{tag, take_while, take_while1},
+    character::complete::space0,
     IResult,
 };
 
@@ -17,9 +18,21 @@ fn rpsl_attribute_value(input: &str) -> IResult<&str, &str> {
     Ok((remaining, value))
 }
 
+fn parse_attribute(input: &str) -> IResult<&str, (&str, &str)> {
+    let (remaining, name) = rpsl_attribute_name(input)?;
+
+    let (remaining, _) = tag(":")(remaining)?;
+    let (remaining, _) = space0(remaining)?;
+
+    let (remaining, value) = rpsl_attribute_value(remaining)?;
+    let (remaining, _) = tag("\n")(remaining)?;
+
+    Ok((remaining, (name, value)))
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::parser::{rpsl_attribute_name, rpsl_attribute_value};
+    use crate::parser::{parse_attribute, rpsl_attribute_name, rpsl_attribute_value};
 
     #[test]
     fn rpsl_attribute_name_test() {
@@ -46,6 +59,14 @@ mod tests {
         assert_eq!(
             rpsl_attribute_value("* Equinix FR5, Kleyerstr, Frankfurt am Main\n"),
             Ok(("\n", "* Equinix FR5, Kleyerstr, Frankfurt am Main"))
+        );
+    }
+
+    #[test]
+    fn parse_attribute_test() {
+        assert_eq!(
+            parse_attribute("import:         from AS12 accept AS12\n"),
+            Ok(("", ("import", "from AS12 accept AS12")))
         );
     }
 }
