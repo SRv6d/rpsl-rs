@@ -24,6 +24,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+      - uses: Swatinem/rust-cache@v2
       - name: Clippy
         run: cargo clippy
       - name: Format
@@ -35,6 +36,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
+      - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test
   spellcheck:
