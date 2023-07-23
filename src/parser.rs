@@ -18,7 +18,9 @@ fn rpsl_attribute_value(input: &str) -> IResult<&str, &str> {
     Ok((remaining, value))
 }
 
-fn parse_attribute(input: &str) -> IResult<&str, (&str, &str)> {
+fn parse_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
+    let mut values: Vec<&str> = Vec::new();
+
     let (remaining, name) = rpsl_attribute_name(input)?;
 
     let (remaining, _) = tag(":")(remaining)?;
@@ -26,8 +28,9 @@ fn parse_attribute(input: &str) -> IResult<&str, (&str, &str)> {
 
     let (remaining, value) = rpsl_attribute_value(remaining)?;
     let (remaining, _) = tag("\n")(remaining)?;
+    values.push(value);
 
-    Ok((remaining, (name, value)))
+    Ok((remaining, (name, values)))
 }
 
 #[cfg(test)]
@@ -66,7 +69,8 @@ mod tests {
     fn parse_attribute_test() {
         assert_eq!(
             parse_attribute("import:         from AS12 accept AS12\n"),
-            Ok(("", ("import", "from AS12 accept AS12")))
+            Ok(("", ("import", vec!["from AS12 accept AS12"])))
+        );
         );
     }
 }
