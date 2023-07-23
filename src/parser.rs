@@ -66,11 +66,33 @@ mod tests {
     }
 
     #[test]
-    fn parse_attribute_test() {
+    fn parse_single_value_attribute_test() {
         assert_eq!(
             parse_attribute("import:         from AS12 accept AS12\n"),
             Ok(("", ("import", vec!["from AS12 accept AS12"])))
-        );
+        )
+    }
+
+    #[test]
+    fn parse_multi_value_attribute_test() {
+        assert_eq!(
+            parse_attribute(concat!(
+                "remarks:        Locations\n",
+                "                LA1 - CoreSite One Wilshire\n",
+                "                NY1 - Equinix New York, Newark\n",
+                "remarks:        Peering Policy\n",
+            )),
+            Ok((
+                "remarks:        Peering Policy\n",
+                (
+                    "remarks",
+                    vec![
+                        "Locations",
+                        "LA1 - CoreSite One Wilshire",
+                        "NY1 - Equinix New York, Newark"
+                    ]
+                )
+            ))
         );
     }
 }
