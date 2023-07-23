@@ -46,7 +46,7 @@ fn parse_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::{parse_attribute, rpsl_attribute_name, rpsl_attribute_value};
+    use super::*;
 
     #[test]
     fn rpsl_attribute_name_test() {
