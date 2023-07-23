@@ -2,7 +2,7 @@ use nom::{
     bytes::complete::{tag, take_while, take_while1},
     character::complete::{one_of, space0},
     multi::many0,
-    sequence::tuple,
+    sequence::{separated_pair, terminated, tuple},
     IResult,
 };
 
@@ -31,19 +31,16 @@ fn rpsl_continuation_line(input: &str) -> IResult<&str, &str> {
 }
 
 fn parse_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
-    let mut values: Vec<&str> = Vec::new();
+    let (remaining, (name, first_value)) = separated_pair(
+        terminated(rpsl_attribute_name, tag(":")),
+        space0,
+        terminated(rpsl_attribute_value, tag("\n")),
+    )(input)?;
+    let (remaining, continuation_values) = many0(rpsl_continuation_line)(remaining)?;
 
-    let (remaining, name) = rpsl_attribute_name(input)?;
-
-    let (remaining, _) = tag(":")(remaining)?;
-    let (remaining, _) = space0(remaining)?;
-
-    let (remaining, value) = rpsl_attribute_value(remaining)?;
-    let (remaining, _) = tag("\n")(remaining)?;
-    values.push(value);
-
-    let (remaining, cont) = many0(rpsl_continuation_line)(remaining)?;
-    values.extend(cont);
+    let mut values: Vec<&str> = Vec::with_capacity(1 + continuation_values.len());
+    values.push(first_value);
+    values.extend(continuation_values);
 
     Ok((remaining, (name, values)))
 }
