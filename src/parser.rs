@@ -1,61 +1,51 @@
 use nom::{
-    bytes::complete::{tag, take_until, take_while},
-    character::complete::space0,
+    bytes::complete::{take_while, take_while1},
     IResult,
 };
 
-fn attribute_name(input: &str) -> IResult<&str, &str> {
-    let (remaining, name) = take_while(|c: char| c.is_alphanumeric() || c == '-')(input)?;
-    let (remaining, _) = tag(":")(remaining)?;
-
+// An attributes name. A ASCII sequence of letters, digits and the characters "-", "_".
+// The first character must be a letter, while the last character may be a letter or a digit.
+fn rpsl_attribute_name(input: &str) -> IResult<&str, &str> {
+    let (remaining, name) =
+        take_while1(|c: char| c.is_ascii_alphanumeric() || c == '-' || c == '_')(input)?;
     Ok((remaining, name))
 }
 
-fn attribute_value(input: &str) -> IResult<&str, &str> {
-    let (remaining, _) = space0(input)?;
-    let (remaining, value) = take_until("\n")(remaining)?;
-    let (remaining, _) = tag("\n")(remaining)?;
-
+// An attributes value. A ASCII sequence of characters, excluding control.
+fn rpsl_attribute_value(input: &str) -> IResult<&str, &str> {
+    let (remaining, value) = take_while(|c: char| c.is_ascii() && !c.is_ascii_control())(input)?;
     Ok((remaining, value))
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::parser::{attribute_name, attribute_value};
+    use crate::parser::{rpsl_attribute_name, rpsl_attribute_value};
 
     #[test]
-    fn parse_attribute_name() {
-        let input = "example-name:        example-value\n";
-
-        let (rest, result) = attribute_name(input).unwrap();
-
-        assert_eq!(rest, "        example-value\n");
-        assert_eq!(result, "example-name");
+    fn rpsl_attribute_name_test() {
+        assert_eq!(rpsl_attribute_name("remarks:"), Ok((":", "remarks")));
+        assert_eq!(rpsl_attribute_name("aut-num:"), Ok((":", "aut-num")));
+        assert_eq!(rpsl_attribute_name("ASNumber:"), Ok((":", "ASNumber")));
+        assert_eq!(rpsl_attribute_name("route6:"), Ok((":", "route6")));
     }
 
     #[test]
-    fn parse_single_value() {
-        let input = "        example-value\n";
-
-        let (rest, result) = attribute_value(input).unwrap();
-
-        assert_eq!(rest, "");
-        assert_eq!(result, "example-value");
-    }
-
-    #[test]
-    fn parse_multi_value() {
-        let input = concat!(
-            "        first value\n",
-            "                continued value\n",
-            "                last value\n",
-            "remarks:                the next attribute\n",
+    fn rpsl_attribute_value_test() {
+        assert_eq!(
+            rpsl_attribute_value("This is an example remark\n"),
+            Ok(("\n", "This is an example remark"))
         );
-        let expected = "first value\n                continued value\n                last value\n";
-
-        let (rest, result) = attribute_value(input).unwrap();
-
-        assert_eq!(rest, "remarks:                the next attribute\n");
-        assert_eq!(result, expected);
+        assert_eq!(
+            rpsl_attribute_value("Concerning abuse and spam ... mailto: abuse@asn.net\n"),
+            Ok(("\n", "Concerning abuse and spam ... mailto: abuse@asn.net"))
+        );
+        assert_eq!(
+            rpsl_attribute_value("+49 176 07071964\n"),
+            Ok(("\n", "+49 176 07071964"))
+        );
+        assert_eq!(
+            rpsl_attribute_value("* Equinix FR5, Kleyerstr, Frankfurt am Main\n"),
+            Ok(("\n", "* Equinix FR5, Kleyerstr, Frankfurt am Main"))
+        );
     }
 }
