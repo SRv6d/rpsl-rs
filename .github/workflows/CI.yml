@@ -1,0 +1,50 @@
+---
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ github.ref_name }}-${{ github.event.pull_request.number
+    || github.sha }}
+  cancel-in-progress: true
+
+env:
+  COLUMNS: 120
+
+jobs:
+  lint:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Clippy
+        run: cargo clippy
+      - name: Format
+        run: cargo fmt --all --check
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Test
+        run: cargo test
+  spellcheck:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - run: pip3 install codespell
+      - uses: codespell-project/codespell-problem-matcher@v1
+      - name: check for typos
+        run: codespell src/ tests/ README.md -L crate
