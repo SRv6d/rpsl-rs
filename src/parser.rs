@@ -1,6 +1,6 @@
 use nom::{
     bytes::complete::{tag, take_while, take_while1},
-    character::complete::space0,
+    character::complete::{one_of, space0},
     IResult,
 };
 
@@ -18,6 +18,14 @@ fn rpsl_attribute_value(input: &str) -> IResult<&str, &str> {
     Ok((remaining, value))
 }
 
+fn continuation_line(input: &str) -> IResult<&str, &str> {
+    let (remaining, _) = one_of(" \t+")(input)?;
+    let (remaining, _) = space0(remaining)?;
+    let (remaining, value) = rpsl_attribute_value(remaining)?;
+    let (remaining, _) = tag("\n")(remaining)?;
+    Ok((remaining, value))
+}
+
 fn parse_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
     let mut values: Vec<&str> = Vec::new();
 
@@ -29,6 +37,9 @@ fn parse_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
     let (remaining, value) = rpsl_attribute_value(remaining)?;
     let (remaining, _) = tag("\n")(remaining)?;
     values.push(value);
+
+    let (remaining, cont) = nom::multi::many0(continuation_line)(remaining)?;
+    values.extend(cont);
 
     Ok((remaining, (name, values)))
 }
