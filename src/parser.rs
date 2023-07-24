@@ -94,6 +94,32 @@ mod tests {
     }
 
     #[test]
+    fn server_info_line_test() {
+        assert_eq!(
+            server_info_line("% Note: this output has been filtered.\n"),
+            Ok(("", "Note: this output has been filtered."))
+        );
+        assert_eq!(
+            server_info_line(
+                "%       To receive output for a database update, use the \"-B\" flag.\n"
+            ),
+            Ok((
+                "",
+                "To receive output for a database update, use the \"-B\" flag."
+            ))
+        );
+        assert_eq!(
+            server_info_line(
+                "% This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)\n"
+            ),
+            Ok((
+                "",
+                "This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)"
+            ))
+        );
+    }
+
+    #[test]
     fn parse_single_value_attribute_test() {
         assert_eq!(
             parse_attribute("import:         from AS12 accept AS12\n"),
