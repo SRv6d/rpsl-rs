@@ -161,4 +161,58 @@ mod tests {
             ))
         );
     }
+
+    #[test]
+    fn parse_rpsl_with_multiple_objects() {
+        let rpsl = concat!(
+            "as-block:       AS12557 - AS13223\n",
+            "descr:          RIPE NCC ASN block\n",
+            "remarks:        These AS Numbers are assigned to network operators in the RIPE NCC service region.\n",
+            "mnt-by:         RIPE-NCC-HM-MNT\n",
+            "created:        2018-11-22T15:27:24Z\n",
+            "last-modified:  2018-11-22T15:27:24Z\n",
+            "source:         RIPE\n",
+            "\n",
+            "% Information related to 'AS13030\n",
+            "\n",
+            "% Abuse contact for 'AS13030' is 'abuse@init7.net'\n",
+            "\n",
+            "aut-num:        AS13030\n",
+            "as-name:        INIT7\n",
+            "org:            ORG-ISA1-RIPE\n",
+            "remarks:        Init7 Global Backbone\n",
+            "\n",
+            "organisation:   ORG-ISA1-RIPE\n",
+            "org-name:       Init7 (Switzerland) Ltd.\n",
+            "\n"
+        );
+        let expected: Vec<Vec<(&str, Vec<&str>)>> = vec![
+            vec![
+                ("as-block", vec!["AS12557 - AS13223"]),
+                ("descr", vec!["RIPE NCC ASN block"]),
+                (
+                    "remarks",
+                    vec![
+                        "These AS Numbers are assigned to network operators in the RIPE NCC service region."
+                    ]
+                ),
+                ("mnt-by", vec!["RIPE-NCC-HM-MNT"]),
+                ("created", vec!["2018-11-22T15:27:24Z"]),
+                ("last-modified", vec!["2018-11-22T15:27:24Z"]),
+                ("source", vec!["RIPE"]),
+            ],
+            vec![
+                ("aut-num", vec!["AS13030"]),
+                ("as-name", vec!["INIT7"]),
+                ("org", vec!["ORG-ISA1-RIPE"]),
+                ("remarks", vec!["Init7 Global Backbone"]),
+            ],
+            vec![
+                ("organisation", vec!["ORG-ISA1-RIPE"]),
+                ("org-name", vec!["Init7 (Switzerland) Ltd."]),
+            ],
+        ];
+
+        assert_eq!(parse_rpsl(rpsl), expected);
+    }
 }
