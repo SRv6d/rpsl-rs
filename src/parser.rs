@@ -2,7 +2,7 @@ use nom::{
     bytes::complete::{tag, take_while, take_while1},
     character::complete::{one_of, space0},
     multi::many0,
-    sequence::{separated_pair, terminated, tuple},
+    sequence::{delimited, separated_pair, terminated, tuple},
     IResult,
 };
 
@@ -26,6 +26,18 @@ fn rpsl_continuation_line(input: &str) -> IResult<&str, &str> {
     let continuation_char = one_of(" \t+");
     let (remaining, (_, _, value, _)) =
         tuple((continuation_char, space0, rpsl_attribute_value, tag("\n")))(input)?;
+
+    Ok((remaining, value))
+}
+
+// An info line sent by the whois server. Starts with the "%" character and extends until the end of the line.
+// The value may be prefixed by whitespace and contain any unicode character excluding control characters.
+fn server_info_line(input: &str) -> IResult<&str, &str> {
+    let (remaining, value) = delimited(
+        tuple((tag("%"), space0)),
+        take_while(|c: char| !c.is_control()),
+        tag("\n"),
+    )(input)?;
 
     Ok((remaining, value))
 }
