@@ -42,7 +42,10 @@ fn server_info_line(input: &str) -> IResult<&str, &str> {
     Ok((remaining, value))
 }
 
-fn parse_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
+// A RPSL attribute consisting of a name and one or more values.
+// The name is followed by a colon and optional spaces.
+// Single value attributes are limited to one line, while multi value attributes span over multiple lines.
+fn rpsl_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
     let (remaining, (name, first_value)) = separated_pair(
         terminated(rpsl_attribute_name, tag(":")),
         space0,
@@ -132,17 +135,17 @@ mod tests {
     }
 
     #[test]
-    fn parse_single_value_attribute_test() {
+    fn single_value_rpsl_attribute_test() {
         assert_eq!(
-            parse_attribute("import:         from AS12 accept AS12\n"),
+            rpsl_attribute("import:         from AS12 accept AS12\n"),
             Ok(("", ("import", vec!["from AS12 accept AS12"])))
         )
     }
 
     #[test]
-    fn parse_multi_value_attribute_test() {
+    fn multi_value_rpsl_attribute_test() {
         assert_eq!(
-            parse_attribute(concat!(
+            rpsl_attribute(concat!(
                 "remarks:        Locations\n",
                 "                LA1 - CoreSite One Wilshire\n",
                 "                NY1 - Equinix New York, Newark\n",
