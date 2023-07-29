@@ -1,8 +1,10 @@
 use nom::{
+    branch::alt,
     bytes::complete::{tag, take_while, take_while1},
     character::complete::{one_of, space0},
-    multi::many0,
-    sequence::{delimited, separated_pair, terminated, tuple},
+    combinator::all_consuming,
+    multi::{many0, many1},
+    sequence::{delimited, preceded, separated_pair, terminated, tuple},
     IResult,
 };
 
@@ -42,7 +44,10 @@ fn server_info_line(input: &str) -> IResult<&str, &str> {
     Ok((remaining, value))
 }
 
-fn parse_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
+// A RPSL attribute consisting of a name and one or more values.
+// The name is followed by a colon and optional spaces.
+// Single value attributes are limited to one line, while multi value attributes span over multiple lines.
+fn rpsl_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
     let (remaining, (name, first_value)) = separated_pair(
         terminated(rpsl_attribute_name, tag(":")),
         space0,
@@ -55,6 +60,19 @@ fn parse_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
     values.extend(continuation_values);
 
     Ok((remaining, (name, values)))
+}
+
+pub fn parse_rpsl(rpsl: &str) -> Vec<Vec<(&str, Vec<&str>)>> {
+    let rpsl_object = many1(rpsl_attribute);
+    let empty_or_server_info_line = alt((server_info_line, tag("\n")));
+
+    let (_, objects) = all_consuming(terminated(
+        many1(preceded(many0(empty_or_server_info_line), rpsl_object)),
+        tag("\n"),
+    ))(rpsl)
+    .unwrap();
+
+    objects
 }
 
 #[cfg(test)]
@@ -132,17 +150,17 @@ mod tests {
     }
 
     #[test]
-    fn parse_single_value_attribute_test() {
+    fn single_value_rpsl_attribute_test() {
         assert_eq!(
-            parse_attribute("import:         from AS12 accept AS12\n"),
+            rpsl_attribute("import:         from AS12 accept AS12\n"),
             Ok(("", ("import", vec!["from AS12 accept AS12"])))
         )
     }
 
     #[test]
-    fn parse_multi_value_attribute_test() {
+    fn multi_value_rpsl_attribute_test() {
         assert_eq!(
-            parse_attribute(concat!(
+            rpsl_attribute(concat!(
                 "remarks:        Locations\n",
                 "                LA1 - CoreSite One Wilshire\n",
                 "                NY1 - Equinix New York, Newark\n",
@@ -160,5 +178,59 @@ mod tests {
                 )
             ))
         );
+    }
+
+    #[test]
+    fn parse_rpsl_with_multiple_objects() {
+        let rpsl = concat!(
+            "as-block:       AS12557 - AS13223\n",
+            "descr:          RIPE NCC ASN block\n",
+            "remarks:        These AS Numbers are assigned to network operators in the RIPE NCC service region.\n",
+            "mnt-by:         RIPE-NCC-HM-MNT\n",
+            "created:        2018-11-22T15:27:24Z\n",
+            "last-modified:  2018-11-22T15:27:24Z\n",
+            "source:         RIPE\n",
+            "\n",
+            "% Information related to 'AS13030\n",
+            "\n",
+            "% Abuse contact for 'AS13030' is 'abuse@init7.net'\n",
+            "\n",
+            "aut-num:        AS13030\n",
+            "as-name:        INIT7\n",
+            "org:            ORG-ISA1-RIPE\n",
+            "remarks:        Init7 Global Backbone\n",
+            "\n",
+            "organisation:   ORG-ISA1-RIPE\n",
+            "org-name:       Init7 (Switzerland) Ltd.\n",
+            "\n"
+        );
+        let expected: Vec<Vec<(&str, Vec<&str>)>> = vec![
+            vec![
+                ("as-block", vec!["AS12557 - AS13223"]),
+                ("descr", vec!["RIPE NCC ASN block"]),
+                (
+                    "remarks",
+                    vec![
+                        "These AS Numbers are assigned to network operators in the RIPE NCC service region."
+                    ]
+                ),
+                ("mnt-by", vec!["RIPE-NCC-HM-MNT"]),
+                ("created", vec!["2018-11-22T15:27:24Z"]),
+                ("last-modified", vec!["2018-11-22T15:27:24Z"]),
+                ("source", vec!["RIPE"]),
+            ],
+            vec![
+                ("aut-num", vec!["AS13030"]),
+                ("as-name", vec!["INIT7"]),
+                ("org", vec!["ORG-ISA1-RIPE"]),
+                ("remarks", vec!["Init7 Global Backbone"]),
+            ],
+            vec![
+                ("organisation", vec!["ORG-ISA1-RIPE"]),
+                ("org-name", vec!["Init7 (Switzerland) Ltd."]),
+            ],
+        ];
+
+        assert_eq!(parse_rpsl(rpsl), expected);
     }
 }
