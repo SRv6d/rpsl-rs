@@ -1,8 +1,10 @@
 use nom::{
+    branch::alt,
     bytes::complete::{tag, take_while, take_while1},
     character::complete::{one_of, space0},
-    multi::many0,
-    sequence::{delimited, separated_pair, terminated, tuple},
+    combinator::all_consuming,
+    multi::{many0, many1},
+    sequence::{delimited, preceded, separated_pair, terminated, tuple},
     IResult,
 };
 
@@ -58,6 +60,19 @@ fn rpsl_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
     values.extend(continuation_values);
 
     Ok((remaining, (name, values)))
+}
+
+pub fn parse_rpsl(rpsl: &str) -> Vec<Vec<(&str, Vec<&str>)>> {
+    let rpsl_object = many1(rpsl_attribute);
+    let empty_or_server_info_line = alt((server_info_line, tag("\n")));
+
+    let (_, objects) = all_consuming(terminated(
+        many1(preceded(many0(empty_or_server_info_line), rpsl_object)),
+        tag("\n"),
+    ))(rpsl)
+    .unwrap();
+
+    objects
 }
 
 #[cfg(test)]
