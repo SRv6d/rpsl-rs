@@ -1,7 +1,7 @@
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_while, take_while1},
-    character::complete::{one_of, space0},
+    character::complete::{multispace0, one_of, space0},
     combinator::all_consuming,
     multi::{many0, many1},
     sequence::{delimited, preceded, separated_pair, terminated, tuple},
@@ -62,14 +62,20 @@ fn rpsl_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
     Ok((remaining, (name, values)))
 }
 
-pub fn parse_rpsl(rpsl: &str) -> Vec<Vec<(&str, Vec<&str>)>> {
+pub fn parse_rpsl_object(rpsl: &str) -> Vec<(&str, Vec<&str>)> {
+    let (_, object) =
+        all_consuming(delimited(multispace0, many1(rpsl_attribute), multispace0))(rpsl).unwrap();
+    object
+}
+
+pub fn parse_rpsl_server_response(response: &str) -> Vec<Vec<(&str, Vec<&str>)>> {
     let rpsl_object = many1(rpsl_attribute);
     let empty_or_server_info_line = alt((server_info_line, tag("\n")));
 
     let (_, objects) = all_consuming(terminated(
         many1(preceded(many0(empty_or_server_info_line), rpsl_object)),
         tag("\n"),
-    ))(rpsl)
+    ))(response)
     .unwrap();
 
     objects
@@ -181,7 +187,44 @@ mod tests {
     }
 
     #[test]
-    fn parse_rpsl_with_multiple_objects() {
+    fn parse_rpsl_object_test() {
+        let rpsl = concat!(
+            "\n",
+            "role:           Twelve99 Routing Registry\n",
+            "address:        Arelion Sweden AB\n",
+            "address:        Evenemangsgatan 2C\n",
+            "address:        SE-169 79 SOLNA\n",
+            "address:        Sweden\n",
+            "e-mail:         routing-registry@99.net\n",
+            "nic-hdl:        TRR2-RIPE\n",
+            "notify:         routing-registry@99.net\n",
+            "mnt-by:         Twelve99-IRR-MNT\n",
+            "created:        2002-05-27T15:05:16Z\n",
+            "last-modified:  2023-01-30T11:49:56Z\n",
+            "source:         RIPE\n",
+            "\n",
+            "\n",
+        );
+        let expected: Vec<(&str, Vec<&str>)> = vec![
+            ("role", vec!["Twelve99 Routing Registry"]),
+            ("address", vec!["Arelion Sweden AB"]),
+            ("address", vec!["Evenemangsgatan 2C"]),
+            ("address", vec!["SE-169 79 SOLNA"]),
+            ("address", vec!["Sweden"]),
+            ("e-mail", vec!["routing-registry@99.net"]),
+            ("nic-hdl", vec!["TRR2-RIPE"]),
+            ("notify", vec!["routing-registry@99.net"]),
+            ("mnt-by", vec!["Twelve99-IRR-MNT"]),
+            ("created", vec!["2002-05-27T15:05:16Z"]),
+            ("last-modified", vec!["2023-01-30T11:49:56Z"]),
+            ("source", vec!["RIPE"]),
+        ];
+
+        assert_eq!(parse_rpsl_object(rpsl), expected);
+    }
+
+    #[test]
+    fn parse_server_response_test() {
         let rpsl = concat!(
             "as-block:       AS12557 - AS13223\n",
             "descr:          RIPE NCC ASN block\n",
@@ -231,6 +274,6 @@ mod tests {
             ],
         ];
 
-        assert_eq!(parse_rpsl(rpsl), expected);
+        assert_eq!(parse_rpsl_server_response(rpsl), expected);
     }
 }
