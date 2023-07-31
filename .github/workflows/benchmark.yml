@@ -1,0 +1,76 @@
+---
+name: Benchmarks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ github.ref_name }}-${{ github.event.pull_request.number
+    || github.sha }}
+  cancel-in-progress: true
+
+env:
+  COLUMNS: 120
+  HYPERFINE_VERSION: "1.17.0"
+
+jobs:
+  self:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: install hyperfine
+        run: >-
+          wget https://github.com/sharkdp/hyperfine/releases/download/v${{ env.HYPERFINE_VERSION }}/hyperfine_${{ env.HYPERFINE_VERSION }}_amd64.deb
+          && sudo dpkg -i hyperfine_${{ env.HYPERFINE_VERSION }}_amd64.deb
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@v2
+      - name: run benchmark
+        run: ./run.sh
+        working-directory: doc/benchmark/self
+  irrdnet_irrd:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: install hyperfine
+        run: >-
+          wget https://github.com/sharkdp/hyperfine/releases/download/v${{ env.HYPERFINE_VERSION }}/hyperfine_${{ env.HYPERFINE_VERSION }}_amd64.deb
+          && sudo dpkg -i hyperfine_${{ env.HYPERFINE_VERSION }}_amd64.deb
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: run benchmark
+        run: ./run.sh
+        working-directory: doc/benchmark/irrdnet_irrd
+  RPSL-Parser:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: install hyperfine
+        run: >-
+          wget https://github.com/sharkdp/hyperfine/releases/download/v${{ env.HYPERFINE_VERSION }}/hyperfine_${{ env.HYPERFINE_VERSION }}_amd64.deb
+          && sudo dpkg -i hyperfine_${{ env.HYPERFINE_VERSION }}_amd64.deb
+      - name: run benchmark
+        run: ./run.sh
+        working-directory: doc/benchmark/RPSL-Parser
+  whois-rpsl:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: install hyperfine
+        run: >-
+          wget https://github.com/sharkdp/hyperfine/releases/download/v${{ env.HYPERFINE_VERSION }}/hyperfine_${{ env.HYPERFINE_VERSION }}_amd64.deb
+          && sudo dpkg -i hyperfine_${{ env.HYPERFINE_VERSION }}_amd64.deb
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: run benchmark
+        run: ./run.sh
+        working-directory: doc/benchmark/whois-rpsl
