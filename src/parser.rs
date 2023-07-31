@@ -62,12 +62,14 @@ fn rpsl_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
     Ok((remaining, (name, values)))
 }
 
+/// Parse a string containing an RPSL object into a vector of it's attributes.
 pub fn parse_rpsl_object(rpsl: &str) -> Vec<(&str, Vec<&str>)> {
     let (_, object) =
         all_consuming(delimited(multispace0, many1(rpsl_attribute), multispace0))(rpsl).unwrap();
     object
 }
 
+/// Parse a string containing a whois server response into a vector of RPSL objects.
 pub fn parse_rpsl_server_response(response: &str) -> Vec<Vec<(&str, Vec<&str>)>> {
     let rpsl_object = many1(rpsl_attribute);
     let empty_or_server_info_line = alt((server_info_line, tag("\n")));
