@@ -92,9 +92,10 @@ mod component {
         }
     }
 
-    // An info line sent by the whois server. Starts with the "%" character and extends until the end of the line.
-    // The value may be prefixed by whitespace and contain any unicode character excluding control characters.
-    pub fn server_info_line(input: &str) -> IResult<&str, &str> {
+    // A response code or message sent by the whois server.
+    // Starts with the "%" character and extends until the end of the line.
+    // In contrast to RPSL, characters are not limited to ASCII.
+    pub fn server_message(input: &str) -> IResult<&str, &str> {
         let (remaining, value) = delimited(
             tuple((tag("%"), space0)),
             take_while(|c: char| !c.is_control()),
@@ -127,13 +128,13 @@ mod component {
         use super::*;
 
         #[test]
-        fn valid_server_info_line() {
+        fn valid_server_message() {
             assert_eq!(
-                server_info_line("% Note: this output has been filtered.\n"),
+                server_message("% Note: this output has been filtered.\n"),
                 Ok(("", "Note: this output has been filtered."))
             );
             assert_eq!(
-                server_info_line(
+                server_message(
                     "%       To receive output for a database update, use the \"-B\" flag.\n"
                 ),
                 Ok((
@@ -142,7 +143,7 @@ mod component {
                 ))
             );
             assert_eq!(
-            server_info_line(
+            server_message(
                 "% This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)\n"
             ),
             Ok((
@@ -209,10 +210,10 @@ pub fn parse_rpsl_object(rpsl: &str) -> RpslObject {
 /// Parse a string containing a whois server response into a vector of RPSL objects.
 pub fn parse_rpsl_server_response(response: &str) -> RpslObjectCollection {
     let rpsl_object = many1(component::attribute);
-    let empty_or_server_info_line = alt((component::server_info_line, tag("\n")));
+    let empty_or_server_message = alt((component::server_message, tag("\n")));
 
     let (_, objects) = all_consuming(terminated(
-        many1(preceded(many0(empty_or_server_info_line), rpsl_object)),
+        many1(preceded(many0(empty_or_server_message), rpsl_object)),
         tag("\n"),
     ))(response)
     .unwrap();
