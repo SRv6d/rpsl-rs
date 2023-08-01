@@ -67,7 +67,7 @@ fn rpsl_attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
 pub fn parse_rpsl_object(rpsl: &str) -> RpslObject {
     let (_, object) =
         all_consuming(delimited(multispace0, many1(rpsl_attribute), multispace0))(rpsl).unwrap();
-    RpslObject::from_vec(object)
+    RpslObject::from(object)
 }
 
 /// Parse a string containing a whois server response into a vector of RPSL objects.
@@ -81,7 +81,7 @@ pub fn parse_rpsl_server_response(response: &str) -> RpslObjectCollection {
     ))(response)
     .unwrap();
 
-    RpslObjectCollection::from_vec(objects)
+    RpslObjectCollection::from(objects)
 }
 
 #[cfg(test)]

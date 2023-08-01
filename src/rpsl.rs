@@ -12,6 +12,20 @@ impl RpslAttribute {
     }
 }
 
+// Create an RPSL attribute from a tuple of slices parsed from RPSL text.
+impl From<(&str, Vec<&str>)> for RpslAttribute {
+    fn from(attribute_slice: (&str, Vec<&str>)) -> Self {
+        let (name, values) = attribute_slice;
+
+        let attribute = RpslAttribute {
+            name: name.to_string(),
+            values: values.iter().map(|v| Some(v.to_string())).collect(),
+        };
+
+        attribute
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct RpslObject(Vec<RpslAttribute>);
 
@@ -19,21 +33,18 @@ impl RpslObject {
     pub fn new(attributes: Vec<RpslAttribute>) -> Self {
         RpslObject(attributes)
     }
+}
 
-    // Create a RPSL object from a vector of tuples containing the attribute name and values.
-    pub fn from_vec(attributes: Vec<(&str, Vec<&str>)>) -> Self {
-        let mut converted: Vec<RpslAttribute> = Vec::with_capacity(attributes.len());
+// Create an RPSL object from a vector of slices parsed from RPSL text.
+impl From<Vec<(&str, Vec<&str>)>> for RpslObject {
+    fn from(attribute_slices: Vec<(&str, Vec<&str>)>) -> Self {
+        let mut attributes: Vec<RpslAttribute> = Vec::with_capacity(attribute_slices.len());
 
-        for (name, values) in attributes {
-            let attribute = RpslAttribute {
-                name: name.to_string(),
-                values: values.iter().map(|v| Some(v.to_string())).collect(),
-            };
-
-            converted.push(attribute);
+        for attribute_slice in attribute_slices {
+            attributes.push(RpslAttribute::from(attribute_slice));
         }
 
-        RpslObject(converted)
+        RpslObject(attributes)
     }
 }
 
@@ -44,14 +55,17 @@ impl RpslObjectCollection {
     pub fn new(objects: Vec<RpslObject>) -> Self {
         RpslObjectCollection(objects)
     }
+}
 
-    // Create an RPSL object collection from a vector of vectors of tuples containing the attribute name and values.
-    pub fn from_vec(objects: Vec<Vec<(&str, Vec<&str>)>>) -> RpslObjectCollection {
-        let mut converted: Vec<RpslObject> = Vec::with_capacity(objects.len());
+// Create an RPSL object collection from a vector of slices parsed from RPSL text.
+impl From<Vec<Vec<(&str, Vec<&str>)>>> for RpslObjectCollection {
+    fn from(object_slices: Vec<Vec<(&str, Vec<&str>)>>) -> Self {
+        let mut objects: Vec<RpslObject> = Vec::with_capacity(object_slices.len());
 
-        for object in objects {
-            converted.push(RpslObject::from_vec(object));
+        for object in object_slices {
+            objects.push(RpslObject::from(object));
         }
-        RpslObjectCollection(converted)
+
+        RpslObjectCollection(objects)
     }
 }
