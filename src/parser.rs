@@ -194,6 +194,8 @@ mod tests {
         let rpsl = concat!(
             "\n",
             "role:           Twelve99 Routing Registry\n",
+            "remarks:\n",
+            "remarks:        This is a remark.\n",
             "address:        Arelion Sweden AB\n",
             "address:        Evenemangsgatan 2C\n",
             "address:        SE-169 79 SOLNA\n",
@@ -212,6 +214,11 @@ mod tests {
             RpslAttribute::new(
                 "role".to_string(),
                 vec![Some("Twelve99 Routing Registry".to_string())],
+            ),
+            RpslAttribute::new("remarks".to_string(), vec![None]),
+            RpslAttribute::new(
+                "remarks".to_string(),
+                vec![Some("This is a remark.".to_string())],
             ),
             RpslAttribute::new(
                 "address".to_string(),
