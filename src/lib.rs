@@ -5,3 +5,4 @@
 
 pub use parser::parse_rpsl_object;
 mod parser;
+mod rpsl;
