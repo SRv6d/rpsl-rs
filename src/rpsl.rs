@@ -1,6 +1,6 @@
 use std::option::Option;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct RpslAttribute {
     pub name: String,
     pub values: Vec<Option<String>>,
@@ -12,7 +12,7 @@ impl RpslAttribute {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct RpslObject(Vec<RpslAttribute>);
 
 impl RpslObject {
@@ -37,7 +37,7 @@ impl RpslObject {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct RpslObjectCollection(Vec<RpslObject>);
 
 impl RpslObjectCollection {
