@@ -1,4 +1,4 @@
-use super::rpsl::{RpslObject, RpslObjectCollection};
+use super::rpsl::{RpslAttribute, RpslObject, RpslObjectCollection};
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_while, take_while1},
@@ -208,19 +208,46 @@ mod tests {
             "\n",
             "\n",
         );
-        let expected = RpslObject::from_vec(vec![
-            ("role", vec!["Twelve99 Routing Registry"]),
-            ("address", vec!["Arelion Sweden AB"]),
-            ("address", vec!["Evenemangsgatan 2C"]),
-            ("address", vec!["SE-169 79 SOLNA"]),
-            ("address", vec!["Sweden"]),
-            ("e-mail", vec!["routing-registry@99.net"]),
-            ("nic-hdl", vec!["TRR2-RIPE"]),
-            ("notify", vec!["routing-registry@99.net"]),
-            ("mnt-by", vec!["Twelve99-IRR-MNT"]),
-            ("created", vec!["2002-05-27T15:05:16Z"]),
-            ("last-modified", vec!["2023-01-30T11:49:56Z"]),
-            ("source", vec!["RIPE"]),
+        let expected = RpslObject::new(vec![
+            RpslAttribute::new(
+                "role".to_string(),
+                vec![Some("Twelve99 Routing Registry".to_string())],
+            ),
+            RpslAttribute::new(
+                "address".to_string(),
+                vec![Some("Arelion Sweden AB".to_string())],
+            ),
+            RpslAttribute::new(
+                "address".to_string(),
+                vec![Some("Evenemangsgatan 2C".to_string())],
+            ),
+            RpslAttribute::new(
+                "address".to_string(),
+                vec![Some("SE-169 79 SOLNA".to_string())],
+            ),
+            RpslAttribute::new("address".to_string(), vec![Some("Sweden".to_string())]),
+            RpslAttribute::new(
+                "e-mail".to_string(),
+                vec![Some("routing-registry@99.net".to_string())],
+            ),
+            RpslAttribute::new("nic-hdl".to_string(), vec![Some("TRR2-RIPE".to_string())]),
+            RpslAttribute::new(
+                "notify".to_string(),
+                vec![Some("routing-registry@99.net".to_string())],
+            ),
+            RpslAttribute::new(
+                "mnt-by".to_string(),
+                vec![Some("Twelve99-IRR-MNT".to_string())],
+            ),
+            RpslAttribute::new(
+                "created".to_string(),
+                vec![Some("2002-05-27T15:05:16Z".to_string())],
+            ),
+            RpslAttribute::new(
+                "last-modified".to_string(),
+                vec![Some("2023-01-30T11:49:56Z".to_string())],
+            ),
+            RpslAttribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
         ]);
 
         assert_eq!(parse_rpsl_object(rpsl), expected);
@@ -250,31 +277,55 @@ mod tests {
             "org-name:       Init7 (Switzerland) Ltd.\n",
             "\n"
         );
-        let expected = RpslObjectCollection::from_vec(vec![
-            vec![
-                ("as-block", vec!["AS12557 - AS13223"]),
-                ("descr", vec!["RIPE NCC ASN block"]),
-                (
-                    "remarks",
-                    vec![
-                        "These AS Numbers are assigned to network operators in the RIPE NCC service region."
-                    ]
+        let expected = RpslObjectCollection::new(vec![
+            RpslObject::new(vec![
+                RpslAttribute::new(
+                    "as-block".to_string(),
+                    vec![Some("AS12557 - AS13223".to_string())],
                 ),
-                ("mnt-by", vec!["RIPE-NCC-HM-MNT"]),
-                ("created", vec!["2018-11-22T15:27:24Z"]),
-                ("last-modified", vec!["2018-11-22T15:27:24Z"]),
-                ("source", vec!["RIPE"]),
-            ],
-            vec![
-                ("aut-num", vec!["AS13030"]),
-                ("as-name", vec!["INIT7"]),
-                ("org", vec!["ORG-ISA1-RIPE"]),
-                ("remarks", vec!["Init7 Global Backbone"]),
-            ],
-            vec![
-                ("organisation", vec!["ORG-ISA1-RIPE"]),
-                ("org-name", vec!["Init7 (Switzerland) Ltd."]),
-            ],
+                RpslAttribute::new(
+                    "descr".to_string(),
+                    vec![Some("RIPE NCC ASN block".to_string())],
+                ),
+                RpslAttribute::new(
+                    "remarks".to_string(),
+                    vec![Some(
+                        "These AS Numbers are assigned to network operators in the RIPE NCC service region.".to_string(),
+                    )],
+                ),
+                RpslAttribute::new(
+                    "mnt-by".to_string(),
+                    vec![Some("RIPE-NCC-HM-MNT".to_string())],
+                ),
+                RpslAttribute::new(
+                    "created".to_string(),
+                    vec![Some("2018-11-22T15:27:24Z".to_string())],
+                ),
+                RpslAttribute::new(
+                    "last-modified".to_string(),
+                    vec![Some("2018-11-22T15:27:24Z".to_string())],
+                ),
+                RpslAttribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
+            ]),
+            RpslObject::new(vec![
+                RpslAttribute::new("aut-num".to_string(), vec![Some("AS13030".to_string())]),
+                RpslAttribute::new("as-name".to_string(), vec![Some("INIT7".to_string())]),
+                RpslAttribute::new("org".to_string(), vec![Some("ORG-ISA1-RIPE".to_string())]),
+                RpslAttribute::new(
+                    "remarks".to_string(),
+                    vec![Some("Init7 Global Backbone".to_string())],
+                ),
+            ]),
+            RpslObject::new(vec![
+                RpslAttribute::new(
+                    "organisation".to_string(),
+                    vec![Some("ORG-ISA1-RIPE".to_string())],
+                ),
+                RpslAttribute::new(
+                    "org-name".to_string(),
+                    vec![Some("Init7 (Switzerland) Ltd.".to_string())],
+                ),
+            ]),
         ]);
 
         assert_eq!(parse_rpsl_server_response(rpsl), expected);
