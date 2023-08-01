@@ -1,23 +1,43 @@
 use std::option::Option;
 
-#[derive(Debug)]
-pub enum RpslAttribute {
-    SingleValue,
-    MultiValue,
-}
-
-#[derive(Debug)]
-struct SingleValue {
-    name: String,
-    value: Option<String>,
-}
-
-#[derive(Debug)]
-struct MultiValue {
+#[derive(Debug, PartialEq)]
+struct RpslAttribute {
     name: String,
     values: Vec<Option<String>>,
 }
 
-pub type RpslObject = Vec<RpslAttribute>;
+#[derive(Debug, PartialEq)]
+pub struct RpslObject(Vec<RpslAttribute>);
 
-pub type RpslObjectCollection = Vec<RpslObject>;
+impl RpslObject {
+    // Create a RPSL object from a vector of tuples containing the attribute name and values.
+    pub fn from_vec(attributes: Vec<(&str, Vec<&str>)>) -> Self {
+        let mut converted: Vec<RpslAttribute> = Vec::with_capacity(attributes.len());
+
+        for (name, values) in attributes {
+            let attribute = RpslAttribute {
+                name: name.to_string(),
+                values: values.iter().map(|v| Some(v.to_string())).collect(),
+            };
+
+            converted.push(attribute);
+        }
+
+        RpslObject(converted)
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct RpslObjectCollection(Vec<RpslObject>);
+
+impl RpslObjectCollection {
+    // Create an RPSL object collection from a vector of vectors of tuples containing the attribute name and values.
+    pub fn from_vec(objects: Vec<Vec<(&str, Vec<&str>)>>) -> RpslObjectCollection {
+        let mut converted: Vec<RpslObject> = Vec::with_capacity(objects.len());
+
+        for object in objects {
+            converted.push(RpslObject::from_vec(object));
+        }
+        RpslObjectCollection(converted)
+    }
+}
