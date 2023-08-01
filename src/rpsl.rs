@@ -13,16 +13,23 @@ impl RpslAttribute {
 }
 
 // Create an RPSL attribute from a tuple of slices parsed from RPSL text.
+// An empty value or one containing only whitespace is converted to None.
 impl From<(&str, Vec<&str>)> for RpslAttribute {
     fn from(attribute_slice: (&str, Vec<&str>)) -> Self {
         let (name, values) = attribute_slice;
 
-        let attribute = RpslAttribute {
+        RpslAttribute {
             name: name.to_string(),
-            values: values.iter().map(|v| Some(v.to_string())).collect(),
-        };
-
-        attribute
+            values: values
+                .iter()
+                .map(|v| {
+                    if v.trim().is_empty() {
+                        return None;
+                    }
+                    Some(v.to_string())
+                })
+                .collect(),
+        }
     }
 }
 
