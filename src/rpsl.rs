@@ -26,7 +26,7 @@ impl From<(&str, Vec<&str>)> for RpslAttribute {
                     if v.trim().is_empty() {
                         return None;
                     }
-                    Some(v.to_string())
+                    Some((*v).to_string())
                 })
                 .collect(),
         }
