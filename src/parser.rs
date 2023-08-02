@@ -153,7 +153,7 @@ mod component {
             assert_eq!(
                 attribute("import:         from AS12 accept AS12\n"),
                 Ok(("", ("import", vec!["from AS12 accept AS12"])))
-            )
+            );
         }
 
         #[test]
