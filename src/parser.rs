@@ -194,6 +194,8 @@ use nom::{
 };
 
 /// Parse a string containing an RPSL object into a vector of it's attributes.
+/// # Errors
+/// Returns nom `Error` if any error occurs during parsing.
 pub fn parse_rpsl_object(rpsl: &str) -> Result<RpslObject, Error<&str>> {
     let (_, object) = all_consuming(delimited(
         multispace0,
@@ -206,6 +208,8 @@ pub fn parse_rpsl_object(rpsl: &str) -> Result<RpslObject, Error<&str>> {
 }
 
 /// Parse a string containing a whois server response into a vector of RPSL objects.
+/// # Errors
+/// Returns nom `Error` if any error occurs during parsing.
 pub fn parse_rpsl_server_response(response: &str) -> Result<RpslObjectCollection, Error<&str>> {
     let rpsl_object = many1(component::attribute);
     let empty_or_server_message = alt((component::server_message, tag("\n")));
