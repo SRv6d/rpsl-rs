@@ -1,20 +1,15 @@
 mod component {
 
     use nom::{
-        bytes::complete::{tag, take_while},
-        character::complete::space0,
+        bytes::complete::{tag, take_while, take_while1},
+        character::complete::{one_of, space0},
         multi::many0,
         sequence::{delimited, separated_pair, terminated, tuple},
         IResult,
     };
 
     mod subcomponent {
-        use nom::{
-            bytes::complete::{tag, take_while, take_while1},
-            character::complete::{one_of, space0},
-            sequence::tuple,
-            IResult,
-        };
+        use super::*;
 
         // An ASCII sequence of letters, digits and the characters "-", "_".
         // The first character must be a letter, while the last character may be a letter or a digit.
