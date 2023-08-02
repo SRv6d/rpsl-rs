@@ -9,7 +9,7 @@ mod component {
     };
 
     mod subcomponent {
-        use super::*;
+        use super::{one_of, space0, tag, take_while, take_while1, tuple, IResult};
 
         // An ASCII sequence of letters, digits and the characters "-", "_".
         // The first character must be a letter, while the last character may be a letter or a digit.
@@ -153,7 +153,7 @@ mod component {
             assert_eq!(
                 attribute("import:         from AS12 accept AS12\n"),
                 Ok(("", ("import", vec!["from AS12 accept AS12"])))
-            )
+            );
         }
 
         #[test]
@@ -181,7 +181,7 @@ mod component {
     }
 }
 
-use super::rpsl::{RpslObject, RpslObjectCollection};
+use super::rpsl;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -196,7 +196,7 @@ use nom::{
 /// Parse a string containing an RPSL object into a vector of it's attributes.
 /// # Errors
 /// Returns nom `Error` if any error occurs during parsing.
-pub fn parse_rpsl_object(rpsl: &str) -> Result<RpslObject, Error<&str>> {
+pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
     let (_, object) = all_consuming(delimited(
         multispace0,
         many1(component::attribute),
@@ -204,13 +204,13 @@ pub fn parse_rpsl_object(rpsl: &str) -> Result<RpslObject, Error<&str>> {
     ))(rpsl)
     .finish()?;
 
-    Ok(RpslObject::from(object))
+    Ok(rpsl::Object::from(object))
 }
 
 /// Parse a string containing a whois server response into a vector of RPSL objects.
 /// # Errors
 /// Returns nom `Error` if any error occurs during parsing.
-pub fn parse_rpsl_server_response(response: &str) -> Result<RpslObjectCollection, Error<&str>> {
+pub fn parse_rpsl_server_response(response: &str) -> Result<rpsl::ObjectCollection, Error<&str>> {
     let rpsl_object = many1(component::attribute);
     let empty_or_server_message = alt((component::server_message, tag("\n")));
 
@@ -220,14 +220,13 @@ pub fn parse_rpsl_server_response(response: &str) -> Result<RpslObjectCollection
     ))(response)
     .finish()?;
 
-    Ok(RpslObjectCollection::from(objects))
+    Ok(rpsl::ObjectCollection::from(objects))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    use crate::rpsl::RpslAttribute;
+    use crate::rpsl;
 
     #[test]
     fn parse_valid_rpsl_object() {
@@ -250,51 +249,51 @@ mod tests {
             "\n",
             "\n",
         );
-        let expected = RpslObject::new(vec![
-            RpslAttribute::new(
+        let expected = rpsl::Object::new(vec![
+            rpsl::Attribute::new(
                 "role".to_string(),
                 vec![Some("Twelve99 Routing Registry".to_string())],
             ),
-            RpslAttribute::new("remarks".to_string(), vec![None]),
-            RpslAttribute::new(
+            rpsl::Attribute::new("remarks".to_string(), vec![None]),
+            rpsl::Attribute::new(
                 "remarks".to_string(),
                 vec![Some("This is a remark.".to_string())],
             ),
-            RpslAttribute::new(
+            rpsl::Attribute::new(
                 "address".to_string(),
                 vec![Some("Arelion Sweden AB".to_string())],
             ),
-            RpslAttribute::new(
+            rpsl::Attribute::new(
                 "address".to_string(),
                 vec![Some("Evenemangsgatan 2C".to_string())],
             ),
-            RpslAttribute::new(
+            rpsl::Attribute::new(
                 "address".to_string(),
                 vec![Some("SE-169 79 SOLNA".to_string())],
             ),
-            RpslAttribute::new("address".to_string(), vec![Some("Sweden".to_string())]),
-            RpslAttribute::new(
+            rpsl::Attribute::new("address".to_string(), vec![Some("Sweden".to_string())]),
+            rpsl::Attribute::new(
                 "e-mail".to_string(),
                 vec![Some("routing-registry@99.net".to_string())],
             ),
-            RpslAttribute::new("nic-hdl".to_string(), vec![Some("TRR2-RIPE".to_string())]),
-            RpslAttribute::new(
+            rpsl::Attribute::new("nic-hdl".to_string(), vec![Some("TRR2-RIPE".to_string())]),
+            rpsl::Attribute::new(
                 "notify".to_string(),
                 vec![Some("routing-registry@99.net".to_string())],
             ),
-            RpslAttribute::new(
+            rpsl::Attribute::new(
                 "mnt-by".to_string(),
                 vec![Some("Twelve99-IRR-MNT".to_string())],
             ),
-            RpslAttribute::new(
+            rpsl::Attribute::new(
                 "created".to_string(),
                 vec![Some("2002-05-27T15:05:16Z".to_string())],
             ),
-            RpslAttribute::new(
+            rpsl::Attribute::new(
                 "last-modified".to_string(),
                 vec![Some("2023-01-30T11:49:56Z".to_string())],
             ),
-            RpslAttribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
+            rpsl::Attribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
         ]);
 
         assert_eq!(parse_rpsl_object(rpsl).unwrap(), expected);
@@ -324,51 +323,51 @@ mod tests {
             "org-name:       Init7 (Switzerland) Ltd.\n",
             "\n"
         );
-        let expected = RpslObjectCollection::new(vec![
-            RpslObject::new(vec![
-                RpslAttribute::new(
+        let expected = rpsl::ObjectCollection::new(vec![
+            rpsl::Object::new(vec![
+                rpsl::Attribute::new(
                     "as-block".to_string(),
                     vec![Some("AS12557 - AS13223".to_string())],
                 ),
-                RpslAttribute::new(
+                rpsl::Attribute::new(
                     "descr".to_string(),
                     vec![Some("RIPE NCC ASN block".to_string())],
                 ),
-                RpslAttribute::new(
+                rpsl::Attribute::new(
                     "remarks".to_string(),
                     vec![Some(
                         "These AS Numbers are assigned to network operators in the RIPE NCC service region.".to_string(),
                     )],
                 ),
-                RpslAttribute::new(
+                rpsl::Attribute::new(
                     "mnt-by".to_string(),
                     vec![Some("RIPE-NCC-HM-MNT".to_string())],
                 ),
-                RpslAttribute::new(
+                rpsl::Attribute::new(
                     "created".to_string(),
                     vec![Some("2018-11-22T15:27:24Z".to_string())],
                 ),
-                RpslAttribute::new(
+                rpsl::Attribute::new(
                     "last-modified".to_string(),
                     vec![Some("2018-11-22T15:27:24Z".to_string())],
                 ),
-                RpslAttribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
+                rpsl::Attribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
             ]),
-            RpslObject::new(vec![
-                RpslAttribute::new("aut-num".to_string(), vec![Some("AS13030".to_string())]),
-                RpslAttribute::new("as-name".to_string(), vec![Some("INIT7".to_string())]),
-                RpslAttribute::new("org".to_string(), vec![Some("ORG-ISA1-RIPE".to_string())]),
-                RpslAttribute::new(
+            rpsl::Object::new(vec![
+                rpsl::Attribute::new("aut-num".to_string(), vec![Some("AS13030".to_string())]),
+                rpsl::Attribute::new("as-name".to_string(), vec![Some("INIT7".to_string())]),
+                rpsl::Attribute::new("org".to_string(), vec![Some("ORG-ISA1-RIPE".to_string())]),
+                rpsl::Attribute::new(
                     "remarks".to_string(),
                     vec![Some("Init7 Global Backbone".to_string())],
                 ),
             ]),
-            RpslObject::new(vec![
-                RpslAttribute::new(
+            rpsl::Object::new(vec![
+                rpsl::Attribute::new(
                     "organisation".to_string(),
                     vec![Some("ORG-ISA1-RIPE".to_string())],
                 ),
-                RpslAttribute::new(
+                rpsl::Attribute::new(
                     "org-name".to_string(),
                     vec![Some("Init7 (Switzerland) Ltd.".to_string())],
                 ),
