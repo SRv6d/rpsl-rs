@@ -187,23 +187,26 @@ use nom::{
     bytes::complete::tag,
     character::complete::multispace0,
     combinator::all_consuming,
+    error::Error,
     multi::{many0, many1},
     sequence::{delimited, preceded, terminated},
+    Finish,
 };
 
 /// Parse a string containing an RPSL object into a vector of it's attributes.
-pub fn parse_rpsl_object(rpsl: &str) -> RpslObject {
+pub fn parse_rpsl_object(rpsl: &str) -> Result<RpslObject, Error<&str>> {
     let (_, object) = all_consuming(delimited(
         multispace0,
         many1(component::attribute),
         multispace0,
     ))(rpsl)
-    .unwrap();
-    RpslObject::from(object)
+    .finish()?;
+
+    Ok(RpslObject::from(object))
 }
 
 /// Parse a string containing a whois server response into a vector of RPSL objects.
-pub fn parse_rpsl_server_response(response: &str) -> RpslObjectCollection {
+pub fn parse_rpsl_server_response(response: &str) -> Result<RpslObjectCollection, Error<&str>> {
     let rpsl_object = many1(component::attribute);
     let empty_or_server_message = alt((component::server_message, tag("\n")));
 
@@ -211,9 +214,9 @@ pub fn parse_rpsl_server_response(response: &str) -> RpslObjectCollection {
         many1(preceded(many0(empty_or_server_message), rpsl_object)),
         tag("\n"),
     ))(response)
-    .unwrap();
+    .finish()?;
 
-    RpslObjectCollection::from(objects)
+    Ok(RpslObjectCollection::from(objects))
 }
 
 #[cfg(test)]
@@ -290,7 +293,7 @@ mod tests {
             RpslAttribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
         ]);
 
-        assert_eq!(parse_rpsl_object(rpsl), expected);
+        assert_eq!(parse_rpsl_object(rpsl).unwrap(), expected);
     }
 
     #[test]
@@ -368,6 +371,6 @@ mod tests {
             ]),
         ]);
 
-        assert_eq!(parse_rpsl_server_response(rpsl), expected);
+        assert_eq!(parse_rpsl_server_response(rpsl).unwrap(), expected);
     }
 }
