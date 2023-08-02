@@ -9,7 +9,7 @@ mod component {
     };
 
     mod subcomponent {
-        use super::*;
+        use super::{one_of, space0, tag, take_while, take_while1, tuple, IResult};
 
         // An ASCII sequence of letters, digits and the characters "-", "_".
         // The first character must be a letter, while the last character may be a letter or a digit.
