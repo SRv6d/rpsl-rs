@@ -42,6 +42,15 @@ impl Object {
     }
 }
 
+impl IntoIterator for Object {
+    type Item = Attribute;
+    type IntoIter = std::vec::IntoIter<Attribute>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
 // Create an RPSL object from a vector of slices parsed from RPSL text.
 impl From<Vec<(&str, Vec<&str>)>> for Object {
     fn from(attribute_slices: Vec<(&str, Vec<&str>)>) -> Self {
@@ -61,6 +70,15 @@ pub struct ObjectCollection(Vec<Object>);
 impl ObjectCollection {
     pub fn new(objects: Vec<Object>) -> Self {
         ObjectCollection(objects)
+    }
+}
+
+impl IntoIterator for ObjectCollection {
+    type Item = Object;
+    type IntoIter = std::vec::IntoIter<Object>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 
