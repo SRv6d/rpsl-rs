@@ -1,14 +1,29 @@
+use super::parser;
 use pyo3::prelude::*;
 
-/// Formats the sum of two numbers as string.
+type PyRPSLAtrribute = (String, Vec<Option<String>>);
+type PyRPSLObject = Vec<PyRPSLAtrribute>;
+
+pyo3::create_exception!(rpsl_parser, RPSLParseError, pyo3::exceptions::PyException);
+
 #[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
+fn parse_rpsl_object(rpsl: String, _py: Python) -> PyResult<PyObject> {
+    match parser::parse_rpsl_object(&rpsl) {
+        Err(_) => Err(RPSLParseError::new_err("Failed to parse RPSL object.")),
+        Ok(parsed) => {
+            let object: PyRPSLObject = parsed
+                .into_iter()
+                .map(|attribute| (attribute.name, attribute.values))
+                .collect();
+
+            Ok(object.into_py(_py))
+        }
+    }
 }
 
-/// A Python module implemented in Rust.
 #[pymodule]
 fn rpsl_parser(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+    m.add("RPSLParseError", _py.get_type::<RPSLParseError>())?;
+    m.add_function(wrap_pyfunction!(parse_rpsl_object, m)?)?;
     Ok(())
 }
