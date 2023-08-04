@@ -1,4 +1,13 @@
 {
-  "name": "Rust",
-  "image": "mcr.microsoft.com/devcontainers/rust"
+  "name": "Rust & Python",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  "features": {
+    "ghcr.io/devcontainers/features/rust:1": {},
+    "ghcr.io/devcontainers/features/python:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python", "charliermarsh.ruff"]
+    }
+  }
 }
