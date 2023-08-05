@@ -1,8 +1,16 @@
-#!/usr/bin/env perl -w
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use rpsl_parser;
 
-use RPSL::Parser;
+pub fn criterion_benchmark(c: &mut Criterion) {
+    c.bench_function("parse AS3257", |b| {
+        b.iter(|| rpsl_parser::parse_rpsl_object(black_box(AS3257)))
+    });
+}
 
-my $AS3257 = "aut-num:        AS3257
+criterion_group!(benches, criterion_benchmark);
+criterion_main!(benches);
+
+const AS3257: &str = r#"aut-num:        AS3257
 as-name:        GTT-BACKBONE
 descr:          GTT
 org:            ORG-GCI2-RIPE
@@ -9569,6 +9577,4 @@ mnt-by:         AS3257-ROUTE-MNT
 created:        2002-09-20T10:45:34Z
 last-modified:  2023-07-21T10:03:34Z
 source:         RIPE
-";
-
-RPSL::Parser->parse( $AS3257 );
+"#;

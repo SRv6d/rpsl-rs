@@ -4,20 +4,19 @@ Benchmarks comparing performance to other RPSL parsers.
 
 ## Results
 
-| Parser            | Mean               | Min      | Max      |
-| ----------------- | ------------------ | -------- | -------- |
-| **[rpsl-parser]** | 3.1 ms ± 0.1 ms    | 3.0 ms   | 5.4 ms   |
-| [RPSL::Parser]    | 144.3 ms ± 0.6 ms  | 143.2 ms | 145.1 ms |
-| [irrdnet/irrd]    | 183.0 ms ± 0.7 ms  | 182.1 ms | 184.4 ms |
-| [RIPE-NCC/whois]  | 226.6 ms ± 11.9 ms | 208.7 ms | 245.1 ms |
+| Parser            | Mean              | Min       | Max       |
+| ----------------- | ----------------- | --------- | --------- |
+| **[rpsl-parser]** | 1.86 ms           | 1.8642 ms | 1.8693 ms |
+| [RPSL::Parser]    | 61.8 ms ± 2.5 ms  | 60.1 ms   | 74.7 ms   |
+| [irrdnet/irrd]    | 98.6 ms ± 3.4 ms  | 91.2 ms   | 110.9 ms  |
+| [RIPE-NCC/whois]  | 114.7 ms ± 6.3 ms | 106.5 ms  | 124.6 ms  |
 
-_Parsing of the AS3257 aut-num object._
-
-![chart](chart.svg)
+_Parsing of the AS3257 aut-num object on a 2022 M1 Max._
 
 ## Methology
 
-For each benchmarked parser, a small executable is created in its native language that reads a file containing RPSL into memory, which is then passed to the parser. This executable is then benchmarked using [hyperfine].
+For each benchmarked parser, a small executable is created in its native language that parses the AS3257 aut-num object.
+With the exception of [RIPE-NCC/whois], the AS3257 object is included as a string literal. To benchmark [RIPE-NCC/whois], the AS3257 object has to be read from a file since Java limits the length of string literals.
 
 ## Running Benchmarks
 
