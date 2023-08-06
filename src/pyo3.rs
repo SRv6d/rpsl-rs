@@ -7,8 +7,8 @@ type PyRPSLObject = Vec<PyRPSLAtrribute>;
 pyo3::create_exception!(rpsl_parser, RPSLParseError, pyo3::exceptions::PyException);
 
 #[pyfunction]
-fn parse_rpsl_object(rpsl: String, _py: Python) -> PyResult<PyObject> {
-    match parser::parse_rpsl_object(&rpsl) {
+fn parse_rpsl_object(rpsl: &str, _py: Python) -> PyResult<PyObject> {
+    match parser::parse_rpsl_object(rpsl) {
         Err(_) => Err(RPSLParseError::new_err("Failed to parse RPSL object.")),
         Ok(parsed) => {
             let object: PyRPSLObject = parsed
