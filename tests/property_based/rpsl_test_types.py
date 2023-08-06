@@ -3,7 +3,7 @@
 from typing import NamedTuple
 
 
-class TestRpslAttributeSingleValue(NamedTuple):
+class RpslAttributeSingleValue(NamedTuple):
     """A RPSL attribute that has a single value.
 
     Represents a RPSL attribute containing a single value for testing purposes.
@@ -25,7 +25,7 @@ class TestRpslAttributeSingleValue(NamedTuple):
     value: str
 
 
-class TestRpslAttributeMultiValue(NamedTuple):
+class RpslAttributeMultiValue(NamedTuple):
     """A RPSL attribute that has multiple values.
 
     Represents a RPSL attribute containing multiple values for testing purposes.
@@ -49,7 +49,7 @@ class TestRpslAttributeMultiValue(NamedTuple):
     value: tuple[str | None, ...]
 
 
-class TestRpslAttributeNoneValue(NamedTuple):
+class RpslAttributeNoneValue(NamedTuple):
     """A RPSL attribute that has no value.
 
     Represents a RPSL attribute containing no value for testing purposes.
@@ -71,11 +71,11 @@ class TestRpslAttributeNoneValue(NamedTuple):
     value: None
 
 
-class TestRpslTextObject(
+class RpslTextObject(
     tuple[
-        TestRpslAttributeSingleValue
-        | TestRpslAttributeMultiValue
-        | TestRpslAttributeNoneValue,
+        RpslAttributeSingleValue
+        | RpslAttributeMultiValue
+        | RpslAttributeNoneValue,
         ...,
     ]
 ):
@@ -103,7 +103,7 @@ class TestRpslTextObject(
         return repr_
 
 
-class TestWhoisServerMessage(NamedTuple):
+class WhoisServerMessage(NamedTuple):
     """A whois server message.
 
     Example:
@@ -118,8 +118,8 @@ class TestWhoisServerMessage(NamedTuple):
     value: str
 
 
-class TestRpslWhoisServerResponse(
-    tuple[TestRpslTextObject | TestWhoisServerMessage, ...]
+class RpslWhoisServerResponse(
+    tuple[RpslTextObject | WhoisServerMessage, ...]
 ):
     """A whois server response.
 

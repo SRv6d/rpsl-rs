@@ -5,11 +5,11 @@ from functools import partial
 from hypothesis import assume, example, strategies
 
 from property_based.rpsl_test_types import (
-    TestRpslAttributeMultiValue,
-    TestRpslAttributeNoneValue,
-    TestRpslAttributeSingleValue,
-    TestRpslTextObject,
-    TestWhoisServerMessage,
+    RpslAttributeMultiValue,
+    RpslAttributeNoneValue,
+    RpslAttributeSingleValue,
+    RpslTextObject,
+    WhoisServerMessage,
 )
 
 ascii_characters = partial(strategies.characters, min_codepoint=0, max_codepoint=127)
@@ -82,15 +82,15 @@ def _rpsl_attribute_space_separator(draw: strategies.DrawFn) -> str:
 
 
 @strategies.composite
-@example(TestRpslAttributeSingleValue("role:   ACME CORP", "role", "ACME CORP"))
+@example(RpslAttributeSingleValue("role:   ACME CORP", "role", "ACME CORP"))
 @example(
-    TestRpslAttributeSingleValue(
+    RpslAttributeSingleValue(
         "descr:    Unaligned description", "descr", "Unaligned description"
     )
 )
 def rpsl_single_value_attribute(
     draw: strategies.DrawFn,
-) -> TestRpslAttributeSingleValue:
+) -> RpslAttributeSingleValue:
     """Single value RPSL attribute strategy.
 
     Creates a single property based RPSL attribute, consisting of a name and a value
@@ -110,11 +110,11 @@ def rpsl_single_value_attribute(
     spacing = draw(_rpsl_attribute_space_separator())
 
     line = f"{name}:{spacing}{value}"
-    return TestRpslAttributeSingleValue(line, name, value)
+    return RpslAttributeSingleValue(line, name, value)
 
 
 @strategies.composite
-def rpsl_none_value_attribute(draw: strategies.DrawFn) -> TestRpslAttributeNoneValue:
+def rpsl_none_value_attribute(draw: strategies.DrawFn) -> RpslAttributeNoneValue:
     """None value RPSL attribute strategy.
 
     Creates a single property based RPSL attribute, where the value
@@ -132,7 +132,7 @@ def rpsl_none_value_attribute(draw: strategies.DrawFn) -> TestRpslAttributeNoneV
     spacing = draw(_rpsl_attribute_space_separator())
 
     line = f"{name}:{spacing}{value}"
-    return TestRpslAttributeNoneValue(line, name, None)
+    return RpslAttributeNoneValue(line, name, None)
 
 
 MULTILINE_CONTINUATION_PREFIX = (
@@ -144,20 +144,20 @@ MULTILINE_CONTINUATION_PREFIX = (
 
 @strategies.composite
 @example(
-    TestRpslAttributeMultiValue(
+    RpslAttributeMultiValue(
         "address: Packet Street 6\n 128 Series of Tubes",
         "address",
         ("Packet Street 6", "128 Series of Tubes"),
     )
 )
 @example(
-    TestRpslAttributeMultiValue(
+    RpslAttributeMultiValue(
         "address: Packet Street 6\n+ 128 Series of Tubes",
         "address",
         ("Packet Street 6", "128 Series of Tubes"),
     )
 )
-def rpsl_multi_value_attribute(draw: strategies.DrawFn) -> TestRpslAttributeMultiValue:
+def rpsl_multi_value_attribute(draw: strategies.DrawFn) -> RpslAttributeMultiValue:
     """Multiple attribute RPSL line strategy.
 
     Creates a single property based RPSL attribute, consisting of a name and multiple
@@ -197,7 +197,7 @@ def rpsl_multi_value_attribute(draw: strategies.DrawFn) -> TestRpslAttributeMult
             spacing = draw(_rpsl_attribute_space_separator())
             text += prefix + spacing + value
 
-    return TestRpslAttributeMultiValue(
+    return RpslAttributeMultiValue(
         text,
         name,
         tuple((value if value and not value.isspace() else None) for value in values),
@@ -205,7 +205,7 @@ def rpsl_multi_value_attribute(draw: strategies.DrawFn) -> TestRpslAttributeMult
 
 
 @strategies.composite
-def rpsl_text_object(draw: strategies.DrawFn) -> TestRpslTextObject:
+def rpsl_text_object(draw: strategies.DrawFn) -> RpslTextObject:
     """RPSL text strategy.
 
     Creates RPSL text object that should represent any possible combination of
@@ -221,17 +221,17 @@ def rpsl_text_object(draw: strategies.DrawFn) -> TestRpslTextObject:
         )
     )
 
-    return TestRpslTextObject(lines)
+    return RpslTextObject(lines)
 
 
 @strategies.composite
 @example(
-    TestWhoisServerMessage(
+    WhoisServerMessage(
         "% This query was served by the RIPE Database Query Service version 1.106.1",
         "This query was served by the RIPE Database Query Service version 1.106.1",
     )
 )
-def whois_server_message(draw: strategies.DrawFn) -> TestWhoisServerMessage:
+def whois_server_message(draw: strategies.DrawFn) -> WhoisServerMessage:
     """Whois server message strategy.
 
     Creates a whois server message that consists of at least one non-control character.
@@ -244,4 +244,4 @@ def whois_server_message(draw: strategies.DrawFn) -> TestWhoisServerMessage:
             min_size=1,
         )
     )
-    return TestWhoisServerMessage(indicator + whitespace + value, value)
+    return WhoisServerMessage(indicator + whitespace + value, value)
