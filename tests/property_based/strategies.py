@@ -4,7 +4,7 @@ from functools import partial
 
 from hypothesis import assume, example, strategies
 
-from rpsl_test_types import (
+from property_based.rpsl_test_types import (
     TestRpslAttributeMultiValue,
     TestRpslAttributeNoneValue,
     TestRpslAttributeSingleValue,
