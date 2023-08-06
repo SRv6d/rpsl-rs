@@ -14,6 +14,7 @@ from property_based.rpsl_test_types import (
 
 ascii_characters = partial(strategies.characters, min_codepoint=0, max_codepoint=127)
 
+
 @strategies.composite
 def _rpsl_attribute_name(draw: strategies.DrawFn) -> str:
     """RPSL attribute name strategy.
@@ -23,14 +24,14 @@ def _rpsl_attribute_name(draw: strategies.DrawFn) -> str:
     hyphen "-"; the first character of a name must be a letter, and
     the last character of a name must be a letter or a digit.
 
-    Creates a string of ASCII characters including 
+    Creates a string of ASCII characters including
     letters, digits, underscore and hyphen.
     """
     return draw(
         strategies.text(
             alphabet=ascii_characters(
-                whitelist_categories=["Ll", "Lu", "Nd"], # letters and digits
-                whitelist_characters=["_", "-"]
+                whitelist_categories=["Ll", "Lu", "Nd"],  # letters and digits
+                whitelist_characters=["_", "-"],
             ),
             min_size=1,
         )
@@ -46,9 +47,7 @@ def _rpsl_attribute_value(draw: strategies.DrawFn) -> str:
     """
     value = draw(
         strategies.text(
-            alphabet=ascii_characters(
-                blacklist_categories=["Cc"]
-            ),
+            alphabet=ascii_characters(blacklist_categories=["Cc"]),
             min_size=1,
         )
     )

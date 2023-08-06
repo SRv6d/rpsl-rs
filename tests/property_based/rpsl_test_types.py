@@ -73,9 +73,7 @@ class RpslAttributeNoneValue(NamedTuple):
 
 class RpslTextObject(
     tuple[
-        RpslAttributeSingleValue
-        | RpslAttributeMultiValue
-        | RpslAttributeNoneValue,
+        RpslAttributeSingleValue | RpslAttributeMultiValue | RpslAttributeNoneValue,
         ...,
     ]
 ):
@@ -118,9 +116,7 @@ class WhoisServerMessage(NamedTuple):
     value: str
 
 
-class RpslWhoisServerResponse(
-    tuple[RpslTextObject | WhoisServerMessage, ...]
-):
+class RpslWhoisServerResponse(tuple[RpslTextObject | WhoisServerMessage, ...]):
     """A whois server response.
 
     Represents a text response from a whois server possibly containing

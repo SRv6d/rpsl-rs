@@ -1,13 +1,12 @@
 from typing import TypeAlias
 
-import pytest
 from hypothesis import given, settings
 from rpsl_parser import parse_rpsl_object
 
 from property_based import strategies
 from property_based.rpsl_test_types import (
-    RpslTextObject,
     RpslAttributeMultiValue,
+    RpslTextObject,
 )
 
 _RpslAttributes: TypeAlias = list[str]
