@@ -29,7 +29,7 @@ jobs:
         run: cargo clippy --all-targets --all-features
       - name: Format
         run: cargo fmt --all --check
-  test:
+  cargo-test:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
@@ -39,6 +39,23 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test
+  property-test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - uses: PyO3/maturin-action@v1
+        with:
+          rust-toolchain: stable
+          command: build
+          args: --release
+      - name: install dependencies
+        run: pip3 install pytest hypothesis .
+      - name: Test
+        run: pytest tests/property_based
   spellcheck:
     runs-on: ubuntu-22.04
     steps:
@@ -49,4 +66,4 @@ jobs:
       - run: pip3 install codespell
       - uses: codespell-project/codespell-problem-matcher@v1
       - name: check for typos
-        run: codespell src/ tests/ README.md -L crate
+        run: codespell src/ tests/ README.md
