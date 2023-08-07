@@ -30,7 +30,7 @@ println!("{:#?}", parsed);
 
 Outputs the following object:
 
-```rust
+```sh
 Object(
   [
     Attribute {
