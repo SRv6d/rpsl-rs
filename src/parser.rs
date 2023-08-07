@@ -193,9 +193,46 @@ use nom::{
     Finish,
 };
 
-/// Parse a string containing an RPSL object into a vector of it's attributes.
+/// Parse a string containing a RPSL object.
+///
 /// # Errors
 /// Returns nom `Error` if any error occurs during parsing.
+///
+/// # Examples
+/// ```
+/// use rpsl_parser::{parse_rpsl_object, rpsl};
+/// let role_acme = "
+/// role:        ACME Company
+/// address:     Packet Street 6
+/// address:     128 Series of Tubes
+/// address:     Internet
+/// email:       rpsl-parser@github.com
+/// nic-hdl:     RPSL1-RIPE
+/// source:      RIPE
+/// ";
+/// let parsed_attributes = parse_rpsl_object(role_acme).unwrap();
+/// assert_eq!(
+///     parsed_attributes,
+///     rpsl::Object::new(vec![
+///         rpsl::Attribute::new("role".to_string(), vec![Some("ACME Company".to_string())]),
+///         rpsl::Attribute::new(
+///             "address".to_string(),
+///             vec![Some("Packet Street 6".to_string())],
+///         ),
+///         rpsl::Attribute::new(
+///             "address".to_string(),
+///             vec![Some("128 Series of Tubes".to_string())],
+///         ),
+///         rpsl::Attribute::new("address".to_string(), vec![Some("Internet".to_string())]),
+///         rpsl::Attribute::new(
+///             "email".to_string(),
+///             vec![Some("rpsl-parser@github.com".to_string())],
+///         ),
+///         rpsl::Attribute::new("nic-hdl".to_string(), vec![Some("RPSL1-RIPE".to_string())]),
+///         rpsl::Attribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
+///     ])
+/// );
+/// ```
 pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
     let (_, object) = all_consuming(delimited(
         multispace0,
