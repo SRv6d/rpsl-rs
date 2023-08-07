@@ -14,7 +14,7 @@ pub struct Attribute {
 
 impl Attribute {
     /// Create a new RPSL attribute from a name and vector of values.
-    pub fn new(name: String, values: Vec<Option<String>>) -> Self {
+    #[must_use] pub fn new(name: String, values: Vec<Option<String>>) -> Self {
         Attribute { name, values }
     }
 }
@@ -46,7 +46,7 @@ pub struct Object(Vec<Attribute>);
 
 impl Object {
     /// Create a new RPSL object from a vector of attributes.
-    pub fn new(attributes: Vec<Attribute>) -> Self {
+    #[must_use] pub fn new(attributes: Vec<Attribute>) -> Self {
         Object(attributes)
     }
 }
@@ -78,7 +78,7 @@ pub struct ObjectCollection(Vec<Object>);
 
 impl ObjectCollection {
     /// Create a new RPSL object collection from a vector of objects.
-    pub fn new(objects: Vec<Object>) -> Self {
+    #[must_use] pub fn new(objects: Vec<Object>) -> Self {
         ObjectCollection(objects)
     }
 }
