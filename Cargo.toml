@@ -1,6 +1,9 @@
 [package]
 name = "rpsl-parser"
+description = "An RFC 2622 conformant Routing Policy Specification Language (RPSL) parser with a focus on speed and correctness."
 version = "0.1.0"
+keywords = ["rpsl", "parser", "irr", "routing", "policy", "database", "whois"]
+categories = ["database"]
 edition = "2021"
 authors = ["Marvin Vogt <m@rvinvogt.com>"]
 license = "GPL-3.0-or-later"
