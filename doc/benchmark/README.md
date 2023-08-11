@@ -20,7 +20,9 @@ With the exception of [RIPE-NCC/whois], the AS3257 object is included as a strin
 
 ## Running Benchmarks
 
-`./run` in the directory of the specific parser sets up dependencies and runs a benchmark using [hyperfine]. It runs `sudo` and is only guaranteed to run correctly within the [benchmark workflow](https://github.com/SRv6d/rpsl-parser/blob/main/.github/workflows/benchmark.yml), which can be used as a reference for additionally required dependencies.
+Benchmarks for the parser itself are done using `cargo bench`, while any external parser is benchmarked using [hyperfine].\
+To run specific benchmarks, execute `/.run` in the directory of the respective parser.
+It sets up dependencies and runs `sudo` so it is only recommended to be used in an isolated environment and is only tested on Ubuntu 22.04, other platforms might require additional dependencies to be installed.
 
 [rpsl-parser]: https://github.com/srv6d/rpsl-parser
 [RPSL::Parser]: https://metacpan.org/pod/RPSL::Parser
