@@ -7,7 +7,7 @@ name = "rpsl-parser"
 description = "An RFC 2622 conformant Routing Policy Specification Language (RPSL) parser with a focus on speed and correctness."
 authors = [{ name = "Marvin Vogt", email = "m@rvinvogt.com" }]
 readme = "README.md"
-license = { text = "GPL-3.0-or-later" }
+license = { text = "MIT" }
 requires-python = ">=3.7"
 classifiers = [
     "Programming Language :: Rust",
