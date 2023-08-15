@@ -4,13 +4,27 @@ build-backend = "maturin"
 
 [project]
 name = "rpsl-parser"
+description = "An RFC 2622 conformant Routing Policy Specification Language (RPSL) parser with a focus on speed and correctness."
+authors = [{ name = "Marvin Vogt", email = "m@rvinvogt.com" }]
+readme = "README.md"
+license = { text = "GPL-3.0-or-later" }
 requires-python = ">=3.7"
 classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Telecommunications Industry",
+    "Topic :: System :: Networking",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
+keywords = ["rpsl", "parser", "routing", "policy", "whois"]
 
+[project.urls]
+Repository = "https://github.com/srv6d/rpsl-parser"
+Issues = "https://github.com/srv6d/rpsl-parser/issues"
 
 [tool.maturin]
 features = ["pyo3/extension-module"]
