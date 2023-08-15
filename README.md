@@ -4,6 +4,13 @@
   <a href="https://github.com/srv6d/rpsl-parser/actions">
     <img src="https://github.com/srv6d/rpsl-parser/workflows/CI/badge.svg" alt="CI status">
   </a>
+  <a href="https://crates.io/crates/rpsl-parser">
+    <img src="https://img.shields.io/crates/v/rpsl-parser.svg" alt="Cargo version">
+  </a>
+  <a href="https://pypi.python.org/pypi/rpsl-parser">
+    <img src="https://img.shields.io/pypi/v/rpsl-parser.svg" alt="PyPi version">
+  </a>
+  
 </div>
 <br>
 
