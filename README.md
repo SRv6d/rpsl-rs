@@ -21,6 +21,8 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 
 ## Examples
 
+### Rust
+
 ```rust
 let role_acme = "
 role:        ACME Company
@@ -70,6 +72,34 @@ Object(
     },
   ],
 )
+```
+
+### Python
+
+```python
+role_acme = """
+role:        ACME Company
+address:     Packet Street 6
+address:     128 Series of Tubes
+address:     Internet
+email:       rpsl-parser@github.com
+nic-hdl:     RPSL1-RIPE
+source:      RIPE
+"""
+parsed = parse_rpsl_object(role_acme)
+print(parsed)
+```
+
+Prints the following:
+
+```sh
+(('role', ('ACME Company',)),
+ ('address', ('Packet Street 6',)),
+ ('address', ('128 Series of Tubes',)),
+ ('address', ('Internet',)),
+ ('email', ('rpsl-parser@github.com',)),
+ ('nic-hdl', ('RPSL1-RIPE',)),
+ ('source', ('RIPE',)))
 ```
 
 [RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
