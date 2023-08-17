@@ -14,7 +14,7 @@
 </div>
 <br>
 
-An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser with a focus on speed and correctness. It is written in Rust and extensively leverages zero-copy, [outperforming other parsers](doc/benchmark) by a factor of 33-60x. To ensure robust parsing of any valid RPSL input, an exhaustive suite of [property based tests](tests/property_based/) is used.
+An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser with a focus on speed and correctness. It is written in Rust and extensively leverages zero-copy, [outperforming other parsers](docs/benchmark) by a factor of 33-60x. To ensure robust parsing of any valid RPSL input, an exhaustive suite of [property based tests](tests/property_based/) is used.
 
 > [!WARNING]
 > This project is still in early stages of development and its API is not yet stable.
