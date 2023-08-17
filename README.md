@@ -7,9 +7,6 @@
   <a href="https://crates.io/crates/rpsl-parser">
     <img src="https://img.shields.io/crates/v/rpsl-parser.svg" alt="Cargo version">
   </a>
-  <a href="https://pypi.python.org/pypi/rpsl-parser">
-    <img src="https://img.shields.io/pypi/v/rpsl-parser.svg" alt="PyPi version">
-  </a>
   
 </div>
 <br>
@@ -19,9 +16,7 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 > [!WARNING]
 > This project is still in early stages of development and its API is not yet stable.
 
-## Examples
-
-### Rust
+## Example
 
 ```rust
 let role_acme = "
@@ -37,7 +32,7 @@ let parsed = rpsl_parser::parse_rpsl_object(role_acme).unwrap();
 println!("{:#?}", parsed);
 ```
 
-Outputs the following object:
+Prints the following:
 
 ```sh
 Object(
@@ -72,34 +67,6 @@ Object(
     },
   ],
 )
-```
-
-### Python
-
-```python
-role_acme = """
-role:        ACME Company
-address:     Packet Street 6
-address:     128 Series of Tubes
-address:     Internet
-email:       rpsl-parser@github.com
-nic-hdl:     RPSL1-RIPE
-source:      RIPE
-"""
-parsed = parse_rpsl_object(role_acme)
-print(parsed)
-```
-
-Prints the following:
-
-```sh
-(('role', ('ACME Company',)),
- ('address', ('Packet Street 6',)),
- ('address', ('128 Series of Tubes',)),
- ('address', ('Internet',)),
- ('email', ('rpsl-parser@github.com',)),
- ('nic-hdl', ('RPSL1-RIPE',)),
- ('source', ('RIPE',)))
 ```
 
 [RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
