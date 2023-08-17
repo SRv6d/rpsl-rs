@@ -5,6 +5,9 @@
   <a href="https://pypi.python.org/pypi/rpsl-parser">
     <img src="https://img.shields.io/pypi/v/rpsl-parser.svg" alt="PyPi version">
   </a>
+  <a>
+    <img src="https://img.shields.io/badge/v3.7+-black?style=flat&color=FFFF00&label=Python" alt="python version">
+  </a>
   
 </div>
 <br>
