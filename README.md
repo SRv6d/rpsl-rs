@@ -75,4 +75,8 @@ Object(
 )
 ```
 
+# Python bindings
+
+To use this parser in Python, see the [rpsl-parser PyPi Package](https://pypi.org/project/rpsl-parser/).
+
 [RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
