@@ -49,4 +49,12 @@ Prints the following:
  ('source', ('RIPE',)))
 ```
 
+## Installation
+
+Using PyPI:
+
+```
+pip3 install rpsl-parser
+```
+
 [RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
