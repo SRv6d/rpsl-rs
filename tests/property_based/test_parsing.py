@@ -1,6 +1,6 @@
 from typing import TypeAlias
 
-from hypothesis import given, settings
+from hypothesis import given, note, settings
 from rpsl_parser import parse_rpsl_object, parse_whois_server_response
 
 from property_based import strategies
@@ -35,6 +35,7 @@ def test_property_based_rpsl_object(rpsl: RpslTextObject):
     """A property based RPSL object is parsed correctly."""
     expected = rpsl_object_to_tuple(rpsl)
     parsed = parse_rpsl_object(rpsl.text)
+    note("RPSL:" + "\n" + rpsl.text)
     assert parsed == expected
 
 
@@ -48,4 +49,5 @@ def test_property_based_whois_server_response(response: RpslWhoisServerResponse)
 
     parsed = parse_whois_server_response(response.text)
 
+    note("Response:" + "\n" + response.text)
     assert parsed == expected
