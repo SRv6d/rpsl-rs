@@ -243,7 +243,7 @@ def whois_server_message(draw: strategies.DrawFn) -> WhoisServerMessage:
     whitespace = draw(_rpsl_attribute_space_separator())
     value = draw(
         strategies.text(
-            alphabet=strategies.characters(blacklist_categories=["Cc"]),
+            alphabet=strategies.characters(blacklist_categories=["Cc", "Cs"]),
             min_size=1,
         )
     )
