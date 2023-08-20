@@ -267,8 +267,14 @@ def whois_server_response(draw: strategies.DrawFn) -> RpslWhoisServerResponse:
     """
     objects = draw(strategies.lists(rpsl_text_object(), min_size=1))
     messages = draw(strategies.lists(whois_server_message()))
+    terminating_newlines = draw(strategies.integers(min_value=1, max_value=6))
 
     if not messages:
-        return RpslWhoisServerResponse(tuple(objects))
+        return RpslWhoisServerResponse(
+            tuple(objects), terminating_newlines=terminating_newlines
+        )
 
-    return RpslWhoisServerResponse(tuple(shuffle_lists(objects, messages)))
+    return RpslWhoisServerResponse(
+        tuple(shuffle_lists(objects, messages)),
+        terminating_newlines=terminating_newlines,
+    )
