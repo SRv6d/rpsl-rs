@@ -116,7 +116,7 @@ class WhoisServerMessage(NamedTuple):
     value: str
 
 
-class RpslWhoisServerResponse(tuple[RpslTextObject | WhoisServerMessage, ...]):
+class RpslWhoisServerResponse:
     """A whois server response.
 
     Represents a text response from a whois server possibly containing
@@ -147,10 +147,34 @@ class RpslWhoisServerResponse(tuple[RpslTextObject | WhoisServerMessage, ...]):
         ```
     """
 
+    terminating_newlines: int
+    _content: tuple[RpslTextObject | WhoisServerMessage, ...]
+
+    def __init__(
+        self,
+        content: tuple[RpslTextObject | WhoisServerMessage, ...],
+        *,
+        terminating_newlines: int = 1,
+    ):
+        self._content = content
+        self.terminating_newlines = terminating_newlines
+
+    def __iter__(self):
+        return iter(self._content)
+
+    def __len__(self):
+        return len(self._content)
+
+    def __getitem__(self, index):
+        return self._content[index]
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}{self._content!r}"
+
     @property
     def text(self) -> str:
         """The text representation of the server response."""
         repr_ = "\n".join(_.text for _ in self)
-        repr_ += "\n"
+        repr_ += "\n" * self.terminating_newlines
 
         return repr_

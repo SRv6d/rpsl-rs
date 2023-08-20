@@ -16,6 +16,7 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 
 ⚡️ Outperforms other parsers by a factor of 33-60x\
 📰 Complete implementation for multiline RPSL values\
+💬 Able to parse objects directly from whois server responses\
 🧠 Low memory footprint by leveraging zero-copy\
 🧪 Robust parsing of any valid input ensured by Property Based Tests
 
