@@ -65,7 +65,7 @@ pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
 /// Parse a string containing a whois server response into a vector of RPSL objects.
 /// # Errors
 /// Returns nom `Error` if any error occurs during parsing.
-pub fn parse_rpsl_server_response(response: &str) -> Result<rpsl::ObjectCollection, Error<&str>> {
+pub fn parse_whois_server_response(response: &str) -> Result<rpsl::ObjectCollection, Error<&str>> {
     let rpsl_object = many1(component::attribute);
     let empty_or_server_message = alt((component::server_message, tag("\n")));
 
@@ -229,6 +229,6 @@ mod tests {
             ]),
         ]);
 
-        assert_eq!(parse_rpsl_server_response(rpsl).unwrap(), expected);
+        assert_eq!(parse_whois_server_response(rpsl).unwrap(), expected);
     }
 }
