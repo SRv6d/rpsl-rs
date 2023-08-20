@@ -16,7 +16,7 @@ _RpslAttributes: TypeAlias = list[str]
 
 def rpsl_object_to_tuple(
     rpsl: RpslTextObject,
-) -> tuple[tuple[str, tuple[str, ...]], ...]:
+) -> tuple[tuple[str, tuple[str | None, ...]], ...]:
     """Convert a RPSL object to a tuple of attributes as returned by the parser."""
     return tuple(
         (
