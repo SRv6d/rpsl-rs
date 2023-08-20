@@ -65,6 +65,59 @@ pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
 /// Parse a string containing a whois server response into a vector of RPSL objects.
 /// # Errors
 /// Returns nom `Error` if any error occurs during parsing.
+///
+/// # Examples
+/// ```
+/// use rpsl_parser::{parse_whois_server_response, rpsl};
+/// let whois_response = "
+/// ASNumber:       32934
+/// ASName:         FACEBOOK
+/// ASHandle:       AS32934
+/// RegDate:        2004-08-24
+/// Updated:        2012-02-24
+/// Comment:        Please send abuse reports to abuse@facebook.com
+/// Ref:            https://rdap.arin.net/registry/autnum/32934
+///
+///
+/// OrgName:        Facebook, Inc.
+/// OrgId:          THEFA-3
+/// Address:        1601 Willow Rd.
+/// City:           Menlo Park
+/// StateProv:      CA
+/// PostalCode:     94025
+/// Country:        US
+/// RegDate:        2004-08-11
+/// Updated:        2012-04-17
+/// Ref:            https://rdap.arin.net/registry/entity/THEFA-3
+/// ";
+/// let parsed_attributes = parse_whois_server_response(whois_response).unwrap();
+/// assert_eq!(
+///     parsed_attributes,
+///     rpsl::ObjectCollection::new(vec![
+///         rpsl::Object::new(vec![
+///             rpsl::Attribute::new("ASNumber".to_string(), vec![Some("32934".to_string())]),
+///             rpsl::Attribute::new("ASName".to_string(), vec![Some("FACEBOOK".to_string())]),
+///             rpsl::Attribute::new("ASHandle".to_string(), vec![Some("AS32934".to_string())]),
+///             rpsl::Attribute::new("RegDate".to_string(), vec![Some("2004-08-24".to_string())]),
+///             rpsl::Attribute::new("Updated".to_string(), vec![Some("2012-02-24".to_string())]),
+///             rpsl::Attribute::new("Comment".to_string(), vec![Some("Please send abuse reports to abuse@facebook.com".to_string())]),
+///             rpsl::Attribute::new("Ref".to_string(), vec![Some("https://rdap.arin.net/registry/autnum/32934".to_string())]),
+///         ]),
+///         rpsl::Object::new(vec![
+///             rpsl::Attribute::new("OrgName".to_string(), vec![Some("Facebook, Inc.".to_string())]),
+///             rpsl::Attribute::new("OrgId".to_string(), vec![Some("THEFA-3".to_string())]),
+///             rpsl::Attribute::new("Address".to_string(), vec![Some("1601 Willow Rd.".to_string())]),
+///             rpsl::Attribute::new("City".to_string(), vec![Some("Menlo Park".to_string())]),
+///             rpsl::Attribute::new("StateProv".to_string(), vec![Some("CA".to_string())]),
+///             rpsl::Attribute::new("PostalCode".to_string(), vec![Some("94025".to_string())]),
+///             rpsl::Attribute::new("Country".to_string(), vec![Some("US".to_string())]),
+///             rpsl::Attribute::new("RegDate".to_string(), vec![Some("2004-08-11".to_string())]),
+///             rpsl::Attribute::new("Updated".to_string(), vec![Some("2012-04-17".to_string())]),
+///             rpsl::Attribute::new("Ref".to_string(), vec![Some("https://rdap.arin.net/registry/entity/THEFA-3".to_string())]),
+///        ]),
+///    ])
+/// );
+/// ```     
 pub fn parse_whois_server_response(response: &str) -> Result<rpsl::ObjectCollection, Error<&str>> {
     let rpsl_object = many1(component::attribute);
 
