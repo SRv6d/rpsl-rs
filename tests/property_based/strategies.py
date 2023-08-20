@@ -1,6 +1,9 @@
 """Hypothesis composite strategies for RPSL components."""
 
+
 from functools import partial
+from itertools import chain
+from random import shuffle
 
 from hypothesis import assume, example, strategies
 
@@ -9,6 +12,7 @@ from property_based.rpsl_test_types import (
     RpslAttributeNoneValue,
     RpslAttributeSingleValue,
     RpslTextObject,
+    RpslWhoisServerResponse,
     WhoisServerMessage,
 )
 
@@ -244,3 +248,27 @@ def whois_server_message(draw: strategies.DrawFn) -> WhoisServerMessage:
         )
     )
     return WhoisServerMessage(indicator + whitespace + value, value)
+
+
+def shuffle_lists(*lists: list) -> list:
+    """Returns a list with elements combined in random order."""
+    chained = list(chain.from_iterable(lists))
+    shuffle(chained)
+    return chained
+
+
+@strategies.composite
+def whois_server_response(draw: strategies.DrawFn) -> RpslWhoisServerResponse:
+    """WHOIS server response strategy.
+
+    Creates a WHOIS server response that should represent any valid response from a
+    WHOIS server. The response must contain at least one object and might contain
+    server messages.
+    """
+    objects = draw(strategies.lists(rpsl_text_object(), min_size=1))
+    messages = draw(strategies.lists(whois_server_message()))
+
+    if not messages:
+        return RpslWhoisServerResponse(tuple(objects))
+
+    return RpslWhoisServerResponse(tuple(shuffle_lists(objects, messages)))
