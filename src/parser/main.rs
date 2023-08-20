@@ -7,7 +7,7 @@ use nom::{
     combinator::all_consuming,
     error::Error,
     multi::{many0, many1},
-    sequence::{delimited, preceded, terminated},
+    sequence::delimited,
     Finish,
 };
 
@@ -67,12 +67,12 @@ pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
 /// Returns nom `Error` if any error occurs during parsing.
 pub fn parse_whois_server_response(response: &str) -> Result<rpsl::ObjectCollection, Error<&str>> {
     let rpsl_object = many1(component::attribute);
-    let empty_or_server_message = alt((component::server_message, tag("\n")));
 
-    let (_, objects) = all_consuming(terminated(
-        many1(preceded(many0(empty_or_server_message), rpsl_object)),
-        tag("\n"),
-    ))(response)
+    let (_, objects) = all_consuming(many1(delimited(
+        many0(alt((component::server_message, tag("\n")))),
+        rpsl_object,
+        many0(alt((component::server_message, tag("\n")))), // TODO: DRY
+    )))(response)
     .finish()?;
 
     Ok(rpsl::ObjectCollection::from(objects))
