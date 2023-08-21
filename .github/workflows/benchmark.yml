@@ -32,7 +32,7 @@ jobs:
           toolchain: stable
       - uses: Swatinem/rust-cache@v2
       - name: run benchmark
-        run: cargo bench | tee output.txt
+        run: cargo bench -- --output-format bencher | tee output.txt
       - name: store the result
         uses: benchmark-action/github-action-benchmark@v1
         with:
