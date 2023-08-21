@@ -8,6 +8,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+  deployments: write
+
 concurrency:
   group: >-
     ${{ github.workflow }}-${{ github.ref_name }}-${{ github.event.pull_request.number
@@ -28,4 +32,15 @@ jobs:
           toolchain: stable
       - uses: Swatinem/rust-cache@v2
       - name: run benchmark
-        run: cargo bench
+        run: cargo bench | tee output.txt
+      - name: store the result
+        uses: benchmark-action/github-action-benchmark@v1
+        with:
+          name: Rust Benchmark
+          tool: cargo
+          output-file-path: output.txt
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          auto-push: ${{ github.event_name != 'pull_request' }}
+          alert-threshold: 150%
+          comment-on-alert: true
+          fail-on-alert: true
