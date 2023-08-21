@@ -27,12 +27,10 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+      - run: rustup toolchain update nightly && rustup default nightly
       - uses: Swatinem/rust-cache@v2
       - name: run benchmark
-        run: cargo bench -- --output-format bencher | tee output.txt
+        run: cargo +nightly bench -- --output-format bencher | tee output.txt
       - name: store the result
         uses: benchmark-action/github-action-benchmark@v1
         with:
