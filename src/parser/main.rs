@@ -19,6 +19,7 @@ use nom::{
 /// # Examples
 /// ```
 /// # use rpsl_parser::{parse_rpsl_object, rpsl};
+/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
 /// let role_acme = "
 /// role:        ACME Company
 /// address:     Packet Street 6
@@ -28,7 +29,7 @@ use nom::{
 /// nic-hdl:     RPSL1-RIPE
 /// source:      RIPE
 /// ";
-/// let parsed_attributes = parse_rpsl_object(role_acme).unwrap();
+/// let parsed_attributes = parse_rpsl_object(role_acme)?;
 /// assert_eq!(
 ///     parsed_attributes,
 ///     rpsl::Object::new(vec![
@@ -50,34 +51,40 @@ use nom::{
 ///         rpsl::Attribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
 ///     ])
 /// );
+/// # Ok(())
+/// # }
 /// ```
 ///
 /// Values spread over multiple lines can be parsed too.
 /// ```
 /// # use rpsl_parser::{parse_rpsl_object, rpsl};
+/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
 /// let multi_value = "
 /// remarks:     Value 1
 ///              Value 2
 /// ";
 /// assert_eq!(
-///     parse_rpsl_object(multi_value).unwrap(),
+///     parse_rpsl_object(multi_value)?,
 ///     rpsl::Object::new(vec![rpsl::Attribute::new(
 ///         "remarks".to_string(),
 ///         vec![Some("Value 1".to_string()), Some("Value 2".to_string())]
 ///     ),])
 /// );
+/// # Ok(())
+/// # }
 /// ```
 ///
 /// Empty values are valid RPSL and are represented as `None`.
 /// ```
 /// # use rpsl_parser::{parse_rpsl_object, rpsl};
+/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
 /// let empty_value = "
 /// as-name:     REMARKABLE
 /// remarks:
 /// remarks:     ^^^^^^^^^^ nothing here
 /// ";
 /// assert_eq!(
-///     parse_rpsl_object(empty_value).unwrap(),
+///     parse_rpsl_object(empty_value)?,
 ///     rpsl::Object::new(vec![
 ///         rpsl::Attribute::new("as-name".to_string(), vec![Some("REMARKABLE".to_string())]),
 ///         rpsl::Attribute::new("remarks".to_string(), vec![None]),
@@ -87,6 +94,8 @@ use nom::{
 ///         ),
 ///     ])
 /// );
+/// # Ok(())
+/// # }
 /// ```
 ///
 /// The same goes for values containing only whitespace.
@@ -94,13 +103,14 @@ use nom::{
 ///
 /// ```
 /// # use rpsl_parser::{parse_rpsl_object, rpsl};
+/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
 /// let whitespace_value = "
 /// as-name:     REMARKABLE
 /// remarks:               
 /// remarks:     ^^^^^^^^^^ nothing but hot air
 /// ";
 /// assert_eq!(
-///     parse_rpsl_object(whitespace_value).unwrap(),
+///     parse_rpsl_object(whitespace_value)?,
 ///     rpsl::Object::new(vec![
 ///         rpsl::Attribute::new("as-name".to_string(), vec![Some("REMARKABLE".to_string())]),
 ///         rpsl::Attribute::new("remarks".to_string(), vec![None]),
@@ -110,6 +120,8 @@ use nom::{
 ///         ),
 ///     ])
 /// );
+/// # Ok(())
+/// # }
 /// ```
 pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
     let (_, object) = all_consuming(delimited(
@@ -129,6 +141,7 @@ pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
 /// # Examples
 /// ```
 /// # use rpsl_parser::{parse_whois_server_response, rpsl};
+/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
 /// let whois_response = "
 /// ASNumber:       32934
 /// ASName:         FACEBOOK
@@ -150,7 +163,7 @@ pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
 /// Updated:        2012-04-17
 /// Ref:            https://rdap.arin.net/registry/entity/THEFA-3
 /// ";
-/// let parsed_attributes = parse_whois_server_response(whois_response).unwrap();
+/// let parsed_attributes = parse_whois_server_response(whois_response)?;
 /// assert_eq!(
 ///     parsed_attributes,
 ///     rpsl::ObjectCollection::new(vec![
@@ -177,6 +190,8 @@ pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
 ///        ]),
 ///    ])
 /// );
+/// # Ok(())
+/// # }
 /// ```     
 pub fn parse_whois_server_response(response: &str) -> Result<rpsl::ObjectCollection, Error<&str>> {
     let rpsl_object = many1(component::attribute);
