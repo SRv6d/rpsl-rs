@@ -96,11 +96,43 @@ Attribute {
 
 Since RPSL attribute values may be spread over multiple lines and values consisting only of whitespace are valid, the `Vec<Option<String>>` type is used to represent them. For more information and examples, please view the [parse_rpsl_object] documentation.
 
+### Parsing a WHOIS server response
+
+Whois servers often respond to queres with multiple objects.
+An example ARIN query for `AS32934` will return with the requested `ASNumber` object first, followed by it's associated `OrgName`:
+
+```
+$ whois -h whois.arin.net AS32934
+ASNumber:       32934
+ASName:         FACEBOOK
+ASHandle:       AS32934
+RegDate:        2004-08-24
+Updated:        2012-02-24
+Comment:        Please send abuse reports to abuse@facebook.com
+Ref:            https://rdap.arin.net/registry/autnum/32934
+
+
+OrgName:        Facebook, Inc.
+OrgId:          THEFA-3
+Address:        1601 Willow Rd.
+City:           Menlo Park
+StateProv:      CA
+PostalCode:     94025
+Country:        US
+RegDate:        2004-08-11
+Updated:        2012-04-17
+Ref:            https://rdap.arin.net/registry/entity/THEFA-3
+```
+
+To extract each individual object, the [parse_whois_server_response] function can be used to parse the response into a [rpsl::ObjectCollection] containing all objects within the response. Examples can be found in the function documentation.
+
 # Python bindings
 
 To use this parser in Python, see the [rpsl-parser PyPi Package](https://pypi.org/project/rpsl-parser/).
 
 [RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
 [rpsl::Object]: https://docs.rs/rpsl-parser/latest/rpsl_parser/rpsl/struct.Object.html
+[rpsl::ObjectCollection]: https://docs.rs/rpsl-parser/latest/rpsl_parser/rpsl/struct.ObjectCollection.html
 [rpsl::Attribute]: https://docs.rs/rpsl-parser/latest/rpsl_parser/rpsl/struct.Attribute.html
 [parse_rpsl_object]: https://docs.rs/rpsl-parser/latest/rpsl_parser/fn.parse_rpsl_object.html
+[parse_whois_server_response]: https://docs.rs/rpsl-parser/latest/rpsl_parser/fn.parse_whois_server_response.html
