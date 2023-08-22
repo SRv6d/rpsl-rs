@@ -18,7 +18,7 @@ use nom::{
 ///
 /// # Examples
 /// ```
-/// use rpsl_parser::{parse_rpsl_object, rpsl};
+/// # use rpsl_parser::{parse_rpsl_object, rpsl};
 /// let role_acme = "
 /// role:        ACME Company
 /// address:     Packet Street 6
@@ -51,6 +51,66 @@ use nom::{
 ///     ])
 /// );
 /// ```
+///
+/// Values spread over multiple lines can be parsed too.
+/// ```
+/// # use rpsl_parser::{parse_rpsl_object, rpsl};
+/// let multi_value = "
+/// remarks:     Value 1
+///              Value 2
+/// ";
+/// assert_eq!(
+///     parse_rpsl_object(multi_value).unwrap(),
+///     rpsl::Object::new(vec![rpsl::Attribute::new(
+///         "remarks".to_string(),
+///         vec![Some("Value 1".to_string()), Some("Value 2".to_string())]
+///     ),])
+/// );
+/// ```
+///
+/// Empty values are valid RPSL and are represented as `None`.
+/// ```
+/// # use rpsl_parser::{parse_rpsl_object, rpsl};
+/// let empty_value = "
+/// as-name:     REMARKABLE
+/// remarks:
+/// remarks:     ^^^^^^^^^^ nothing here
+/// ";
+/// assert_eq!(
+///     parse_rpsl_object(empty_value).unwrap(),
+///     rpsl::Object::new(vec![
+///         rpsl::Attribute::new("as-name".to_string(), vec![Some("REMARKABLE".to_string())]),
+///         rpsl::Attribute::new("remarks".to_string(), vec![None]),
+///         rpsl::Attribute::new(
+///             "remarks".to_string(),
+///             vec![Some("^^^^^^^^^^ nothing here".to_string())]
+///         ),
+///     ])
+/// );
+/// ```
+///
+/// The same goes for values containing only whitespace.
+/// Since whitespace to the left of a value is trimmed, they are equivalent to an empty value.
+///
+/// ```
+/// # use rpsl_parser::{parse_rpsl_object, rpsl};
+/// let whitespace_value = "
+/// as-name:     REMARKABLE
+/// remarks:               
+/// remarks:     ^^^^^^^^^^ nothing but hot air
+/// ";
+/// assert_eq!(
+///     parse_rpsl_object(whitespace_value).unwrap(),
+///     rpsl::Object::new(vec![
+///         rpsl::Attribute::new("as-name".to_string(), vec![Some("REMARKABLE".to_string())]),
+///         rpsl::Attribute::new("remarks".to_string(), vec![None]),
+///         rpsl::Attribute::new(
+///             "remarks".to_string(),
+///             vec![Some("^^^^^^^^^^ nothing but hot air".to_string())]
+///         ),
+///     ])
+/// );
+/// ```
 pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
     let (_, object) = all_consuming(delimited(
         multispace0,
@@ -68,7 +128,7 @@ pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
 ///
 /// # Examples
 /// ```
-/// use rpsl_parser::{parse_whois_server_response, rpsl};
+/// # use rpsl_parser::{parse_whois_server_response, rpsl};
 /// let whois_response = "
 /// ASNumber:       32934
 /// ASName:         FACEBOOK
