@@ -1,5 +1,5 @@
 //! Types for representing RPSL components.
-use std::option::Option;
+use std::{ops::Index, option::Option};
 
 /// Represents a RPSL attribute.
 #[derive(Debug, PartialEq, Eq)]
@@ -102,6 +102,14 @@ impl Object {
     }
 }
 
+impl Index<usize> for Object {
+    type Output = Attribute;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
 impl IntoIterator for Object {
     type Item = Attribute;
     type IntoIter = std::vec::IntoIter<Attribute>;
@@ -132,6 +140,14 @@ impl ObjectCollection {
     #[must_use]
     pub fn new(objects: Vec<Object>) -> Self {
         ObjectCollection(objects)
+    }
+}
+
+impl Index<usize> for ObjectCollection {
+    type Output = Object;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
     }
 }
 
