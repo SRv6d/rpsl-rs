@@ -86,7 +86,7 @@ Object(
 Each [rpsl::Attribute] can be accessed by it's index and has a name and an optional set of values.
 
 ```rust,ignore
-println!("{:#?}", parsed.1);
+println!("{:#?}", parsed[1]);
 
 Attribute {
     name: "role",
