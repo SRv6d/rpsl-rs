@@ -101,7 +101,7 @@ Since RPSL attribute values may be spread over multiple lines and values consist
 Whois servers often respond to queres with multiple objects.
 An example ARIN query for `AS32934` will return with the requested `ASNumber` object first, followed by it's associated `OrgName`:
 
-```
+```sh
 $ whois -h whois.arin.net AS32934
 ASNumber:       32934
 ASName:         FACEBOOK
