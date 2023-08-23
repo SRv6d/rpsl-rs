@@ -44,7 +44,7 @@ source:      RIPE
 let parsed = parse_rpsl_object(role_acme)?;
 ```
 
-This returns an [rpsl::Object] consiting of multiple [rpsl::Attribute]s:
+This returns an [rpsl::Object] consisting of multiple [rpsl::Attribute]s:
 
 ```rust,ignore
 println!("{:#?}", parsed);
@@ -130,7 +130,7 @@ To extract each individual object, the [parse_whois_server_response] function ca
 
 To use this parser in Python, see the [rpsl-parser PyPi Package](https://pypi.org/project/rpsl-parser/).
 
-# 🚧 Work in progess
+# 🚧 Work in progress
 
 - ## More descriptive error messages
   When invalid RPSL is parsed, the current error messages do not properly convey where exactly the error is located in the parsed text.

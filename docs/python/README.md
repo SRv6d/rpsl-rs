@@ -111,7 +111,7 @@ print(parsed)
   ('Ref', ('https://rdap.arin.net/registry/entity/THEFA-3',))))
 ```
 
-# 🚧 Work in progess
+# 🚧 Work in progress
 
 - ## More descriptive error messages
   When invalid RPSL is parsed, the current error messages do not properly convey where exactly the error is located in the parsed text.
