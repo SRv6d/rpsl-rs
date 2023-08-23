@@ -130,6 +130,11 @@ To extract each individual object, the [parse_whois_server_response] function ca
 
 To use this parser in Python, see the [rpsl-parser PyPi Package](https://pypi.org/project/rpsl-parser/).
 
+# 🚧 Work in progess
+
+- ## More descriptive error messages
+  When invalid RPSL is parsed, the current error messages do not properly convey where exactly the error is located in the parsed text.
+
 [RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
 [rpsl::Object]: https://docs.rs/rpsl-parser/latest/rpsl_parser/rpsl/struct.Object.html
 [rpsl::ObjectCollection]: https://docs.rs/rpsl-parser/latest/rpsl_parser/rpsl/struct.ObjectCollection.html
