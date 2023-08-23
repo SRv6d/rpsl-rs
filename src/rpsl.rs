@@ -1,5 +1,5 @@
 //! Types for representing RPSL components.
-use std::option::Option;
+use std::{ops::Index, option::Option};
 
 /// Represents a RPSL attribute.
 #[derive(Debug, PartialEq, Eq)]
@@ -42,6 +42,55 @@ impl From<(&str, Vec<&str>)> for Attribute {
 }
 
 /// Represents a RPSL object.
+///
+/// # Examples
+///
+/// Create a new role object
+/// ```
+/// # use rpsl_parser::rpsl;
+/// let role_acme = rpsl::Object::new(vec![
+///     rpsl::Attribute::new("role".to_string(), vec![Some("ACME Company".to_string())]),
+///     rpsl::Attribute::new(
+///         "address".to_string(),
+///         vec![Some("Packet Street 6".to_string())],
+///     ),
+///     rpsl::Attribute::new(
+///         "address".to_string(),
+///         vec![Some("128 Series of Tubes".to_string())],
+///     ),
+///     rpsl::Attribute::new("address".to_string(), vec![Some("Internet".to_string())]),
+///     rpsl::Attribute::new(
+///         "email".to_string(),
+///         vec![Some("rpsl-parser@github.com".to_string())],
+///     ),
+///     rpsl::Attribute::new("nic-hdl".to_string(), vec![Some("RPSL1-RIPE".to_string())]),
+///     rpsl::Attribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
+/// ]);
+/// ```
+///
+/// And then print the `email` attribute by it's index
+/// ```
+/// # use rpsl_parser::rpsl;
+/// # let role_acme = rpsl::Object::new(vec![
+/// #     rpsl::Attribute::new("role".to_string(), vec![Some("ACME Company".to_string())]),
+/// #     rpsl::Attribute::new(
+/// #         "address".to_string(),
+/// #         vec![Some("Packet Street 6".to_string())],
+/// #     ),
+/// #     rpsl::Attribute::new(
+/// #         "address".to_string(),
+/// #         vec![Some("128 Series of Tubes".to_string())],
+/// #     ),
+/// #     rpsl::Attribute::new("address".to_string(), vec![Some("Internet".to_string())]),
+/// #     rpsl::Attribute::new(
+/// #         "email".to_string(),
+/// #         vec![Some("rpsl-parser@github.com".to_string())],
+/// #     ),
+/// #     rpsl::Attribute::new("nic-hdl".to_string(), vec![Some("RPSL1-RIPE".to_string())]),
+/// #     rpsl::Attribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
+/// # ]);
+/// println!("{:#?}", role_acme[4]);
+/// ```
 #[derive(Debug, PartialEq, Eq)]
 pub struct Object(Vec<Attribute>);
 
@@ -50,6 +99,14 @@ impl Object {
     #[must_use]
     pub fn new(attributes: Vec<Attribute>) -> Self {
         Object(attributes)
+    }
+}
+
+impl Index<usize> for Object {
+    type Output = Attribute;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
     }
 }
 
@@ -83,6 +140,14 @@ impl ObjectCollection {
     #[must_use]
     pub fn new(objects: Vec<Object>) -> Self {
         ObjectCollection(objects)
+    }
+}
+
+impl Index<usize> for ObjectCollection {
+    type Output = Object;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
     }
 }
 

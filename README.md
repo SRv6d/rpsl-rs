@@ -23,9 +23,15 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 > [!WARNING]
 > This project is still in early stages of development and its API is not yet stable.
 
-## Example
+## Examples
 
-```rust
+### Parsing RPSL
+
+A string containing an object in RPSL notation can be parsed to a [rpsl::Object] struct using the [parse_rpsl_object] function.
+
+```rust,ignore
+use rpsl_parser::parse_rpsl_object;
+
 let role_acme = "
 role:        ACME Company
 address:     Packet Street 6
@@ -35,13 +41,14 @@ email:       rpsl-parser@github.com
 nic-hdl:     RPSL1-RIPE
 source:      RIPE
 ";
-let parsed = rpsl_parser::parse_rpsl_object(role_acme).unwrap();
-println!("{:#?}", parsed);
+let parsed = parse_rpsl_object(role_acme)?;
 ```
 
-Prints the following:
+This returns an [rpsl::Object] consisting of multiple [rpsl::Attribute]s:
 
-```sh
+```rust,ignore
+println!("{:#?}", parsed);
+
 Object(
   [
     Attribute {
@@ -76,8 +83,61 @@ Object(
 )
 ```
 
+Each [rpsl::Attribute] can be accessed by it's index and has a name and an optional set of values.
+
+```rust,ignore
+println!("{:#?}", parsed[1]);
+
+Attribute {
+    name: "role",
+    values: [Some("ACME Company",),],
+}
+```
+
+Since RPSL attribute values may be spread over multiple lines and values consisting only of whitespace are valid, the `Vec<Option<String>>` type is used to represent them. For more information and examples, please view the [parse_rpsl_object] documentation.
+
+### Parsing a WHOIS server response
+
+Whois servers often respond to queres with multiple objects.
+An example ARIN query for `AS32934` will return with the requested `ASNumber` object first, followed by it's associated `OrgName`:
+
+```sh
+$ whois -h whois.arin.net AS32934
+ASNumber:       32934
+ASName:         FACEBOOK
+ASHandle:       AS32934
+RegDate:        2004-08-24
+Updated:        2012-02-24
+Comment:        Please send abuse reports to abuse@facebook.com
+Ref:            https://rdap.arin.net/registry/autnum/32934
+
+
+OrgName:        Facebook, Inc.
+OrgId:          THEFA-3
+Address:        1601 Willow Rd.
+City:           Menlo Park
+StateProv:      CA
+PostalCode:     94025
+Country:        US
+RegDate:        2004-08-11
+Updated:        2012-04-17
+Ref:            https://rdap.arin.net/registry/entity/THEFA-3
+```
+
+To extract each individual object, the [parse_whois_server_response] function can be used to parse the response into a [rpsl::ObjectCollection] containing all objects within the response. Examples can be found in the function documentation.
+
 # Python bindings
 
 To use this parser in Python, see the [rpsl-parser PyPi Package](https://pypi.org/project/rpsl-parser/).
 
+# 🚧 Work in progress
+
+- ## More descriptive error messages
+  When invalid RPSL is parsed, the current error messages do not properly convey where exactly the error is located in the parsed text.
+
 [RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
+[rpsl::Object]: https://docs.rs/rpsl-parser/latest/rpsl_parser/rpsl/struct.Object.html
+[rpsl::ObjectCollection]: https://docs.rs/rpsl-parser/latest/rpsl_parser/rpsl/struct.ObjectCollection.html
+[rpsl::Attribute]: https://docs.rs/rpsl-parser/latest/rpsl_parser/rpsl/struct.Attribute.html
+[parse_rpsl_object]: https://docs.rs/rpsl-parser/latest/rpsl_parser/fn.parse_rpsl_object.html
+[parse_whois_server_response]: https://docs.rs/rpsl-parser/latest/rpsl_parser/fn.parse_whois_server_response.html
