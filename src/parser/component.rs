@@ -150,6 +150,19 @@ mod subcomponent {
                 assert_eq!(attribute_name("ASNumber:"), Ok((":", "ASNumber")));
                 assert_eq!(attribute_name("route6:"), Ok((":", "route6")));
             }
+
+            #[test]
+            fn non_letter_first_char_is_error() {
+                assert!(attribute_name("1remarks:").is_err());
+                assert!(attribute_name("-remarks:").is_err());
+                assert!(attribute_name("_remarks:").is_err());
+            }
+
+            #[test]
+            fn non_letter_or_digit_last_char_is_error() {
+                assert!(attribute_name("remarks-:").is_err());
+                assert!(attribute_name("remarks_:").is_err());
+            }
         }
 
         mod attribute_value {
