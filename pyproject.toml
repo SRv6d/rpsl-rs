@@ -27,7 +27,7 @@ Repository = "https://github.com/srv6d/rpsl-parser"
 Issues = "https://github.com/srv6d/rpsl-parser/issues"
 
 [tool.maturin]
-features = ["pyo3/extension-module"]
+features = ["pyo3", "pyo3/extension-module"]
 
 [tool.codespell]
 # `crate` - a rust crate
