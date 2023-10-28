@@ -31,15 +31,34 @@ def _rpsl_attribute_name(draw: strategies.DrawFn) -> str:
     Creates a string of ASCII characters including
     letters, digits, underscore and hyphen.
     """
-    return draw(
+    first = draw(
+        strategies.text(
+            alphabet=ascii_characters(
+                whitelist_categories=["Ll", "Lu"],  # letters
+            ),
+            min_size=1,
+            max_size=1,
+        )
+    )
+    mid = draw(
         strategies.text(
             alphabet=ascii_characters(
                 whitelist_categories=["Ll", "Lu", "Nd"],  # letters and digits
                 whitelist_characters=["_", "-"],
-            ),
-            min_size=1,
+            )
         )
     )
+    last = draw(
+        strategies.text(
+            alphabet=ascii_characters(
+                whitelist_categories=["Ll", "Lu", "Nd"],  # letters and digits
+            ),
+            min_size=1,
+            max_size=1,
+        )
+    )
+
+    return first + mid + last
 
 
 @strategies.composite
