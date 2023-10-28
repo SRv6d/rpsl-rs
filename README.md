@@ -7,6 +7,9 @@
   <a href="https://crates.io/crates/rpsl-parser">
     <img src="https://img.shields.io/crates/v/rpsl-parser.svg" alt="Cargo version">
   </a>
+  <a href="https://pypi.python.org/pypi/rpsl-parser">
+    <img src="https://img.shields.io/pypi/v/rpsl-parser.svg" alt="PyPi version">
+  </a>
   
 </div>
 <br>
