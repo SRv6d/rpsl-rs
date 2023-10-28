@@ -108,14 +108,20 @@ mod tests {
 }
 
 mod subcomponent {
+    use nom::combinator::verify;
+
     use super::{one_of, space0, tag, take_while, take_while1, tuple, IResult};
 
     // An ASCII sequence of letters, digits and the characters "-", "_".
     // The first character must be a letter, while the last character may be a letter or a digit.
-    // TODO: ^ implement this invariant
     pub fn attribute_name(input: &str) -> IResult<&str, &str> {
-        let (remaining, name) =
-            take_while1(|c: char| c.is_ascii_alphanumeric() || c == '-' || c == '_')(input)?;
+        let (remaining, name) = verify(
+            take_while1(|c: char| c.is_ascii_alphanumeric() || c == '-' || c == '_'),
+            |s: &str| {
+                s.chars().next().unwrap().is_ascii_alphabetic()
+                    && s.chars().last().unwrap().is_ascii_alphanumeric()
+            },
+        )(input)?;
         Ok((remaining, name))
     }
 
