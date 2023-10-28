@@ -163,9 +163,9 @@ pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
 /// Updated:        2012-04-17
 /// Ref:            https://rdap.arin.net/registry/entity/THEFA-3
 /// ";
-/// let parsed_attributes = parse_whois_server_response(whois_response)?;
+/// let parsed_objects = parse_whois_server_response(whois_response)?;
 /// assert_eq!(
-///     parsed_attributes,
+///     parsed_objects,
 ///     rpsl::ObjectCollection::new(vec![
 ///         rpsl::Object::new(vec![
 ///             rpsl::Attribute::new("ASNumber".to_string(), vec![Some("32934".to_string())]),
