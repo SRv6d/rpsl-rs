@@ -1,3 +1,4 @@
+use crate::rpsl;
 use nom::{
     bytes::complete::{tag, take_while, take_while1},
     character::complete::{one_of, space0},
@@ -22,19 +23,38 @@ pub fn server_message(input: &str) -> IResult<&str, &str> {
 // A RPSL attribute consisting of a name and one or more values.
 // The name is followed by a colon and optional spaces.
 // Single value attributes are limited to one line, while multi value attributes span over multiple lines.
-pub fn attribute(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
+pub fn attribute(input: &str) -> IResult<&str, rpsl::Attribute> {
+    let mut values: Vec<&str>;
+
     let (remaining, (name, first_value)) = separated_pair(
         terminated(subcomponent::attribute_name, tag(":")),
         space0,
         terminated(subcomponent::attribute_value, tag("\n")),
     )(input)?;
-    let (remaining, continuation_values) = many0(subcomponent::continuation_line)(remaining)?;
+    let (remaining, mut continuation_values) = many0(subcomponent::continuation_line)(remaining)?;
 
-    let mut values: Vec<&str> = Vec::with_capacity(1 + continuation_values.len());
-    values.push(first_value);
-    values.extend(continuation_values);
+    if !continuation_values.is_empty() {
+        values = Vec::with_capacity(1 + continuation_values.len());
+        values.push(first_value);
+        values.append(&mut continuation_values);
+    } else {
+        values = vec![first_value];
+    }
 
-    Ok((remaining, (name, values)))
+    let attribute = rpsl::Attribute::new(
+        name.to_string(),
+        values
+            .iter()
+            .map(|v| {
+                if v.trim().is_empty() {
+                    return None;
+                }
+                Some((*v).to_string())
+            })
+            .collect(),
+    );
+
+    Ok((remaining, attribute))
 }
 
 #[cfg(test)]
@@ -78,7 +98,13 @@ mod tests {
         fn valid_single_value() {
             assert_eq!(
                 attribute("import:         from AS12 accept AS12\n"),
-                Ok(("", ("import", vec!["from AS12 accept AS12"])))
+                Ok((
+                    "",
+                    rpsl::Attribute::new(
+                        "import".to_string(),
+                        vec![Some("from AS12 accept AS12".to_string())]
+                    )
+                ))
             );
         }
 
@@ -93,12 +119,12 @@ mod tests {
                 )),
                 Ok((
                     "remarks:        Peering Policy\n",
-                    (
-                        "remarks",
+                    rpsl::Attribute::new(
+                        "remarks".to_string(),
                         vec![
-                            "Locations",
-                            "LA1 - CoreSite One Wilshire",
-                            "NY1 - Equinix New York, Newark"
+                            Some("Locations".to_string()),
+                            Some("LA1 - CoreSite One Wilshire".to_string()),
+                            Some("NY1 - Equinix New York, Newark".to_string()),
                         ]
                     )
                 ))

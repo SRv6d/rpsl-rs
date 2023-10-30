@@ -124,14 +124,14 @@ use nom::{
 /// # }
 /// ```
 pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
-    let (_, object) = all_consuming(delimited(
+    let (_, attributes) = all_consuming(delimited(
         multispace0,
         many1(component::attribute),
         multispace0,
     ))(rpsl)
     .finish()?;
 
-    Ok(rpsl::Object::from(object))
+    Ok(rpsl::Object::new(attributes))
 }
 
 /// Parse a string containing a whois server response into a vector of RPSL objects.
@@ -194,11 +194,9 @@ pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
 /// # }
 /// ```     
 pub fn parse_whois_server_response(response: &str) -> Result<rpsl::ObjectCollection, Error<&str>> {
-    let rpsl_object = many1(component::attribute);
-
     let (_, objects) = all_consuming(many1(delimited(
         many0(alt((component::server_message, tag("\n")))),
-        rpsl_object,
+        many1(component::attribute),
         many0(alt((component::server_message, tag("\n")))), // TODO: DRY
     )))(response)
     .finish()?;

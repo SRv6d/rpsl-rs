@@ -20,27 +20,6 @@ impl Attribute {
     }
 }
 
-/// Create a RPSL attribute from a tuple of slices parsed from RPSL text.
-/// An empty value or one containing only whitespace is converted to None.
-impl From<(&str, Vec<&str>)> for Attribute {
-    fn from(attribute_slice: (&str, Vec<&str>)) -> Self {
-        let (name, values) = attribute_slice;
-
-        Attribute {
-            name: name.to_string(),
-            values: values
-                .iter()
-                .map(|v| {
-                    if v.trim().is_empty() {
-                        return None;
-                    }
-                    Some((*v).to_string())
-                })
-                .collect(),
-        }
-    }
-}
-
 /// Represents a RPSL object.
 ///
 /// # Examples
@@ -119,18 +98,6 @@ impl IntoIterator for Object {
     }
 }
 
-// Create an RPSL object from a vector of slices parsed from RPSL text.
-impl From<Vec<(&str, Vec<&str>)>> for Object {
-    fn from(attribute_slices: Vec<(&str, Vec<&str>)>) -> Self {
-        let mut attributes: Vec<Attribute> = Vec::with_capacity(attribute_slices.len());
-
-        for attribute_slice in attribute_slices {
-            attributes.push(Attribute::from(attribute_slice));
-        }
-
-        Object(attributes)
-    }
-}
 ///Represents a collection of RPSL objects, for example as the result of a whois query.
 #[derive(Debug, PartialEq, Eq)]
 pub struct ObjectCollection(Vec<Object>);
@@ -161,12 +128,12 @@ impl IntoIterator for ObjectCollection {
 }
 
 // Create an RPSL object collection from a vector of slices parsed from RPSL text.
-impl From<Vec<Vec<(&str, Vec<&str>)>>> for ObjectCollection {
-    fn from(object_slices: Vec<Vec<(&str, Vec<&str>)>>) -> Self {
+impl From<Vec<Vec<Attribute>>> for ObjectCollection {
+    fn from(object_slices: Vec<Vec<Attribute>>) -> Self {
         let mut objects: Vec<Object> = Vec::with_capacity(object_slices.len());
 
         for object in object_slices {
-            objects.push(Object::from(object));
+            objects.push(Object::new(object));
         }
 
         ObjectCollection(objects)
