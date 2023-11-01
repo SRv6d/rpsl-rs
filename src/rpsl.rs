@@ -9,14 +9,67 @@ pub struct Attribute {
     /// The values of the attribute.
     /// Single line attributes only have one value, while for multi-line attributes every line is a value.
     /// An empty value or one containing only whitespace is represented as None.
-    pub values: Vec<Option<String>>,
+    pub value: AttributeValue,
 }
 
 impl Attribute {
-    /// Create a new RPSL attribute from a name and vector of values.
+    /// Create a new RPSL attribute from a name and an attribute value.
     #[must_use]
-    pub fn new(name: String, values: Vec<Option<String>>) -> Self {
-        Attribute { name, values }
+    pub fn new(name: String, value: AttributeValue) -> Self {
+        Attribute { name, value }
+    }
+}
+
+impl From<(&str, &str)> for Attribute {
+    fn from(name_value: (&str, &str)) -> Self {
+        let (name, value) = name_value;
+        Attribute::new(name.to_string(), value.into())
+    }
+}
+
+impl From<(&str, Vec<&str>)> for Attribute {
+    fn from(name_values: (&str, Vec<&str>)) -> Self {
+        let (name, values) = name_values;
+        Attribute::new(name.to_string(), values.into())
+    }
+}
+
+/// The value of a RPSL attribute.
+#[derive(Debug, PartialEq, Eq)]
+pub enum AttributeValue {
+    SingleLine(Option<String>),
+    MultiLine(Vec<Option<String>>),
+}
+
+impl From<&str> for AttributeValue {
+    fn from(value: &str) -> Self {
+        AttributeValue::SingleLine({
+            if value.trim().is_empty() {
+                None
+            } else {
+                Some(value.to_string())
+            }
+        })
+    }
+}
+
+impl From<Vec<&str>> for AttributeValue {
+    fn from(values: Vec<&str>) -> Self {
+        if values.len() == 1 {
+            return values[0].into();
+        }
+
+        AttributeValue::MultiLine(
+            values
+                .iter()
+                .map(|v| {
+                    if v.trim().is_empty() {
+                        return None;
+                    }
+                    Some((*v).to_string())
+                })
+                .collect(),
+        )
     }
 }
 
