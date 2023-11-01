@@ -278,27 +278,27 @@ mod tests {
             "\n"
         );
         let expected = rpsl::ObjectCollection::new(vec![
-            rpsl::Object::new(vec![
-                rpsl::Attribute::from(("as-block", "AS12557 - AS13223")),
-                rpsl::Attribute::from(("descr", "RIPE NCC ASN block")),
-                rpsl::Attribute::from((
+            rpsl::Object::from(vec![
+                ("as-block", "AS12557 - AS13223"),
+                ("descr", "RIPE NCC ASN block"),
+                (
                     "remarks",
                     "These AS Numbers are assigned to network operators in the RIPE NCC service region.",
-                )),
-                rpsl::Attribute::from(("mnt-by","RIPE-NCC-HM-MNT")),
-                rpsl::Attribute::from(("created","2018-11-22T15:27:24Z")),
-                rpsl::Attribute::from(("last-modified","2018-11-22T15:27:24Z")),
-                rpsl::Attribute::from(("source", "RIPE")),
+                ),
+                ("mnt-by","RIPE-NCC-HM-MNT"),
+                ("created","2018-11-22T15:27:24Z"),
+                ("last-modified","2018-11-22T15:27:24Z"),
+                ("source", "RIPE"),
             ]),
-            rpsl::Object::new(vec![
-                rpsl::Attribute::from(("aut-num", "AS13030")),
-                rpsl::Attribute::from(("as-name", "INIT7")),
-                rpsl::Attribute::from(("org", "ORG-ISA1-RIPE")),
-                rpsl::Attribute::from(("remarks","Init7 Global Backbone")),
+            rpsl::Object::from(vec![
+                ("aut-num", "AS13030"),
+                ("as-name", "INIT7"),
+                ("org", "ORG-ISA1-RIPE"),
+                ("remarks","Init7 Global Backbone"),
             ]),
-            rpsl::Object::new(vec![
-                rpsl::Attribute::from(("organisation", "ORG-ISA1-RIPE")),
-                rpsl::Attribute::from(("org-name","Init7 (Switzerland) Ltd.")),
+            rpsl::Object::from(vec![
+                ("organisation", "ORG-ISA1-RIPE"),
+                ("org-name","Init7 (Switzerland) Ltd."),
             ]),
         ]);
 

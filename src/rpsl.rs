@@ -134,6 +134,13 @@ impl Object {
     }
 }
 
+impl From<Vec<(&str, &str)>> for Object {
+    fn from(attributes: Vec<(&str, &str)>) -> Self {
+        let attributes: Vec<Attribute> = attributes.iter().map(|a| (*a).into()).collect();
+        Object::new(attributes)
+    }
+}
+
 impl Index<usize> for Object {
     type Output = Attribute;
 
