@@ -36,10 +36,10 @@ impl fmt::Display for EmptyStringError {
 }
 /// A string that cannot be empty or contain only whitespace characters.
 #[derive(Debug, PartialEq, Eq)]
-struct NonEmptyString(String);
+pub(crate) struct NonEmptyString(String);
 
 impl NonEmptyString {
-    fn new(value: &str) -> Result<Self, EmptyStringError> {
+    pub(crate) fn new(value: &str) -> Result<Self, EmptyStringError> {
         if value.trim().is_empty() {
             return Err(EmptyStringError);
         }

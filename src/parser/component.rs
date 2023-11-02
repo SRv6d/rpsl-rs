@@ -42,7 +42,10 @@ pub fn attribute(input: &str) -> IResult<&str, rpsl::Attribute> {
         }
     };
 
-    Ok((remaining, rpsl::Attribute::new(name.to_string(), value)))
+    Ok((
+        remaining,
+        rpsl::Attribute::new(rpsl::NonEmptyString::new(name).unwrap(), value),
+    ))
 }
 
 #[cfg(test)]
