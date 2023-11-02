@@ -21,6 +21,17 @@ impl Attribute {
 }
 
 impl From<(&str, &str)> for Attribute {
+    /// Examples
+    /// ```
+    /// # use rpsl_parser::rpsl;
+    /// assert_eq!(
+    ///     rpsl::Attribute::from(("role", "ACME Company")),
+    ///     rpsl::Attribute::new(
+    ///         "role".to_string(),
+    ///         rpsl::AttributeValue::SingleLine(Some("ACME Company".to_string()))
+    ///     )
+    /// );
+    /// ```
     fn from(name_value: (&str, &str)) -> Self {
         let (name, value) = name_value;
         Attribute::new(name.to_string(), value.into())
@@ -28,6 +39,24 @@ impl From<(&str, &str)> for Attribute {
 }
 
 impl From<(&str, Vec<&str>)> for Attribute {
+    /// Examples
+    /// ```
+    /// # use rpsl_parser::rpsl;
+    /// assert_eq!(
+    ///     rpsl::Attribute::from((
+    ///        "address",
+    ///         vec!["Packet Street 6", "128 Series of Tubes", "Internet"],
+    ///     )),
+    ///     rpsl::Attribute::new(
+    ///         "address".to_string(),
+    ///         rpsl::AttributeValue::MultiLine(vec![
+    ///             Some("Packet Street 6".to_string()),
+    ///             Some("128 Series of Tubes".to_string()),
+    ///             Some("Internet".to_string())
+    ///         ])
+    ///     )
+    /// );
+    /// ```
     fn from(name_values: (&str, Vec<&str>)) -> Self {
         let (name, values) = name_values;
         Attribute::new(name.to_string(), values.into())
@@ -42,6 +71,17 @@ pub enum AttributeValue {
 }
 
 impl From<&str> for AttributeValue {
+    /// Examples
+    /// ```
+    /// # use rpsl_parser::rpsl;
+    ///
+    /// assert_eq!(
+    ///     rpsl::AttributeValue::from("ACME Company"),
+    ///     rpsl::AttributeValue::SingleLine(Some("ACME Company".to_string()))
+    /// );
+    /// assert_eq!(rpsl::AttributeValue::from(""), rpsl::AttributeValue::SingleLine(None));
+    /// assert_eq!(rpsl::AttributeValue::from("   "), rpsl::AttributeValue::SingleLine(None));
+    /// ```
     fn from(value: &str) -> Self {
         AttributeValue::SingleLine({
             if value.trim().is_empty() {
@@ -54,6 +94,26 @@ impl From<&str> for AttributeValue {
 }
 
 impl From<Vec<&str>> for AttributeValue {
+    /// Examples
+    /// ```
+    /// # use rpsl_parser::rpsl;
+    /// assert_eq!(
+    ///     rpsl::AttributeValue::from(vec![
+    ///         "Packet Street 6",
+    ///         "128 Series of Tubes",
+    ///         "Internet"
+    ///     ]),
+    ///     rpsl::AttributeValue::MultiLine(vec![
+    ///         Some("Packet Street 6".to_string()),
+    ///         Some("128 Series of Tubes".to_string()),
+    ///         Some("Internet".to_string())
+    ///     ])
+    /// );
+    /// assert_eq!(
+    ///     rpsl::AttributeValue::from(vec!["Packet Street 6"]),
+    ///     rpsl::AttributeValue::SingleLine(Some("Packet Street 6".to_string())),
+    /// );
+    /// ```
     fn from(values: Vec<&str>) -> Self {
         if values.len() == 1 {
             return values[0].into();
@@ -135,6 +195,24 @@ impl Object {
 }
 
 impl From<Vec<(&str, &str)>> for Object {
+    /// Examples
+    /// ```
+    /// # use rpsl_parser::rpsl;
+    /// assert_eq!(
+    ///     rpsl::Object::from(vec![
+    ///         ("role", "ACME Company"),
+    ///         ("address", "Packet Street 6"),
+    ///         ("address", "128 Series of Tubes"),
+    ///         ("address", "Internet"),
+    ///     ]),
+    ///     rpsl::Object::new(vec![
+    ///         rpsl::Attribute::from(("role", "ACME Company")),
+    ///         rpsl::Attribute::from(("address", "Packet Street 6")),
+    ///         rpsl::Attribute::from(("address", "128 Series of Tubes")),
+    ///         rpsl::Attribute::from(("address", "Internet")),
+    ///     ])
+    /// );
+    /// ```
     fn from(attributes: Vec<(&str, &str)>) -> Self {
         let attributes: Vec<Attribute> = attributes.iter().map(|a| (*a).into()).collect();
         Object::new(attributes)
