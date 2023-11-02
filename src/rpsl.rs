@@ -268,12 +268,7 @@ impl IntoIterator for ObjectCollection {
 // Create an RPSL object collection from a vector of slices parsed from RPSL text.
 impl From<Vec<Vec<Attribute>>> for ObjectCollection {
     fn from(object_slices: Vec<Vec<Attribute>>) -> Self {
-        let mut objects: Vec<Object> = Vec::with_capacity(object_slices.len());
-
-        for object in object_slices {
-            objects.push(Object::new(object));
-        }
-
+        let objects: Vec<Object> = object_slices.into_iter().map(Object::new).collect();
         ObjectCollection(objects)
     }
 }
