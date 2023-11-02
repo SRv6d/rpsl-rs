@@ -1,5 +1,5 @@
 //! Types for representing RPSL components.
-use std::{ops::Index, option::Option};
+use std::{error::Error, fmt, ops::Index, option::Option};
 
 /// Represents a RPSL attribute.
 #[derive(Debug, PartialEq, Eq)]
@@ -13,53 +13,43 @@ pub struct Attribute {
 }
 
 impl Attribute {
-    /// Create a new RPSL attribute from a name and an attribute value.
+    /// Create a new RPSL attribute from an AttributeName and AttributeValue pair.
     #[must_use]
-    pub fn new(name: String, value: AttributeValue) -> Self {
-        Attribute { name, value }
+    pub fn new(name: NonEmptyString, value: AttributeValue) -> Self {
+        Attribute {
+            name: name.to_string(),
+            value,
+        }
     }
 }
 
-impl From<(&str, &str)> for Attribute {
-    /// Examples
-    /// ```
-    /// # use rpsl_parser::rpsl;
-    /// assert_eq!(
-    ///     rpsl::Attribute::from(("role", "ACME Company")),
-    ///     rpsl::Attribute::new(
-    ///         "role".to_string(),
-    ///         rpsl::AttributeValue::SingleLine(Some("ACME Company".to_string()))
-    ///     )
-    /// );
-    /// ```
-    fn from(name_value: (&str, &str)) -> Self {
-        let (name, value) = name_value;
-        Attribute::new(name.to_string(), value.into())
+#[derive(Debug, Clone, PartialEq)]
+struct EmptyStringError;
+
+impl fmt::Display for EmptyStringError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "NonEmptyString string cannot be empty or contain only whitespace characters."
+        )
+    }
+}
+/// A string that cannot be empty or contain only whitespace characters.
+#[derive(Debug, PartialEq, Eq)]
+struct NonEmptyString(String);
+
+impl NonEmptyString {
+    fn new(value: &str) -> Result<Self, EmptyStringError> {
+        if value.trim().is_empty() {
+            return Err(EmptyStringError);
+        }
+        Ok(Self(value.to_string()))
     }
 }
 
-impl From<(&str, Vec<&str>)> for Attribute {
-    /// Examples
-    /// ```
-    /// # use rpsl_parser::rpsl;
-    /// assert_eq!(
-    ///     rpsl::Attribute::from((
-    ///        "address",
-    ///         vec!["Packet Street 6", "128 Series of Tubes", "Internet"],
-    ///     )),
-    ///     rpsl::Attribute::new(
-    ///         "address".to_string(),
-    ///         rpsl::AttributeValue::MultiLine(vec![
-    ///             Some("Packet Street 6".to_string()),
-    ///             Some("128 Series of Tubes".to_string()),
-    ///             Some("Internet".to_string())
-    ///         ])
-    ///     )
-    /// );
-    /// ```
-    fn from(name_values: (&str, Vec<&str>)) -> Self {
-        let (name, values) = name_values;
-        Attribute::new(name.to_string(), values.into())
+impl fmt::Display for NonEmptyString {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -71,19 +61,18 @@ pub enum AttributeValue {
 }
 
 impl From<&str> for AttributeValue {
-    /// Examples
+    /// # Examples
     /// ```
     /// # use rpsl_parser::rpsl;
-    ///
     /// assert_eq!(
     ///     rpsl::AttributeValue::from("ACME Company"),
-    ///     rpsl::AttributeValue::SingleLine(Some("ACME Company".to_string()))
+    ///     rpsl::AttributeValue::SingleLine::new(Some("ACME Company".to_string()))
     /// );
     /// assert_eq!(rpsl::AttributeValue::from(""), rpsl::AttributeValue::SingleLine(None));
     /// assert_eq!(rpsl::AttributeValue::from("   "), rpsl::AttributeValue::SingleLine(None));
     /// ```
     fn from(value: &str) -> Self {
-        AttributeValue::SingleLine({
+        Self::SingleLine({
             if value.trim().is_empty() {
                 None
             } else {
@@ -94,7 +83,7 @@ impl From<&str> for AttributeValue {
 }
 
 impl From<Vec<&str>> for AttributeValue {
-    /// Examples
+    /// # Examples
     /// ```
     /// # use rpsl_parser::rpsl;
     /// assert_eq!(
@@ -119,7 +108,7 @@ impl From<Vec<&str>> for AttributeValue {
             return values[0].into();
         }
 
-        AttributeValue::MultiLine(
+        Self::MultiLine(
             values
                 .iter()
                 .map(|v| {
@@ -270,5 +259,16 @@ impl From<Vec<Vec<Attribute>>> for ObjectCollection {
     fn from(object_slices: Vec<Vec<Attribute>>) -> Self {
         let objects: Vec<Object> = object_slices.into_iter().map(Object::new).collect();
         ObjectCollection(objects)
+    }
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_non_empty_string() {
+        assert!(NonEmptyString::new("").is_err());
+        assert!(NonEmptyString::new("   ").is_err());
+        assert!(NonEmptyString::new("ACME Company").is_ok());
     }
 }
