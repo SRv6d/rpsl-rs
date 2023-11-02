@@ -232,10 +232,7 @@ mod tests {
         );
         let expected = rpsl::Object::new(vec![
             rpsl::Attribute::from(("role", "Twelve99 Routing Registry")),
-            rpsl::Attribute::new(
-                "remarks".to_string(),
-                rpsl::AttributeValue::SingleLine(None),
-            ),
+            rpsl::Attribute::new("remarks".to_string(), rpsl::Value::SingleLine(None)),
             rpsl::Attribute::from(("remarks", "This is a remark.")),
             rpsl::Attribute::from(("address", "Arelion Sweden AB")),
             rpsl::Attribute::from(("address", "Evenemangsgatan 2C")),

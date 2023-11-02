@@ -31,14 +31,14 @@ pub fn attribute(input: &str) -> IResult<&str, rpsl::Attribute> {
     )(input)?;
     let (remaining, mut continuation_values) = many0(subcomponent::continuation_line)(remaining)?;
 
-    let value: rpsl::AttributeValue = {
+    let value: rpsl::Value = {
         if !continuation_values.is_empty() {
             let mut values = Vec::with_capacity(1 + continuation_values.len());
             values.push(first_value);
             values.append(&mut continuation_values);
-            rpsl::AttributeValue::from(values)
+            rpsl::Value::from(values)
         } else {
-            rpsl::AttributeValue::from(first_value)
+            rpsl::Value::from(first_value)
         }
     };
 

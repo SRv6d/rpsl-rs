@@ -9,13 +9,13 @@ pub struct Attribute {
     /// The values of the attribute.
     /// Single line attributes only have one value, while for multi-line attributes every line is a value.
     /// An empty value or one containing only whitespace is represented as None.
-    pub value: AttributeValue,
+    pub value: Value,
 }
 
 impl Attribute {
-    /// Create a new RPSL attribute from an AttributeName and AttributeValue pair.
+    /// Create a new RPSL attribute from an AttributeName and Value pair.
     #[must_use]
-    pub fn new(name: NonEmptyString, value: AttributeValue) -> Self {
+    pub fn new(name: NonEmptyString, value: Value) -> Self {
         Attribute {
             name: name.to_string(),
             value,
@@ -55,21 +55,21 @@ impl fmt::Display for NonEmptyString {
 
 /// The value of a RPSL attribute.
 #[derive(Debug, PartialEq, Eq)]
-pub enum AttributeValue {
+pub enum Value {
     SingleLine(Option<String>),
     MultiLine(Vec<Option<String>>),
 }
 
-impl From<&str> for AttributeValue {
+impl From<&str> for Value {
     /// # Examples
     /// ```
     /// # use rpsl_parser::rpsl;
     /// assert_eq!(
-    ///     rpsl::AttributeValue::from("ACME Company"),
-    ///     rpsl::AttributeValue::SingleLine::new(Some("ACME Company".to_string()))
+    ///     rpsl::Value::from("ACME Company"),
+    ///     rpsl::Value::SingleLine::new(Some("ACME Company".to_string()))
     /// );
-    /// assert_eq!(rpsl::AttributeValue::from(""), rpsl::AttributeValue::SingleLine(None));
-    /// assert_eq!(rpsl::AttributeValue::from("   "), rpsl::AttributeValue::SingleLine(None));
+    /// assert_eq!(rpsl::Value::from(""), rpsl::Value::SingleLine(None));
+    /// assert_eq!(rpsl::Value::from("   "), rpsl::Value::SingleLine(None));
     /// ```
     fn from(value: &str) -> Self {
         Self::SingleLine({
@@ -82,25 +82,25 @@ impl From<&str> for AttributeValue {
     }
 }
 
-impl From<Vec<&str>> for AttributeValue {
+impl From<Vec<&str>> for Value {
     /// # Examples
     /// ```
     /// # use rpsl_parser::rpsl;
     /// assert_eq!(
-    ///     rpsl::AttributeValue::from(vec![
+    ///     rpsl::Value::from(vec![
     ///         "Packet Street 6",
     ///         "128 Series of Tubes",
     ///         "Internet"
     ///     ]),
-    ///     rpsl::AttributeValue::MultiLine(vec![
+    ///     rpsl::Value::MultiLine(vec![
     ///         Some("Packet Street 6".to_string()),
     ///         Some("128 Series of Tubes".to_string()),
     ///         Some("Internet".to_string())
     ///     ])
     /// );
     /// assert_eq!(
-    ///     rpsl::AttributeValue::from(vec!["Packet Street 6"]),
-    ///     rpsl::AttributeValue::SingleLine(Some("Packet Street 6".to_string())),
+    ///     rpsl::Value::from(vec!["Packet Street 6"]),
+    ///     rpsl::Value::SingleLine(Some("Packet Street 6".to_string())),
     /// );
     /// ```
     fn from(values: Vec<&str>) -> Self {
