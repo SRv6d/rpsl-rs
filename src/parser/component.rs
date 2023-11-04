@@ -1,7 +1,7 @@
 use crate::rpsl::Attribute;
 use nom::{
     bytes::complete::{tag, take_while, take_while1},
-    character::complete::{one_of, space0},
+    character::complete::{newline, one_of, space0},
     multi::many0,
     sequence::{delimited, separated_pair, terminated, tuple},
     IResult,
@@ -14,7 +14,7 @@ pub fn server_message(input: &str) -> IResult<&str, &str> {
     let (remaining, value) = delimited(
         tuple((tag("%"), space0)),
         take_while(|c: char| !c.is_control()),
-        tag("\n"),
+        newline,
     )(input)?;
 
     Ok((remaining, value))
@@ -27,7 +27,7 @@ pub fn attribute(input: &str) -> IResult<&str, Attribute> {
     let (remaining, (name, first_value)) = separated_pair(
         terminated(subcomponent::attribute_name, tag(":")),
         space0,
-        terminated(subcomponent::attribute_value, tag("\n")),
+        terminated(subcomponent::attribute_value, newline),
     )(input)?;
     let (remaining, mut continuation_values) = many0(subcomponent::continuation_line)(remaining)?;
 
