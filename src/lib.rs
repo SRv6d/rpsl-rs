@@ -3,8 +3,10 @@
 #![forbid(unsafe_code)]
 #![doc = include_str!("../README.md")]
 
-pub use parser::{parse_rpsl_object, parse_whois_server_response};
+pub use parser::parse_object;
+pub use rpsl::{Attribute, Object};
+
 mod parser;
 #[cfg(feature = "pyo3")]
 mod pyo3;
-pub mod rpsl;
+mod rpsl;
