@@ -2,7 +2,7 @@ use core::panic;
 
 /// The name of an attribute.
 #[derive(Debug, PartialEq)]
-struct Name(String);
+pub struct Name(String);
 
 impl Name {
     /// Create a new name from a string.
@@ -24,7 +24,7 @@ impl TryFrom<&str> for Name {
 
 /// The value of an attribute.
 #[derive(Debug, PartialEq)]
-enum Value {
+pub enum Value {
     SingleLine(Option<String>),
     MultiLine(Vec<Option<String>>),
 }
