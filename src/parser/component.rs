@@ -1,4 +1,4 @@
-use crate::rpsl;
+use crate::rpsl::Attribute;
 use nom::{
     bytes::complete::{tag, take_while, take_while1},
     character::complete::{one_of, space0},
@@ -23,7 +23,7 @@ pub fn server_message(input: &str) -> IResult<&str, &str> {
 // A RPSL attribute consisting of a name and one or more values.
 // The name is followed by a colon and optional spaces.
 // Single value attributes are limited to one line, while multi value attributes span over multiple lines.
-pub fn attribute(input: &str) -> IResult<&str, rpsl::Attribute> {
+pub fn attribute(input: &str) -> IResult<&str, Attribute> {
     let (remaining, (name, first_value)) = separated_pair(
         terminated(subcomponent::attribute_name, tag(":")),
         space0,
@@ -31,21 +31,18 @@ pub fn attribute(input: &str) -> IResult<&str, rpsl::Attribute> {
     )(input)?;
     let (remaining, mut continuation_values) = many0(subcomponent::continuation_line)(remaining)?;
 
-    let value: rpsl::Value = {
+    let attribute: Attribute = {
         if !continuation_values.is_empty() {
             let mut values = Vec::with_capacity(1 + continuation_values.len());
             values.push(first_value);
             values.append(&mut continuation_values);
-            rpsl::Value::from(values)
+            Attribute::new(name, values)
         } else {
-            rpsl::Value::from(first_value)
+            Attribute::new(name, first_value)
         }
     };
 
-    Ok((
-        remaining,
-        rpsl::Attribute::new(rpsl::NonEmptyString::new(name).unwrap(), value),
-    ))
+    Ok((remaining, attribute))
 }
 
 #[cfg(test)]
@@ -89,10 +86,7 @@ mod tests {
         fn valid_single_value() {
             assert_eq!(
                 attribute("import:         from AS12 accept AS12\n"),
-                Ok((
-                    "",
-                    rpsl::Attribute::from(("import", "from AS12 accept AS12"))
-                ))
+                Ok(("", Attribute::new("import", "from AS12 accept AS12")))
             );
         }
 
@@ -107,14 +101,14 @@ mod tests {
                 )),
                 Ok((
                     "remarks:        Peering Policy\n",
-                    rpsl::Attribute::from((
+                    Attribute::new(
                         "remarks",
                         vec![
                             "Locations",
                             "LA1 - CoreSite One Wilshire",
                             "NY1 - Equinix New York, Newark",
                         ]
-                    ))
+                    )
                 ))
             );
         }
