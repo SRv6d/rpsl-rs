@@ -130,7 +130,7 @@ pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
     Ok(object)
 }
 
-/// Parse a whois server response contaning multiple RPSL objects in their textual representation.
+/// Parse a whois server response containing multiple RPSL objects in their textual representation.
 ///
 /// # Examples
 /// ```
