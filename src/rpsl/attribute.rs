@@ -1,4 +1,5 @@
 use core::panic;
+use std::fmt;
 
 /// The name of an attribute.
 #[derive(Debug, PartialEq, Eq)]
@@ -11,6 +12,12 @@ impl Name {
             panic!("Name cannot be empty");
         }
         Self(name.to_string())
+    }
+}
+
+impl fmt::Display for Name {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
