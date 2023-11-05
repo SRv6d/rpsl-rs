@@ -113,6 +113,20 @@ pub struct Attribute {
 
 impl Attribute {
     /// Create a new attribute from an attribute name and it's value(s).
+    ///
+    /// # Examples
+    ///
+    /// Create a new `role` attribute with a single value.
+    /// ```
+    /// # use rpsl_parser::Attribute;
+    /// let attribute = Attribute::new("role", "ACME Company");
+    /// ```
+    ///
+    /// Create a new `address` attribute with multiple values describing a complete address.
+    /// ```
+    /// # use rpsl_parser::Attribute;
+    /// let attribute = Attribute::new("address", vec!["Packet Street 6", "128 Series of Tubes", "Internet"]);
+    /// ```
     pub fn new(name: &str, value: impl Into<Value>) -> Self {
         Self {
             name: name.try_into().unwrap(),
@@ -121,6 +135,14 @@ impl Attribute {
     }
 
     /// Create a new attribute without value.
+    ///
+    /// # Examples
+    ///
+    /// Create an empty `remarks` attribute.
+    /// ```
+    /// # use rpsl_parser::Attribute;
+    /// let attribute = Attribute::without_value("remarks");
+    /// ```
     pub fn without_value(name: &str) -> Self {
         Self {
             name: name.try_into().unwrap(),
