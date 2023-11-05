@@ -28,6 +28,10 @@ criterion = { version = "0.5.1", features = ["html_reports"] }
 name = "parse_as3257"
 harness = false
 
+[[bench]]
+name = "parse_as3257_whois_response"
+harness = false
+
 [profile.release]
 lto = true
 strip = true
