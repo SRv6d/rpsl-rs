@@ -2,7 +2,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("parse AS3257", |b| {
-        b.iter(|| rpsl_parser::parse_rpsl_object(black_box(AS3257)))
+        b.iter(|| rpsl_parser::parse_object(black_box(AS3257)))
     });
 }
 
