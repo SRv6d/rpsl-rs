@@ -9,3 +9,9 @@ impl Object {
         Object(attributes)
     }
 }
+
+impl From<Vec<Attribute>> for Object {
+    fn from(attributes: Vec<Attribute>) -> Self {
+        Self::new(attributes)
+    }
+}
