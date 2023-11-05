@@ -43,16 +43,6 @@ pub enum Value {
 }
 
 impl From<&str> for Value {
-    /// # Examples
-    /// ```
-    /// # use rpsl_parser::rpsl;
-    /// assert_eq!(
-    ///     rpsl::Value::from("ACME Company"),
-    ///     rpsl::Value::SingleLine::new(Some("ACME Company".to_string()))
-    /// );
-    /// assert_eq!(rpsl::Value::from(""), rpsl::Value::SingleLine(None));
-    /// assert_eq!(rpsl::Value::from("   "), rpsl::Value::SingleLine(None));
-    /// ```
     fn from(value: &str) -> Self {
         Self::SingleLine({
             if value.trim().is_empty() {
@@ -65,26 +55,6 @@ impl From<&str> for Value {
 }
 
 impl From<Vec<&str>> for Value {
-    /// # Examples
-    /// ```
-    /// # use rpsl_parser::rpsl;
-    /// assert_eq!(
-    ///     rpsl::Value::from(vec![
-    ///         "Packet Street 6",
-    ///         "128 Series of Tubes",
-    ///         "Internet"
-    ///     ]),
-    ///     rpsl::Value::MultiLine(vec![
-    ///         Some("Packet Street 6".to_string()),
-    ///         Some("128 Series of Tubes".to_string()),
-    ///         Some("Internet".to_string())
-    ///     ])
-    /// );
-    /// assert_eq!(
-    ///     rpsl::Value::from(vec!["Packet Street 6"]),
-    ///     rpsl::Value::SingleLine(Some("Packet Street 6".to_string())),
-    /// );
-    /// ```
     fn from(values: Vec<&str>) -> Self {
         match values.len() {
             1 => values[0].into(),
@@ -148,5 +118,48 @@ impl Attribute {
             name: name.try_into().unwrap(),
             value: Value::SingleLine(None),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn value_from_str() {
+        assert_eq!(
+            Value::from("ACME Company"),
+            Value::SingleLine(Some("ACME Company".to_string()))
+        );
+        assert_eq!(Value::from(""), Value::SingleLine(None));
+        assert_eq!(Value::from("   "), Value::SingleLine(None));
+    }
+
+    #[test]
+    fn value_from_vec_of_str() {
+        assert_eq!(
+            Value::from(vec!["Packet Street 6", "128 Series of Tubes", "Internet"]),
+            Value::MultiLine(vec![
+                Some("Packet Street 6".to_string()),
+                Some("128 Series of Tubes".to_string()),
+                Some("Internet".to_string())
+            ])
+        );
+        assert_eq!(
+            Value::from(vec!["Packet Street 6"]),
+            Value::SingleLine(Some("Packet Street 6".to_string())),
+        );
+        assert_eq!(
+            Value::from(vec!["", "128 Series of Tubes", "Internet"]),
+            Value::MultiLine(vec![
+                None,
+                Some("128 Series of Tubes".to_string()),
+                Some("Internet".to_string())
+            ])
+        );
+        assert_eq!(
+            Value::from(vec!["", " ", "   "]),
+            Value::MultiLine(vec![None, None, None])
+        );
     }
 }
