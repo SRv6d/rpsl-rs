@@ -1,34 +1,30 @@
 use super::component;
-use crate::rpsl::{Attribute, Object};
+use crate::rpsl::Object;
 use nom::{
-    character::complete::multispace0, combinator::all_consuming, error::Error, multi::many1,
-    sequence::delimited, Finish, IResult,
+    branch::alt,
+    bytes::complete::tag,
+    character::complete::{multispace0, newline},
+    combinator::all_consuming,
+    error::Error,
+    multi::{many0, many1},
+    sequence::{delimited, preceded, terminated},
+    Finish, IResult,
 };
 
-/// Parse a string containing one or more attributes into a vector of attributes.
+/// Parse an object with at least one attribute terminated by a newline.
 ///
-/// # Example
-/// ```
-/// # use rpsl::parser::main::many1_attributes;
-/// # use rpsl::rpsl::Attribute;
-///
-/// let attributes = "
-/// email:       rpsl-parser@github.com
-/// nic-hdl:     RPSL1-RIPE
-/// "
-/// assert_eq!(
-///     many1_attributes(attributes),
-///     Ok((
-///         "",
-///         vec![
-///             Attribute::new("email", "rpsl-parser@github.com"),
-///             Attribute::new("nic-hdl", "RPSL1-RIPE")
-///         ]
-///     ))
-/// );
-pub(crate) fn many1_attributes(input: &str) -> IResult<&str, Vec<Attribute>> {
-    let (remaining, attributes) = many1(component::attribute)(input)?;
-    Ok((remaining, attributes))
+/// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
+/// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
+fn object_block(input: &str) -> IResult<&str, Object> {
+    let (remaining, attributes) = terminated(many1(component::attribute), newline)(input)?;
+    Ok((remaining, attributes.into()))
+}
+
+/// Parse an unlimited number of optional server messages or newlines.
+fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
+    let (remaining, message_or_newlines) =
+        many0(alt((component::server_message, tag("\n"))))(input)?;
+    Ok((remaining, message_or_newlines))
 }
 
 /// Parse an RPSL object from it's textual representation.
@@ -45,12 +41,13 @@ pub(crate) fn many1_attributes(input: &str) -> IResult<&str, Vec<Attribute>> {
 /// email:       rpsl-parser@github.com
 /// nic-hdl:     RPSL1-RIPE
 /// source:      RIPE
+///
 /// ";
 /// let object = parse_object(role_acme)?;
 /// assert_eq!(
 ///     object,
 ///     Object::new(vec![
-///         Attribute::new("role" "ACME Company"),
+///         Attribute::new("role", "ACME Company"),
 ///         Attribute::new("address", "Packet Street 6"),
 ///         Attribute::new("address", "128 Series of Tubes"),
 ///         Attribute::new("address", "Internet"),
@@ -70,6 +67,7 @@ pub(crate) fn many1_attributes(input: &str) -> IResult<&str, Vec<Attribute>> {
 /// let multiline_remark = "
 /// remarks:     Value 1
 ///              Value 2
+///
 /// ";
 /// assert_eq!(
 ///     parse_object(multiline_remark)?,
@@ -81,20 +79,21 @@ pub(crate) fn many1_attributes(input: &str) -> IResult<&str, Vec<Attribute>> {
 /// # }
 /// ```
 ///
-/// Empty values are valid and are represented as `None`.
+/// An attribute that does not have a value is valid.
 /// ```
 /// # use rpsl_parser::{parse_object, Attribute, Object};
 /// # fn main() -> Result<(), nom::error::Error<&'static str>> {
-/// let empty_value = "
+/// let without_value = "
 /// as-name:     REMARKABLE
 /// remarks:
 /// remarks:     ^^^^^^^^^^ nothing here
+///
 /// ";
 /// assert_eq!(
-///     parse_rpsl_object(empty_value)?,
+///     parse_object(without_value)?,
 ///     Object::new(vec![
 ///         Attribute::new("as-name", "REMARKABLE"),
-///         Attribute::new("remarks", None),
+///         Attribute::without_value("remarks"),
 ///         Attribute::new("remarks", "^^^^^^^^^^ nothing here"),
 ///     ])
 /// );
@@ -103,21 +102,22 @@ pub(crate) fn many1_attributes(input: &str) -> IResult<&str, Vec<Attribute>> {
 /// ```
 ///
 /// The same goes for values containing only whitespace.
-/// Since whitespace to the left of a value is trimmed, they are equivalent to an empty value.
+/// Since whitespace to the left of a value is trimmed, they are equivalent to no value.
 ///
 /// ```
-/// # use rpsl_parser::{parse_rpsl_object, rpsl};
+/// # use rpsl_parser::{parse_object, Attribute, Object};
 /// # fn main() -> Result<(), nom::error::Error<&'static str>> {
 /// let whitespace_value = "
 /// as-name:     REMARKABLE
 /// remarks:               
 /// remarks:     ^^^^^^^^^^ nothing but hot air
+///
 /// ";
 /// assert_eq!(
-///     parse_rpsl_object(whitespace_value)?,
+///     parse_object(whitespace_value)?,
 ///     Object::new(vec![
 ///         Attribute::new("as-name", "REMARKABLE"),
-///         Attribute::new("remarks", None),
+///         Attribute::without_value("remarks"),
 ///         Attribute::new("remarks", "^^^^^^^^^^ nothing but hot air"),
 ///     ])
 /// );
@@ -125,9 +125,9 @@ pub(crate) fn many1_attributes(input: &str) -> IResult<&str, Vec<Attribute>> {
 /// # }
 /// ```
 pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
-    let (_, attributes) =
-        all_consuming(delimited(multispace0, many1_attributes, multispace0))(rpsl).finish()?;
-    Ok(Object::new(attributes))
+    let (_, object) =
+        all_consuming(delimited(multispace0, object_block, multispace0))(rpsl).finish()?;
+    Ok(object)
 }
 
 /// Parse a whois server response contaning multiple RPSL objects in their textual representation.
@@ -156,6 +156,7 @@ pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
 /// RegDate:        2004-08-11
 /// Updated:        2012-04-17
 /// Ref:            https://rdap.arin.net/registry/entity/THEFA-3
+///
 /// ";
 /// let objects: Vec<Object> = parse_whois_response(whois_response)?;
 /// assert_eq!(
@@ -187,5 +188,90 @@ pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
 /// # Ok(())
 /// # }
 pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, Error<&str>> {
-    ()
+    let mut objects: Vec<Object> = Vec::new();
+
+    let (remaining, first_object): (&str, Object) =
+        preceded(optional_message_or_newlines, object_block)(response).finish()?;
+    objects.push(first_object);
+
+    let (_, following_objects): (&str, Vec<Object>) = all_consuming(many0(delimited(
+        optional_message_or_newlines,
+        object_block,
+        optional_message_or_newlines,
+    )))(remaining)
+    .finish()?;
+    objects.extend(following_objects);
+
+    Ok(objects)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Attribute;
+
+    #[test]
+    fn object_block_valid() {
+        let object = concat!(
+            "email:       rpsl-parser@github.com\n",
+            "nic-hdl:     RPSL1-RIPE\n",
+            "\n"
+        );
+        assert_eq!(
+            object_block(object),
+            Ok((
+                "",
+                Object::new(vec![
+                    Attribute::new("email", "rpsl-parser@github.com"),
+                    Attribute::new("nic-hdl", "RPSL1-RIPE")
+                ])
+            ))
+        );
+    }
+
+    #[test]
+    fn object_block_without_newline_termination_is_err() {
+        let object = concat!(
+            "email:       rpsl-parser@github.com\n",
+            "nic-hdl:     RPSL1-RIPE\n",
+        );
+        assert!(object_block(object).is_err());
+    }
+
+    #[test]
+    fn optional_comment_or_newlines_consumed() {
+        assert_eq!(
+            optional_message_or_newlines("% Note: This is a server message\n")
+                .unwrap()
+                .0,
+            ""
+        );
+        assert_eq!(
+            optional_message_or_newlines(concat!(
+                "\n",
+                "% Note: This is a server message followed by an empty line\n"
+            ))
+            .unwrap()
+            .0,
+            ""
+        );
+        assert_eq!(
+            optional_message_or_newlines(concat!(
+                "% Note: This is a server message preceeding some newlines.\n",
+                "\n",
+                "\n",
+            ))
+            .unwrap()
+            .0,
+            ""
+        );
+    }
+
+    #[test]
+    fn optional_comment_or_newlines_optional() {
+        assert_eq!(
+            optional_message_or_newlines(""),
+            Ok(("", Vec::<&str>::new()))
+        );
+    }
 }

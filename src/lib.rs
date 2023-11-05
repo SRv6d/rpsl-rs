@@ -3,7 +3,7 @@
 #![forbid(unsafe_code)]
 #![doc = include_str!("../README.md")]
 
-pub use parser::parse_object;
+pub use parser::{parse_object, parse_whois_response};
 pub use rpsl::{Attribute, Object};
 
 mod parser;
