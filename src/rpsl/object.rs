@@ -1,3 +1,5 @@
+use std::ops::Index;
+
 use crate::rpsl::Attribute;
 
 /// An RPSL object.
@@ -41,6 +43,14 @@ impl Object {
     /// Create a new RPSL object from a vector of attributes.
     pub fn new(attributes: Vec<Attribute>) -> Self {
         Object(attributes)
+    }
+}
+
+impl Index<usize> for Object {
+    type Output = Attribute;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
     }
 }
 
