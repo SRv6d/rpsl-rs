@@ -6,7 +6,7 @@ pub struct Object(Vec<Attribute>);
 
 impl Object {
     /// Create a new RPSL object from a vector of attributes.
-    pub(crate) fn new(attributes: Vec<Attribute>) -> Self {
+    pub fn new(attributes: Vec<Attribute>) -> Self {
         Object(attributes)
     }
 }

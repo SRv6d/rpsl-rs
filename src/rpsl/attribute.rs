@@ -100,7 +100,7 @@ pub struct Attribute {
 
 impl Attribute {
     /// Create a new attribute from an attribute name and it's value(s).
-    pub(crate) fn new(name: &str, value: impl Into<Value>) -> Self {
+    pub fn new(name: &str, value: impl Into<Value>) -> Self {
         Self {
             name: name.try_into().unwrap(),
             value: value.into(),
