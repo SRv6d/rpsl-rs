@@ -1,6 +1,7 @@
 use crate::rpsl::Attribute;
 
 /// An RPSL object.
+#[derive(Debug, PartialEq)]
 pub struct Object(Vec<Attribute>);
 
 impl Object {
