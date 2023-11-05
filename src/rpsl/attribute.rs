@@ -1,7 +1,7 @@
 use core::panic;
 
 /// The name of an attribute.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct Name(String);
 
 impl Name {
@@ -23,7 +23,7 @@ impl TryFrom<&str> for Name {
 }
 
 /// The value of an attribute.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum Value {
     SingleLine(Option<String>),
     MultiLine(Vec<Option<String>>),
@@ -89,7 +89,7 @@ impl From<Vec<&str>> for Value {
         }
     }
 }
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 /// An attribute contained within an RPSL object.
 pub struct Attribute {
     /// The name of the attribute.
