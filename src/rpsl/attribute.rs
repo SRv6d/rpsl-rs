@@ -106,4 +106,12 @@ impl Attribute {
             value: value.into(),
         }
     }
+
+    /// Create a new attribute without value.
+    pub fn without_value(name: &str) -> Self {
+        Self {
+            name: name.try_into().unwrap(),
+            value: Value::SingleLine(None),
+        }
+    }
 }
