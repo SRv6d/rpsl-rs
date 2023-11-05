@@ -22,6 +22,12 @@ impl TryFrom<&str> for Name {
     }
 }
 
+impl PartialEq<&str> for Name {
+    fn eq(&self, other: &&str) -> bool {
+        self.0 == *other
+    }
+}
+
 /// The value of an attribute.
 #[derive(Debug, PartialEq, Eq)]
 pub enum Value {
