@@ -129,3 +129,63 @@ pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
         all_consuming(delimited(multispace0, many1_attributes, multispace0))(rpsl).finish()?;
     Ok(Object::new(attributes))
 }
+
+/// Parse a whois server response contaning multiple RPSL objects in their textual representation.
+///
+/// # Examples
+/// ```
+/// # use rpsl_parser::{parse_whois_response, Attribute, Object};
+/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
+/// let whois_response = "
+/// ASNumber:       32934
+/// ASName:         FACEBOOK
+/// ASHandle:       AS32934
+/// RegDate:        2004-08-24
+/// Updated:        2012-02-24
+/// Comment:        Please send abuse reports to abuse@facebook.com
+/// Ref:            https://rdap.arin.net/registry/autnum/32934
+///
+///
+/// OrgName:        Facebook, Inc.
+/// OrgId:          THEFA-3
+/// Address:        1601 Willow Rd.
+/// City:           Menlo Park
+/// StateProv:      CA
+/// PostalCode:     94025
+/// Country:        US
+/// RegDate:        2004-08-11
+/// Updated:        2012-04-17
+/// Ref:            https://rdap.arin.net/registry/entity/THEFA-3
+/// ";
+/// let objects: Vec<Object> = parse_whois_response(whois_response)?;
+/// assert_eq!(
+///     objects,
+///     vec![
+///             Object::new(vec![
+///                 Attribute::new("ASNumber", "32934"),
+///                 Attribute::new("ASName", "FACEBOOK"),
+///                 Attribute::new("ASHandle", "AS32934"),
+///                 Attribute::new("RegDate", "2004-08-24"),
+///                 Attribute::new("Updated", "2012-02-24"),
+///                 Attribute::new("Comment", "Please send abuse reports to abuse@facebook.com"),
+///                 Attribute::new("Ref", "https://rdap.arin.net/registry/autnum/32934"),
+///             ]),
+///             Object::new(vec![
+///                 Attribute::new("OrgName", "Facebook, Inc."),
+///                 Attribute::new("OrgId", "THEFA-3"),
+///                 Attribute::new("Address", "1601 Willow Rd."),
+///                 Attribute::new("City", "Menlo Park"),
+///                 Attribute::new("StateProv", "CA"),
+///                 Attribute::new("PostalCode", "94025"),
+///                 Attribute::new("Country", "US"),
+///                 Attribute::new("RegDate", "2004-08-11"),
+///                 Attribute::new("Updated", "2012-04-17"),
+///                 Attribute::new("Ref", "https://rdap.arin.net/registry/entity/THEFA-3"),
+///             ]),
+///         ]
+/// );
+/// # Ok(())
+/// # }
+pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, Error<&str>> {
+    ()
+}
