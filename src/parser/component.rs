@@ -140,10 +140,15 @@ mod subcomponent {
         Ok((remaining, value))
     }
 
+    // A single multiline continuation character.
+    pub fn continuation_char(input: &str) -> IResult<&str, char> {
+        let (remaining, char) = one_of(" \t+")(input)?;
+        Ok((remaining, char))
+    }
+
     // Extends an attributes value over multiple lines.
     // Must start with a space, tab or a plus character.
     pub fn continuation_line(input: &str) -> IResult<&str, &str> {
-        let continuation_char = one_of(" \t+");
         let (remaining, (_, _, value, _)) =
             tuple((continuation_char, space0, attribute_value, tag("\n")))(input)?;
 
