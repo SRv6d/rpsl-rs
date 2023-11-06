@@ -44,6 +44,11 @@ impl Object {
     pub fn new(attributes: Vec<Attribute>) -> Self {
         Object(attributes)
     }
+
+    /// Returns the number of attributes in the object.
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
 }
 
 impl Index<usize> for Object {
@@ -51,6 +56,15 @@ impl Index<usize> for Object {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
+    }
+}
+
+impl IntoIterator for Object {
+    type Item = Attribute;
+    type IntoIter = std::vec::IntoIter<Attribute>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 
