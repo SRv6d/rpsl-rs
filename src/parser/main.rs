@@ -7,7 +7,7 @@ use nom::{
     combinator::all_consuming,
     error::Error,
     multi::{many0, many1},
-    sequence::{delimited, preceded, terminated},
+    sequence::{delimited, terminated},
     Finish, IResult,
 };
 
@@ -18,6 +18,16 @@ use nom::{
 fn object_block(input: &str) -> IResult<&str, Object> {
     let (remaining, attributes) = terminated(many1(component::attribute), newline)(input)?;
     Ok((remaining, attributes.into()))
+}
+
+/// Uses the object block parser but allows for optinal padding with server messages or newlines.
+fn padded_object_block(input: &str) -> IResult<&str, Object> {
+    let (remaining, object) = delimited(
+        optional_message_or_newlines,
+        object_block,
+        optional_message_or_newlines,
+    )(input)?;
+    Ok((remaining, object))
 }
 
 /// Parse an unlimited number of optional server messages or newlines.
@@ -188,20 +198,8 @@ pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
 /// # Ok(())
 /// # }
 pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, Error<&str>> {
-    let mut objects: Vec<Object> = Vec::new();
-
-    let (remaining, first_object): (&str, Object) =
-        preceded(optional_message_or_newlines, object_block)(response).finish()?;
-    objects.push(first_object);
-
-    let (_, following_objects): (&str, Vec<Object>) = all_consuming(many0(delimited(
-        optional_message_or_newlines,
-        object_block,
-        optional_message_or_newlines,
-    )))(remaining)
-    .finish()?;
-    objects.extend(following_objects);
-
+    let (_, objects): (&str, Vec<Object>) =
+        all_consuming(many1(padded_object_block))(response).finish()?;
     Ok(objects)
 }
 
