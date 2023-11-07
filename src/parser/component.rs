@@ -2,6 +2,7 @@ use crate::rpsl::Attribute;
 use nom::{
     bytes::complete::{tag, take_while, take_while1},
     character::complete::{newline, one_of, space0},
+    combinator::peek,
     multi::many0,
     sequence::{delimited, separated_pair, terminated, tuple},
     IResult,
@@ -29,20 +30,18 @@ pub fn attribute(input: &str) -> IResult<&str, Attribute> {
         space0,
         terminated(subcomponent::attribute_value, newline),
     )(input)?;
-    let (remaining, mut continuation_values) = many0(subcomponent::continuation_line)(remaining)?;
 
-    let attribute: Attribute = {
-        if !continuation_values.is_empty() {
-            let mut values = Vec::with_capacity(1 + continuation_values.len());
+    match peek(subcomponent::continuation_char)(remaining) {
+        Err(_) => Ok((remaining, Attribute::new(name, first_value))),
+        Ok(_) => {
+            let (remaining, continuation_values) =
+                many0(subcomponent::continuation_line)(remaining)?;
+            let mut values: Vec<&str> = Vec::with_capacity(1 + continuation_values.len());
             values.push(first_value);
-            values.append(&mut continuation_values);
-            Attribute::new(name, values)
-        } else {
-            Attribute::new(name, first_value)
+            values.extend(continuation_values);
+            Ok((remaining, Attribute::new(name, values)))
         }
-    };
-
-    Ok((remaining, attribute))
+    }
 }
 
 #[cfg(test)]
