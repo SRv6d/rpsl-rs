@@ -39,6 +39,9 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 
 /// Parse an RPSL object from it's textual representation.
 ///
+/// # Errors
+/// Returns a Nom error if the input is not valid RPSL.
+///
 /// # Examples
 /// ```
 /// # use rpsl_parser::{parse_object, Attribute, Object};
@@ -141,6 +144,9 @@ pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
 }
 
 /// Parse a whois server response containing multiple RPSL objects in their textual representation.
+///
+/// # Errors
+/// Returns a Nom error if the input is not valid RPSL.
 ///
 /// # Examples
 /// ```
