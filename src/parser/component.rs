@@ -32,13 +32,13 @@ pub fn attribute(input: &str) -> IResult<&str, Attribute> {
     )(input)?;
 
     if peek(subcomponent::continuation_char)(remaining).is_err() {
-        Ok((remaining, Attribute::new(name, first_value)))
+        Ok((remaining, Attribute::new(name, first_value).unwrap()))
     } else {
         let (remaining, continuation_values) = many0(subcomponent::continuation_line)(remaining)?;
         let mut values: Vec<&str> = Vec::with_capacity(1 + continuation_values.len());
         values.push(first_value);
         values.extend(continuation_values);
-        Ok((remaining, Attribute::new(name, values)))
+        Ok((remaining, Attribute::new(name, values).unwrap()))
     }
 }
 
@@ -76,7 +76,10 @@ mod tests {
     fn attribute_valid_single_value() {
         assert_eq!(
             attribute("import:         from AS12 accept AS12\n"),
-            Ok(("", Attribute::new("import", "from AS12 accept AS12")))
+            Ok((
+                "",
+                Attribute::new("import", "from AS12 accept AS12").unwrap()
+            ))
         );
     }
 
@@ -99,6 +102,7 @@ mod tests {
                         "NY1 - Equinix New York, Newark",
                     ]
                 )
+                .unwrap()
             ))
         );
     }

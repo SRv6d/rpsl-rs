@@ -220,8 +220,8 @@ mod tests {
             Ok((
                 "",
                 Object::new(vec![
-                    Attribute::new("email", "rpsl-parser@github.com"),
-                    Attribute::new("nic-hdl", "RPSL1-RIPE")
+                    Attribute::new("email", "rpsl-parser@github.com").unwrap(),
+                    Attribute::new("nic-hdl", "RPSL1-RIPE").unwrap()
                 ])
             ))
         );

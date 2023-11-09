@@ -1,11 +1,5 @@
+use super::error::{AttributeError, InvalidNameError};
 use std::fmt;
-use thiserror::Error;
-
-#[derive(Error, Debug)]
-pub enum InvalidNameError {
-    #[error("Name cannot be empty")]
-    Empty,
-}
 
 /// The name of an attribute.
 #[derive(Debug, PartialEq, Eq)]
@@ -90,6 +84,9 @@ pub struct Attribute {
 impl Attribute {
     /// Create a new attribute from an attribute name and it's value(s).
     ///
+    /// # Errors
+    /// Returns an error if either the attribute name or value(s) are invalid.
+    ///
     /// # Examples
     ///
     /// Create a new `role` attribute with a single value.
@@ -103,14 +100,17 @@ impl Attribute {
     /// # use rpsl_parser::Attribute;
     /// let attribute = Attribute::new("address", vec!["Packet Street 6", "128 Series of Tubes", "Internet"]);
     /// ```
-    pub fn new(name: &str, value: impl Into<Value>) -> Self {
-        Self {
-            name: name.try_into().unwrap(),
+    pub fn new(name: &str, value: impl Into<Value>) -> Result<Self, AttributeError> {
+        Ok(Self {
+            name: name.try_into()?,
             value: value.into(),
-        }
+        })
     }
 
     /// Create a new attribute without value.
+    ///
+    /// # Errors
+    /// Returns an error on invalid attribute name.
     ///
     /// # Examples
     ///
@@ -120,11 +120,11 @@ impl Attribute {
     /// let attribute = Attribute::without_value("remarks");
     /// ```
     #[must_use]
-    pub fn without_value(name: &str) -> Self {
-        Self {
-            name: name.try_into().unwrap(),
+    pub fn without_value(name: &str) -> Result<Self, AttributeError> {
+        Ok(Self {
+            name: name.try_into()?,
             value: Value::SingleLine(None),
-        }
+        })
     }
 }
 
@@ -207,19 +207,21 @@ mod tests {
     #[test]
     fn attribute_display_single_line() {
         assert_eq!(
-            Attribute::new("ASNumber", "32934").to_string(),
+            Attribute::new("ASNumber", "32934").unwrap().to_string(),
             "ASNumber:       32934\n"
         );
         assert_eq!(
-            Attribute::new("ASName", "FACEBOOK").to_string(),
+            Attribute::new("ASName", "FACEBOOK").unwrap().to_string(),
             "ASName:         FACEBOOK\n"
         );
         assert_eq!(
-            Attribute::new("RegDate", "2004-08-24").to_string(),
+            Attribute::new("RegDate", "2004-08-24").unwrap().to_string(),
             "RegDate:        2004-08-24\n"
         );
         assert_eq!(
-            Attribute::new("Ref", "https://rdap.arin.net/registry/autnum/32934").to_string(),
+            Attribute::new("Ref", "https://rdap.arin.net/registry/autnum/32934")
+                .unwrap()
+                .to_string(),
             "Ref:            https://rdap.arin.net/registry/autnum/32934\n"
         );
     }
@@ -234,6 +236,7 @@ mod tests {
                     "invalid prefixes from peers and customers."
                 ]
             )
+            .unwrap()
             .to_string(),
             concat!(
                 "remarks:        AS1299 is matching RPKI validation state and reject\n",
