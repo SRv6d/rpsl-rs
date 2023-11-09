@@ -1,5 +1,11 @@
-use core::panic;
 use std::fmt;
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum InvalidNameError {
+    #[error("Name cannot be empty")]
+    Empty,
+}
 
 /// The name of an attribute.
 #[derive(Debug, PartialEq, Eq)]
@@ -7,11 +13,11 @@ pub struct Name(String);
 
 impl Name {
     /// Create a new name from a string.
-    fn new(name: &str) -> Self {
+    fn new(name: &str) -> Result<Self, InvalidNameError> {
         if name.trim().is_empty() {
-            panic!("Name cannot be empty");
+            return Err(InvalidNameError::Empty);
         }
-        Self(name.to_string())
+        Ok(Self(name.to_string()))
     }
 }
 
@@ -22,10 +28,10 @@ impl fmt::Display for Name {
 }
 
 impl TryFrom<&str> for Name {
-    type Error = ();
+    type Error = InvalidNameError;
 
-    fn try_from(name: &str) -> Result<Self, ()> {
-        Ok(Self::new(name))
+    fn try_from(name: &str) -> Result<Self, InvalidNameError> {
+        Self::new(name)
     }
 }
 
