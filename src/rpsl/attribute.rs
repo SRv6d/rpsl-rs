@@ -119,7 +119,6 @@ impl Attribute {
     /// # use rpsl_parser::Attribute;
     /// let attribute = Attribute::without_value("remarks");
     /// ```
-    #[must_use]
     pub fn without_value(name: &str) -> Result<Self, AttributeError> {
         Ok(Self {
             name: name.try_into()?,
