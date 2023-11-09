@@ -48,25 +48,22 @@ pub fn attribute(input: &str) -> IResult<&str, Attribute> {
 mod tests {
     use super::*;
 
-    mod server_message {
-        use super::*;
-
-        #[test]
-        fn valid() {
-            assert_eq!(
-                server_message("% Note: this output has been filtered.\n"),
-                Ok(("", "Note: this output has been filtered."))
-            );
-            assert_eq!(
-                server_message(
-                    "%       To receive output for a database update, use the \"-B\" flag.\n"
-                ),
-                Ok((
-                    "",
-                    "To receive output for a database update, use the \"-B\" flag."
-                ))
-            );
-            assert_eq!(
+    #[test]
+    fn server_message_valid() {
+        assert_eq!(
+            server_message("% Note: this output has been filtered.\n"),
+            Ok(("", "Note: this output has been filtered."))
+        );
+        assert_eq!(
+            server_message(
+                "%       To receive output for a database update, use the \"-B\" flag.\n"
+            ),
+            Ok((
+                "",
+                "To receive output for a database update, use the \"-B\" flag."
+            ))
+        );
+        assert_eq!(
             server_message(
                 "% This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)\n"
             ),
@@ -75,42 +72,37 @@ mod tests {
                 "This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)"
             ))
         );
-        }
     }
 
-    mod attribute {
-        use super::*;
+    #[test]
+    fn attribute_valid_single_value() {
+        assert_eq!(
+            attribute("import:         from AS12 accept AS12\n"),
+            Ok(("", Attribute::new("import", "from AS12 accept AS12")))
+        );
+    }
 
-        #[test]
-        fn valid_single_value() {
-            assert_eq!(
-                attribute("import:         from AS12 accept AS12\n"),
-                Ok(("", Attribute::new("import", "from AS12 accept AS12")))
-            );
-        }
-
-        #[test]
-        fn valid_multi_value() {
-            assert_eq!(
-                attribute(concat!(
-                    "remarks:        Locations\n",
-                    "                LA1 - CoreSite One Wilshire\n",
-                    "                NY1 - Equinix New York, Newark\n",
-                    "remarks:        Peering Policy\n",
-                )),
-                Ok((
-                    "remarks:        Peering Policy\n",
-                    Attribute::new(
-                        "remarks",
-                        vec![
-                            "Locations",
-                            "LA1 - CoreSite One Wilshire",
-                            "NY1 - Equinix New York, Newark",
-                        ]
-                    )
-                ))
-            );
-        }
+    #[test]
+    fn attribute_valid_multi_value() {
+        assert_eq!(
+            attribute(concat!(
+                "remarks:        Locations\n",
+                "                LA1 - CoreSite One Wilshire\n",
+                "                NY1 - Equinix New York, Newark\n",
+                "remarks:        Peering Policy\n",
+            )),
+            Ok((
+                "remarks:        Peering Policy\n",
+                Attribute::new(
+                    "remarks",
+                    vec![
+                        "Locations",
+                        "LA1 - CoreSite One Wilshire",
+                        "NY1 - Equinix New York, Newark",
+                    ]
+                )
+            ))
+        );
     }
 }
 
@@ -165,73 +157,61 @@ mod subcomponent {
     mod tests {
         use super::*;
 
-        mod attribute_name {
-            use super::*;
-
-            #[test]
-            fn valid() {
-                assert_eq!(attribute_name("remarks:"), Ok((":", "remarks")));
-                assert_eq!(attribute_name("aut-num:"), Ok((":", "aut-num")));
-                assert_eq!(attribute_name("ASNumber:"), Ok((":", "ASNumber")));
-                assert_eq!(attribute_name("route6:"), Ok((":", "route6")));
-            }
-
-            #[test]
-            fn non_letter_first_char_is_error() {
-                assert!(attribute_name("1remarks:").is_err());
-                assert!(attribute_name("-remarks:").is_err());
-                assert!(attribute_name("_remarks:").is_err());
-            }
-
-            #[test]
-            fn non_letter_or_digit_last_char_is_error() {
-                assert!(attribute_name("remarks-:").is_err());
-                assert!(attribute_name("remarks_:").is_err());
-            }
+        #[test]
+        fn attribute_name_valid() {
+            assert_eq!(attribute_name("remarks:"), Ok((":", "remarks")));
+            assert_eq!(attribute_name("aut-num:"), Ok((":", "aut-num")));
+            assert_eq!(attribute_name("ASNumber:"), Ok((":", "ASNumber")));
+            assert_eq!(attribute_name("route6:"), Ok((":", "route6")));
         }
 
-        mod attribute_value {
-            use super::*;
-
-            #[test]
-            fn valid() {
-                assert_eq!(
-                    attribute_value("This is an example remark\n"),
-                    Ok(("\n", "This is an example remark"))
-                );
-                assert_eq!(
-                    attribute_value("Concerning abuse and spam ... mailto: abuse@asn.net\n"),
-                    Ok(("\n", "Concerning abuse and spam ... mailto: abuse@asn.net"))
-                );
-                assert_eq!(
-                    attribute_value("+49 176 07071964\n"),
-                    Ok(("\n", "+49 176 07071964"))
-                );
-                assert_eq!(
-                    attribute_value("* Equinix FR5, Kleyerstr, Frankfurt am Main\n"),
-                    Ok(("\n", "* Equinix FR5, Kleyerstr, Frankfurt am Main"))
-                );
-            }
+        #[test]
+        fn attribute_name_non_letter_first_char_is_error() {
+            assert!(attribute_name("1remarks:").is_err());
+            assert!(attribute_name("-remarks:").is_err());
+            assert!(attribute_name("_remarks:").is_err());
         }
 
-        mod continuation_line {
-            use super::*;
+        #[test]
+        fn attribute_name_non_letter_or_digit_last_char_is_error() {
+            assert!(attribute_name("remarks-:").is_err());
+            assert!(attribute_name("remarks_:").is_err());
+        }
 
-            #[test]
-            fn valid() {
-                assert_eq!(
-                    continuation_line("    continuation value prefixed by a space\n"),
-                    Ok(("", "continuation value prefixed by a space"))
-                );
-                assert_eq!(
-                    continuation_line("\t    continuation value prefixed by a tab\n"),
-                    Ok(("", "continuation value prefixed by a tab"))
-                );
-                assert_eq!(
-                    continuation_line("+    continuation value prefixed by a plus\n"),
-                    Ok(("", "continuation value prefixed by a plus"))
-                );
-            }
+        #[test]
+        fn attribute_value_valid() {
+            assert_eq!(
+                attribute_value("This is an example remark\n"),
+                Ok(("\n", "This is an example remark"))
+            );
+            assert_eq!(
+                attribute_value("Concerning abuse and spam ... mailto: abuse@asn.net\n"),
+                Ok(("\n", "Concerning abuse and spam ... mailto: abuse@asn.net"))
+            );
+            assert_eq!(
+                attribute_value("+49 176 07071964\n"),
+                Ok(("\n", "+49 176 07071964"))
+            );
+            assert_eq!(
+                attribute_value("* Equinix FR5, Kleyerstr, Frankfurt am Main\n"),
+                Ok(("\n", "* Equinix FR5, Kleyerstr, Frankfurt am Main"))
+            );
+        }
+
+        #[test]
+        fn continuation_line_valid() {
+            assert_eq!(
+                continuation_line("    continuation value prefixed by a space\n"),
+                Ok(("", "continuation value prefixed by a space"))
+            );
+            assert_eq!(
+                continuation_line("\t    continuation value prefixed by a tab\n"),
+                Ok(("", "continuation value prefixed by a tab"))
+            );
+            assert_eq!(
+                continuation_line("+    continuation value prefixed by a plus\n"),
+                Ok(("", "continuation value prefixed by a plus"))
+            );
         }
     }
 }
