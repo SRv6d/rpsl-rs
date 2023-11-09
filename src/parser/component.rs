@@ -116,10 +116,10 @@ mod tests {
 
 mod subcomponent {
     use nom::{
-        bytes::complete::{tag, take_while, take_while1},
-        character::complete::{one_of, space0},
+        bytes::complete::{take_while, take_while1},
+        character::complete::{newline, one_of, space0},
         combinator::verify,
-        sequence::tuple,
+        sequence::{delimited, preceded},
         IResult,
     };
 
@@ -152,8 +152,11 @@ mod subcomponent {
     // Extends an attributes value over multiple lines.
     // Must start with a space, tab or a plus character.
     pub fn continuation_line(input: &str) -> IResult<&str, &str> {
-        let (remaining, (_, _, value, _)) =
-            tuple((continuation_char, space0, attribute_value, tag("\n")))(input)?;
+        let (remaining, value) = delimited(
+            continuation_char,
+            preceded(space0, attribute_value),
+            newline,
+        )(input)?;
 
         Ok((remaining, value))
     }
