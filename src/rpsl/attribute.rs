@@ -162,4 +162,42 @@ mod tests {
             Value::MultiLine(vec![None, None, None])
         );
     }
+
+    #[test]
+    fn attribute_display_single_line() {
+        assert_eq!(
+            Attribute::new("ASNumber", "32934").to_string(),
+            "ASNumber:       32934\n"
+        );
+        assert_eq!(
+            Attribute::new("ASName", "FACEBOOK").to_string(),
+            "ASName:         FACEBOOK\n"
+        );
+        assert_eq!(
+            Attribute::new("RegDate", "2004-08-24").to_string(),
+            "RegDate:        2004-08-24\n"
+        );
+        assert_eq!(
+            Attribute::new("Ref", "https://rdap.arin.net/registry/autnum/32934").to_string(),
+            "Ref:            https://rdap.arin.net/registry/autnum/32934\n"
+        );
+    }
+
+    #[test]
+    fn attribute_display_multi_line() {
+        assert_eq!(
+            Attribute::new(
+                "remarks",
+                vec![
+                    "AS1299 is matching RPKI validation state and reject",
+                    "invalid prefixes from peers and customers."
+                ]
+            )
+            .to_string(),
+            concat!(
+                "remarks:        AS1299 is matching RPKI validation state and reject\n",
+                "                invalid prefixes from peers and customers.\n",
+            )
+        );
+    }
 }
