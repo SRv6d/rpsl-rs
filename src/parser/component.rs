@@ -1,7 +1,7 @@
 use crate::rpsl::Attribute;
 use nom::{
-    bytes::complete::{tag, take_while, take_while1},
-    character::complete::{newline, one_of, space0},
+    bytes::complete::{tag, take_while},
+    character::complete::{newline, space0},
     combinator::peek,
     multi::many0,
     sequence::{delimited, separated_pair, terminated, tuple},
@@ -115,9 +115,13 @@ mod tests {
 }
 
 mod subcomponent {
-    use nom::combinator::verify;
-
-    use super::{one_of, space0, tag, take_while, take_while1, tuple, IResult};
+    use nom::{
+        bytes::complete::{tag, take_while, take_while1},
+        character::complete::{one_of, space0},
+        combinator::verify,
+        sequence::tuple,
+        IResult,
+    };
 
     // An ASCII sequence of letters, digits and the characters "-", "_".
     // The first character must be a letter, while the last character may be a letter or a digit.
