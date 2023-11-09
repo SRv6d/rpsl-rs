@@ -31,16 +31,14 @@ pub fn attribute(input: &str) -> IResult<&str, Attribute> {
         terminated(subcomponent::attribute_value, newline),
     )(input)?;
 
-    match peek(subcomponent::continuation_char)(remaining) {
-        Err(_) => Ok((remaining, Attribute::new(name, first_value))),
-        Ok(_) => {
-            let (remaining, continuation_values) =
-                many0(subcomponent::continuation_line)(remaining)?;
-            let mut values: Vec<&str> = Vec::with_capacity(1 + continuation_values.len());
-            values.push(first_value);
-            values.extend(continuation_values);
-            Ok((remaining, Attribute::new(name, values)))
-        }
+    if peek(subcomponent::continuation_char)(remaining).is_err() {
+        Ok((remaining, Attribute::new(name, first_value)))
+    } else {
+        let (remaining, continuation_values) = many0(subcomponent::continuation_line)(remaining)?;
+        let mut values: Vec<&str> = Vec::with_capacity(1 + continuation_values.len());
+        values.push(first_value);
+        values.extend(continuation_values);
+        Ok((remaining, Attribute::new(name, values)))
     }
 }
 

@@ -62,15 +62,18 @@ use crate::rpsl::Attribute;
 ///    )
 /// );
 #[derive(Debug, PartialEq, Eq)]
+#[allow(clippy::len_without_is_empty)]
 pub struct Object(Vec<Attribute>);
 
 impl Object {
     /// Create a new RPSL object from a vector of attributes.
+    #[must_use]
     pub fn new(attributes: Vec<Attribute>) -> Self {
         Object(attributes)
     }
 
     /// Returns the number of attributes in the object.
+    #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
     }
@@ -80,9 +83,9 @@ impl fmt::Display for Object {
     /// Display the object as RPSL.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         for attribute in &self.0 {
-            write!(f, "{}", attribute)?;
+            write!(f, "{attribute}")?;
         }
-        write!(f, "\n")
+        writeln!(f)
     }
 }
 

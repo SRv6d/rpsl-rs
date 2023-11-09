@@ -119,6 +119,7 @@ impl Attribute {
     /// # use rpsl_parser::Attribute;
     /// let attribute = Attribute::without_value("remarks");
     /// ```
+    #[must_use]
     pub fn without_value(name: &str) -> Self {
         Self {
             name: name.try_into().unwrap(),
@@ -131,7 +132,7 @@ impl fmt::Display for Attribute {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.value {
             Value::SingleLine(value) => {
-                write!(f, "{:16}{}\n", format!("{}:", self.name), {
+                writeln!(f, "{:16}{}", format!("{}:", self.name), {
                     match value {
                         Some(value) => value,
                         None => "",
@@ -139,7 +140,7 @@ impl fmt::Display for Attribute {
                 })
             }
             Value::MultiLine(values) => {
-                write!(f, "{:16}{}\n", format!("{}:", self.name), {
+                writeln!(f, "{:16}{}", format!("{}:", self.name), {
                     match &values[0] {
                         Some(value) => value,
                         None => "",
@@ -155,7 +156,7 @@ impl fmt::Display for Attribute {
                         }
                     }));
                 }
-                write!(f, "{}", continuation_values)
+                write!(f, "{continuation_values}")
             }
         }
     }
