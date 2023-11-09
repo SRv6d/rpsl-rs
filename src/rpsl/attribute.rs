@@ -121,6 +121,40 @@ impl Attribute {
     }
 }
 
+impl fmt::Display for Attribute {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.value {
+            Value::SingleLine(value) => {
+                write!(f, "{:16}{}\n", format!("{}:", self.name), {
+                    match value {
+                        Some(value) => value,
+                        None => "",
+                    }
+                })
+            }
+            Value::MultiLine(values) => {
+                write!(f, "{:16}{}\n", format!("{}:", self.name), {
+                    match &values[0] {
+                        Some(value) => value,
+                        None => "",
+                    }
+                })?;
+
+                let mut continuation_values = String::new();
+                for value in &values[1..] {
+                    continuation_values.push_str(&format!("{:16}{}\n", "", {
+                        match &value {
+                            Some(value) => value,
+                            None => "",
+                        }
+                    }));
+                }
+                write!(f, "{}", continuation_values)
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

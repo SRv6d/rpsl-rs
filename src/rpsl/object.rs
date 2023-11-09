@@ -1,4 +1,4 @@
-use std::ops::Index;
+use std::{fmt, ops::Index};
 
 use crate::rpsl::Attribute;
 
@@ -73,6 +73,16 @@ impl Object {
     /// Returns the number of attributes in the object.
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+}
+
+impl fmt::Display for Object {
+    /// Display the object as RPSL.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for attribute in &self.0 {
+            write!(f, "{}", attribute)?;
+        }
+        write!(f, "\n")
     }
 }
 
