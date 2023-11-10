@@ -45,7 +45,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// # Examples
 /// ```
 /// # use rpsl_parser::{parse_object, Attribute, Object};
-/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let role_acme = "
 /// role:        ACME Company
 /// address:     Packet Street 6
@@ -60,13 +60,13 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// assert_eq!(
 ///     object,
 ///     Object::new(vec![
-///         Attribute::new("role", "ACME Company"),
-///         Attribute::new("address", "Packet Street 6"),
-///         Attribute::new("address", "128 Series of Tubes"),
-///         Attribute::new("address", "Internet"),
-///         Attribute::new("email", "rpsl-parser@github.com"),
-///         Attribute::new("nic-hdl", "RPSL1-RIPE"),
-///         Attribute::new("source", "RIPE"),
+///         Attribute::new("role", "ACME Company")?,
+///         Attribute::new("address", "Packet Street 6")?,
+///         Attribute::new("address", "128 Series of Tubes")?,
+///         Attribute::new("address", "Internet")?,
+///         Attribute::new("email", "rpsl-parser@github.com")?,
+///         Attribute::new("nic-hdl", "RPSL1-RIPE")?,
+///         Attribute::new("source", "RIPE")?,
 ///     ])
 /// );
 /// # Ok(())
@@ -76,7 +76,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// Values spread over multiple lines can be parsed too.
 /// ```
 /// # use rpsl_parser::{parse_object, Attribute, Object};
-/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let multiline_remark = "
 /// remarks:     Value 1
 ///              Value 2
@@ -85,7 +85,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// assert_eq!(
 ///     parse_object(multiline_remark)?,
 ///     Object::new(vec![
-///         Attribute::new("remarks", vec!["Value 1", "Value 2"])
+///         Attribute::new("remarks", vec!["Value 1", "Value 2"])?
 ///     ])
 /// );
 /// # Ok(())
@@ -95,7 +95,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// An attribute that does not have a value is valid.
 /// ```
 /// # use rpsl_parser::{parse_object, Attribute, Object};
-/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let without_value = "
 /// as-name:     REMARKABLE
 /// remarks:
@@ -105,9 +105,9 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// assert_eq!(
 ///     parse_object(without_value)?,
 ///     Object::new(vec![
-///         Attribute::new("as-name", "REMARKABLE"),
-///         Attribute::without_value("remarks"),
-///         Attribute::new("remarks", "^^^^^^^^^^ nothing here"),
+///         Attribute::new("as-name", "REMARKABLE")?,
+///         Attribute::without_value("remarks")?,
+///         Attribute::new("remarks", "^^^^^^^^^^ nothing here")?,
 ///     ])
 /// );
 /// # Ok(())
@@ -119,7 +119,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 ///
 /// ```
 /// # use rpsl_parser::{parse_object, Attribute, Object};
-/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let whitespace_value = "
 /// as-name:     REMARKABLE
 /// remarks:               
@@ -129,9 +129,9 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// assert_eq!(
 ///     parse_object(whitespace_value)?,
 ///     Object::new(vec![
-///         Attribute::new("as-name", "REMARKABLE"),
-///         Attribute::without_value("remarks"),
-///         Attribute::new("remarks", "^^^^^^^^^^ nothing but hot air"),
+///         Attribute::new("as-name", "REMARKABLE")?,
+///         Attribute::without_value("remarks")?,
+///         Attribute::new("remarks", "^^^^^^^^^^ nothing but hot air")?,
 ///     ])
 /// );
 /// # Ok(())
@@ -151,7 +151,7 @@ pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
 /// # Examples
 /// ```
 /// # use rpsl_parser::{parse_whois_response, Attribute, Object};
-/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let whois_response = "
 /// ASNumber:       32934
 /// ASName:         FACEBOOK
@@ -179,25 +179,25 @@ pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
 ///     objects,
 ///     vec![
 ///             Object::new(vec![
-///                 Attribute::new("ASNumber", "32934"),
-///                 Attribute::new("ASName", "FACEBOOK"),
-///                 Attribute::new("ASHandle", "AS32934"),
-///                 Attribute::new("RegDate", "2004-08-24"),
-///                 Attribute::new("Updated", "2012-02-24"),
-///                 Attribute::new("Comment", "Please send abuse reports to abuse@facebook.com"),
-///                 Attribute::new("Ref", "https://rdap.arin.net/registry/autnum/32934"),
+///                 Attribute::new("ASNumber", "32934")?,
+///                 Attribute::new("ASName", "FACEBOOK")?,
+///                 Attribute::new("ASHandle", "AS32934")?,
+///                 Attribute::new("RegDate", "2004-08-24")?,
+///                 Attribute::new("Updated", "2012-02-24")?,
+///                 Attribute::new("Comment", "Please send abuse reports to abuse@facebook.com")?,
+///                 Attribute::new("Ref", "https://rdap.arin.net/registry/autnum/32934")?,
 ///             ]),
 ///             Object::new(vec![
-///                 Attribute::new("OrgName", "Facebook, Inc."),
-///                 Attribute::new("OrgId", "THEFA-3"),
-///                 Attribute::new("Address", "1601 Willow Rd."),
-///                 Attribute::new("City", "Menlo Park"),
-///                 Attribute::new("StateProv", "CA"),
-///                 Attribute::new("PostalCode", "94025"),
-///                 Attribute::new("Country", "US"),
-///                 Attribute::new("RegDate", "2004-08-11"),
-///                 Attribute::new("Updated", "2012-04-17"),
-///                 Attribute::new("Ref", "https://rdap.arin.net/registry/entity/THEFA-3"),
+///                 Attribute::new("OrgName", "Facebook, Inc.")?,
+///                 Attribute::new("OrgId", "THEFA-3")?,
+///                 Attribute::new("Address", "1601 Willow Rd.")?,
+///                 Attribute::new("City", "Menlo Park")?,
+///                 Attribute::new("StateProv", "CA")?,
+///                 Attribute::new("PostalCode", "94025")?,
+///                 Attribute::new("Country", "US")?,
+///                 Attribute::new("RegDate", "2004-08-11")?,
+///                 Attribute::new("Updated", "2012-04-17")?,
+///                 Attribute::new("Ref", "https://rdap.arin.net/registry/entity/THEFA-3")?,
 ///             ]),
 ///         ]
 /// );

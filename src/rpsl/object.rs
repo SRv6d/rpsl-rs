@@ -9,44 +9,51 @@ use crate::rpsl::Attribute;
 /// A role object for the ACME corporation.
 /// ```
 /// # use rpsl_parser::{Attribute, Object};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let role_acme = Object::new(vec![
-///     Attribute::new("role", "ACME Company"),
-///     Attribute::new("address", "Packet Street 6"),
-///     Attribute::new("address", "128 Series of Tubes"),
-///     Attribute::new("address", "Internet"),
-///     Attribute::new("email", "rpsl-parser@github.com"),
-///     Attribute::new("nic-hdl", "RPSL1-RIPE"),
-///     Attribute::new("source", "RIPE"),
+///     Attribute::new("role", "ACME Company")?,
+///     Attribute::new("address", "Packet Street 6")?,
+///     Attribute::new("address", "128 Series of Tubes")?,
+///     Attribute::new("address", "Internet")?,
+///     Attribute::new("email", "rpsl-parser@github.com")?,
+///     Attribute::new("nic-hdl", "RPSL1-RIPE")?,
+///     Attribute::new("source", "RIPE")?,
 /// ]);
+/// # Ok(())
+/// # }
 /// ```
 ///
 /// Each attribute can be accessed by index.
 /// ```
 /// # use rpsl_parser::{Attribute, Object};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
-/// #     Attribute::new("role", "ACME Company"),
-/// #     Attribute::new("address", "Packet Street 6"),
-/// #     Attribute::new("address", "128 Series of Tubes"),
-/// #     Attribute::new("address", "Internet"),
-/// #     Attribute::new("email", "rpsl-parser@github.com"),
-/// #     Attribute::new("nic-hdl", "RPSL1-RIPE"),
-/// #     Attribute::new("source", "RIPE"),
+/// #     Attribute::new("role", "ACME Company")?,
+/// #     Attribute::new("address", "Packet Street 6")?,
+/// #     Attribute::new("address", "128 Series of Tubes")?,
+/// #     Attribute::new("address", "Internet")?,
+/// #     Attribute::new("email", "rpsl-parser@github.com")?,
+/// #     Attribute::new("nic-hdl", "RPSL1-RIPE")?,
+/// #     Attribute::new("source", "RIPE")?,
 /// # ]);
-/// assert_eq!(role_acme[0], Attribute::new("role", "ACME Company"));
-/// assert_eq!(role_acme[6], Attribute::new("source", "RIPE"));
+/// assert_eq!(role_acme[0], Attribute::new("role", "ACME Company")?);
+/// assert_eq!(role_acme[6], Attribute::new("source", "RIPE")?);
+/// # Ok(())
+/// # }
 /// ```
 ///
 /// The entire object can also be represented as RPSL.
 /// ```
 /// # use rpsl_parser::{Attribute, Object};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
-/// #     Attribute::new("role", "ACME Company"),
-/// #     Attribute::new("address", "Packet Street 6"),
-/// #     Attribute::new("address", "128 Series of Tubes"),
-/// #     Attribute::new("address", "Internet"),
-/// #     Attribute::new("email", "rpsl-parser@github.com"),
-/// #     Attribute::new("nic-hdl", "RPSL1-RIPE"),
-/// #     Attribute::new("source", "RIPE"),
+/// #     Attribute::new("role", "ACME Company")?,
+/// #     Attribute::new("address", "Packet Street 6")?,
+/// #     Attribute::new("address", "128 Series of Tubes")?,
+/// #     Attribute::new("address", "Internet")?,
+/// #     Attribute::new("email", "rpsl-parser@github.com")?,
+/// #     Attribute::new("nic-hdl", "RPSL1-RIPE")?,
+/// #     Attribute::new("source", "RIPE")?,
 /// # ]);
 /// assert_eq!(
 ///    role_acme.to_string(),
@@ -61,6 +68,9 @@ use crate::rpsl::Attribute;
 ///        "\n"
 ///    )
 /// );
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Debug, PartialEq, Eq)]
 #[allow(clippy::len_without_is_empty)]
 pub struct Object(Vec<Attribute>);
