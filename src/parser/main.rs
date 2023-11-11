@@ -39,6 +39,30 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 
 /// Parse an RPSL object from it's textual representation.
 ///
+/// ```text
+/// as-set:     as-nflx
+/// descr:      Netflix AS numbers
+/// members:    AS40027
+/// members:    AS2906
+/// members:    AS55095
+/// mnt-by:     MAINT-AS40027
+/// changed:    rwoolley@netflix.com 20210226
+/// source:     RADB
+///                        ↓
+/// ┌───────────────────────────────────────────────┐
+/// │  Object                                       │
+/// ├───────────────────────────────────────────────┤
+/// │  [as-set]  ───  as-nflx                       │
+/// │  [descr]   ───  Netflix AS numbers            │
+/// │  [members] ──┬─ AS40027                       │
+/// │              ├─ AS2906                        │
+/// │              └─ AS55095                       │
+/// │  [mnt-by]  ───  MAINT-AS40027                 │
+/// │  [changed] ───  rwoolley@netflix.com 20210226 │
+/// │  [source]  ───  RADB                          │
+/// └───────────────────────────────────────────────┘
+/// ```
+///
 /// # Errors
 /// Returns a Nom error if the input is not valid RPSL.
 ///

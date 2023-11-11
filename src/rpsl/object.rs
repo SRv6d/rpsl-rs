@@ -4,6 +4,20 @@ use crate::rpsl::Attribute;
 
 /// An RPSL object.
 ///
+/// ```text
+/// ┌───────────────────────────────────────────────┐
+/// │  Object                                       │
+/// ├───────────────────────────────────────────────┤
+/// │  [role]    ───  ACME Company                  │
+/// │  [address] ──┬─ Packet Street 6               │
+/// │              ├─ 128 Series of Tubes           │
+/// │              └─ Internet                      │
+/// │  [email]   ───  rpsl-parser@github.com        │
+/// │  [nic-hdl] ───  RPSL1-RIPE                    │
+/// │  [source]  ───  RIPE                          │
+/// └───────────────────────────────────────────────┘
+/// ```
+///
 /// # Examples
 ///
 /// A role object for the ACME corporation.
