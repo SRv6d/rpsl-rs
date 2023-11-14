@@ -123,6 +123,9 @@ impl Object {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+
+    /// Get the value(s) of specific attribute(s).
+    pub fn get(&self, name: &str) -> Vec<&String> {}
 }
 
 impl fmt::Display for Object {
