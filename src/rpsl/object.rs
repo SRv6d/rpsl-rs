@@ -1,6 +1,6 @@
 use std::{fmt, ops::Index};
 
-use crate::rpsl::Attribute;
+use crate::rpsl::{Attribute, Value};
 
 /// An RPSL object.
 ///
@@ -125,7 +125,24 @@ impl Object {
     }
 
     /// Get the value(s) of specific attribute(s).
-    pub fn get(&self, name: &str) -> Vec<&String> {}
+    pub fn get(&self, name: &str) -> Vec<&String> {
+        let values_matching_name = self.0.iter().filter(|a| a.name == name).map(|a| &a.value);
+
+        let mut values: Vec<&String> = Vec::new();
+        for value in values_matching_name {
+            match value {
+                Value::SingleLine(ref v) => {
+                    if let Some(v) = v.as_ref() {
+                        values.push(v);
+                    }
+                }
+                Value::MultiLine(ref v) => {
+                    values.extend(v.iter().filter_map(Option::as_ref));
+                }
+            }
+        }
+        values
+    }
 }
 
 impl fmt::Display for Object {

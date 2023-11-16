@@ -1,4 +1,5 @@
 pub use self::attribute::Attribute;
+pub(crate) use self::attribute::Value;
 pub use self::error::AttributeError;
 pub use self::object::Object;
 
