@@ -1,6 +1,6 @@
 use std::{fmt, ops::Index};
 
-use crate::rpsl::{Attribute, Value};
+use crate::rpsl::attribute::{self, Attribute};
 
 /// An RPSL object.
 ///
@@ -131,12 +131,12 @@ impl Object {
         let mut values: Vec<&String> = Vec::new();
         for value in values_matching_name {
             match value {
-                Value::SingleLine(ref v) => {
+                attribute::Value::SingleLine(ref v) => {
                     if let Some(v) = v.as_ref() {
                         values.push(v);
                     }
                 }
-                Value::MultiLine(ref v) => {
+                attribute::Value::MultiLine(ref v) => {
                     values.extend(v.iter().filter_map(Option::as_ref));
                 }
             }
