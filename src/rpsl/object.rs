@@ -107,7 +107,7 @@ use crate::rpsl::attribute::{self, Attribute};
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 #[allow(clippy::len_without_is_empty)]
 pub struct Object(Vec<Attribute>);
 

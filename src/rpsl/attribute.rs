@@ -2,7 +2,7 @@ use super::error::{AttributeError, InvalidNameError};
 use std::fmt;
 
 /// The name of an attribute.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Name(String);
 
 impl Name {
@@ -36,7 +36,7 @@ impl PartialEq<&str> for Name {
 }
 
 /// The value of an attribute.
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Value {
     SingleLine(Option<String>),
     MultiLine(Vec<Option<String>>),
@@ -72,7 +72,7 @@ impl From<Vec<&str>> for Value {
         }
     }
 }
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 /// An attribute contained within an RPSL object.
 pub struct Attribute {
     /// The name of the attribute.
