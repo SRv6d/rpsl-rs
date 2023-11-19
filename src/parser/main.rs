@@ -20,7 +20,7 @@ fn object_block(input: &str) -> IResult<&str, Object> {
     Ok((remaining, attributes.into()))
 }
 
-/// Uses the object block parser but allows for optinal padding with server messages or newlines.
+/// Uses the object block parser but allows for optional padding with server messages or newlines.
 fn padded_object_block(input: &str) -> IResult<&str, Object> {
     let (remaining, object) = delimited(
         optional_message_or_newlines,
@@ -285,7 +285,7 @@ mod tests {
         );
         assert_eq!(
             optional_message_or_newlines(concat!(
-                "% Note: This is a server message preceeding some newlines.\n",
+                "% Note: This is a server message preceding some newlines.\n",
                 "\n",
                 "\n",
             ))
