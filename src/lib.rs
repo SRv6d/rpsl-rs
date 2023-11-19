@@ -8,6 +8,4 @@ pub use parser::{parse_object, parse_whois_response};
 pub use rpsl::{Attribute, AttributeError, Object};
 
 mod parser;
-#[cfg(feature = "pyo3")]
-mod pyo3;
 mod rpsl;

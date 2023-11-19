@@ -7,9 +7,6 @@
   <a href="https://crates.io/crates/rpsl-parser">
     <img src="https://img.shields.io/crates/v/rpsl-parser.svg" alt="Cargo version">
   </a>
-  <a href="https://pypi.python.org/pypi/rpsl-parser">
-    <img src="https://img.shields.io/pypi/v/rpsl-parser.svg" alt="PyPi version">
-  </a>
   
 </div>
 <br>
@@ -20,8 +17,7 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 📰 Complete implementation for multiline RPSL values\
 💬 Able to parse objects directly from whois server responses\
 🧠 Low memory footprint by leveraging zero-copy\
-🧪 Robust parsing of any valid input ensured by Property Based Tests\
-🐍 Python usage is supported
+🧪 Robust parsing of any valid input ensured by Property Based Tests
 
 > [!WARNING]
 > This project is still in early stages of development and its API is not yet stable.
@@ -131,10 +127,6 @@ Ref:            https://rdap.arin.net/registry/entity/THEFA-3
 ```
 
 To extract each individual object, the [parse_whois_response] function can be used to parse the response into a `Vec` containing all individual [Object]s within the response. Examples can be found in the function documentation.
-
-# Python bindings
-
-To use this parser in Python, see the [rpsl-parser PyPi Package](https://pypi.org/project/rpsl-parser/).
 
 # 🚧 Work in progress
 
