@@ -1,5 +1,5 @@
 use super::error::{AttributeError, InvalidNameError};
-use std::fmt;
+use std::{fmt, str::FromStr};
 
 /// The name of an attribute.
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -21,10 +21,10 @@ impl fmt::Display for Name {
     }
 }
 
-impl TryFrom<&str> for Name {
-    type Error = InvalidNameError;
+impl FromStr for Name {
+    type Err = InvalidNameError;
 
-    fn try_from(name: &str) -> Result<Self, InvalidNameError> {
+    fn from_str(name: &str) -> Result<Self, Self::Err> {
         Self::new(name)
     }
 }
@@ -102,7 +102,7 @@ impl Attribute {
     /// ```
     pub fn new(name: &str, value: impl Into<Value>) -> Result<Self, AttributeError> {
         Ok(Self {
-            name: name.try_into()?,
+            name: name.parse()?,
             value: value.into(),
         })
     }
@@ -121,7 +121,7 @@ impl Attribute {
     /// ```
     pub fn without_value(name: &str) -> Result<Self, AttributeError> {
         Ok(Self {
-            name: name.try_into()?,
+            name: name.parse()?,
             value: Value::SingleLine(None),
         })
     }
