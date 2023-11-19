@@ -5,7 +5,8 @@
 #![doc = include_str!("../README.md")]
 
 pub use parser::{parse_object, parse_whois_response};
-pub use rpsl::{Attribute, AttributeError, Object};
+pub use rpsl::error::AttributeError;
+pub use rpsl::{Attribute, Object};
 
 mod parser;
 mod rpsl;
