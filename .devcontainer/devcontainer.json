@@ -1,9 +1,4 @@
 {
-  "name": "Rust & Python",
-  "image": "mcr.microsoft.com/devcontainers/rust",
-  "customizations": {
-    "vscode": {
-      "extensions": ["ms-python.python", "charliermarsh.ruff"]
-    }
-  }
+  "name": "Rust",
+  "image": "mcr.microsoft.com/devcontainers/rust"
 }

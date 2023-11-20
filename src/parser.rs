@@ -1,4 +1,4 @@
-pub use self::main::{parse_rpsl_object, parse_whois_server_response};
+pub use self::main::{parse_object, parse_whois_response};
 
 mod component;
 mod main;
