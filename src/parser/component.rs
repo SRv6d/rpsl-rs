@@ -35,9 +35,9 @@ pub fn attribute(input: &str) -> IResult<&str, AttributeView> {
         Ok((remaining, AttributeView::new_single(name, first_value)))
     } else {
         let (remaining, continuation_values) = many0(subcomponent::continuation_line)(remaining)?;
-        let mut values: Vec<&str> = Vec::with_capacity(1 + continuation_values.len());
-        values.push(first_value);
-        values.extend(continuation_values);
+        let values = std::iter::once(first_value)
+            .chain(continuation_values)
+            .collect();
         Ok((remaining, AttributeView::new_multi(name, values)))
     }
 }
