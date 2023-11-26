@@ -1,4 +1,4 @@
-use crate::rpsl::Attribute;
+use crate::rpsl::AttributeView;
 use nom::{
     bytes::complete::{tag, take_while},
     character::complete::{newline, space0},
@@ -24,7 +24,7 @@ pub fn server_message(input: &str) -> IResult<&str, &str> {
 // A RPSL attribute consisting of a name and one or more values.
 // The name is followed by a colon and optional spaces.
 // Single value attributes are limited to one line, while multi value attributes span over multiple lines.
-pub fn attribute(input: &str) -> IResult<&str, Attribute> {
+pub fn attribute(input: &str) -> IResult<&str, AttributeView> {
     let (remaining, (name, first_value)) = separated_pair(
         terminated(subcomponent::attribute_name, tag(":")),
         space0,
@@ -32,13 +32,13 @@ pub fn attribute(input: &str) -> IResult<&str, Attribute> {
     )(input)?;
 
     if peek(subcomponent::continuation_char)(remaining).is_err() {
-        Ok((remaining, Attribute::new(name, first_value).unwrap()))
+        Ok((remaining, AttributeView::new_single(name, first_value)))
     } else {
         let (remaining, continuation_values) = many0(subcomponent::continuation_line)(remaining)?;
         let mut values: Vec<&str> = Vec::with_capacity(1 + continuation_values.len());
         values.push(first_value);
         values.extend(continuation_values);
-        Ok((remaining, Attribute::new(name, values).unwrap()))
+        Ok((remaining, AttributeView::new_multi(name, values)))
     }
 }
 
@@ -78,7 +78,7 @@ mod tests {
             attribute("import:         from AS12 accept AS12\n"),
             Ok((
                 "",
-                Attribute::new("import", "from AS12 accept AS12").unwrap()
+                AttributeView::new_single("import", "from AS12 accept AS12")
             ))
         );
     }
@@ -94,7 +94,7 @@ mod tests {
             )),
             Ok((
                 "remarks:        Peering Policy\n",
-                Attribute::new(
+                AttributeView::new_multi(
                     "remarks",
                     vec![
                         "Locations",
@@ -102,7 +102,6 @@ mod tests {
                         "NY1 - Equinix New York, Newark",
                     ]
                 )
-                .unwrap()
             ))
         );
     }

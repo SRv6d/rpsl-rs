@@ -1,4 +1,9 @@
-use rpsl_parser::{parse_object, Object};
+use rpsl_parser::{parse_object, ObjectView};
+
+fn main() {
+    let aut_num_gtt: ObjectView = parse_object(AS3257).unwrap();
+    println!("{:#?}", aut_num_gtt);
+}
 
 const AS3257: &str = r#"aut-num:        AS3257
 as-name:        GTT-BACKBONE
@@ -9569,8 +9574,3 @@ last-modified:  2023-07-21T10:03:34Z
 source:         RIPE
 
 "#;
-
-fn main() {
-    let aut_num_gtt: Object = parse_object(AS3257).unwrap();
-    println!("{:#?}", aut_num_gtt);
-}

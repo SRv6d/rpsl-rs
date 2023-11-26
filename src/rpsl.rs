@@ -1,7 +1,5 @@
-pub use self::attribute::Attribute;
-pub use self::object::Object;
+pub use self::borrowed::{AttributeView, ObjectView};
 
-pub(crate) mod attribute;
+mod borrowed;
 #[allow(clippy::module_name_repetitions)]
 pub mod error;
-mod object;
