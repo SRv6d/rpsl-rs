@@ -1,3 +1,4 @@
+/// The name of the referenced attribute.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct NameView<'a>(&'a str);
 
@@ -7,6 +8,7 @@ impl<'a> NameView<'a> {
     }
 }
 
+/// The value of the referenced attribute.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ValueView<'a> {
     SingleLine(Option<&'a str>),
@@ -22,9 +24,12 @@ impl<'a> ValueView<'a> {
     }
 }
 
+/// An attribute contained within a referenced RPSL object.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct AttributeView<'a> {
+    /// The name of the referenced attribute.
     pub name: NameView<'a>,
+    /// The value of the referenced attribute.
     pub value: ValueView<'a>,
 }
 
@@ -42,6 +47,7 @@ impl<'a> AttributeView<'a> {
     }
 }
 
+/// Coerce an empty value to `None`.
 fn coerce_empty_value(value: &str) -> Option<&str> {
     if value.trim().is_empty() {
         None
