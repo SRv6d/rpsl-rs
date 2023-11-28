@@ -5,25 +5,26 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
   workflow_dispatch:
-
-concurrency:
-  group: >-
-    ${{ github.workflow }}-${{ github.ref_name }}-${{ github.event.pull_request.number
-    || github.sha }}
-  cancel-in-progress: true
 
 env:
   COLUMNS: 120
-  HYPERFINE_VERSION: "1.17.0"
 
 jobs:
-  cargo-bench:
-    runs-on: ubuntu-22.04
+  benchmarks:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - name: run benchmark
-        run: cargo bench
+      - name: Setup rust toolchain, cache and cargo-codspeed binary
+        uses: moonrepo/setup-rust@v0
+        with:
+          channel: stable
+          cache-target: release
+          bins: cargo-codspeed
+      - name: Build the benchmark target(s)
+        run: cargo codspeed build
+      - name: Run the benchmarks
+        uses: CodSpeedHQ/action@v1
+        with:
+          run: cargo codspeed run
+          token: ${{ secrets.CODSPEED_TOKEN }}
