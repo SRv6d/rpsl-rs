@@ -1,3 +1,5 @@
+use crate::rpsl::common::coerce_empty_value;
+
 /// The name of the referenced attribute.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct NameView<'a>(&'a str);
@@ -44,14 +46,5 @@ impl<'a> AttributeView<'a> {
         let name = NameView::new(name);
         let value = ValueView::new_multi(values);
         Self { name, value }
-    }
-}
-
-/// Coerce an empty value to `None`.
-fn coerce_empty_value(value: &str) -> Option<&str> {
-    if value.trim().is_empty() {
-        None
-    } else {
-        Some(value)
     }
 }
