@@ -4,6 +4,12 @@ use thiserror::Error;
 pub enum InvalidNameError {
     #[error("cannot be empty")]
     Empty,
+    #[error("cannot contain non-ASCII characters")]
+    NonAscii,
+    #[error("cannot start with a non-letter ASCII character")]
+    NonAsciiAlphabeticFirstChar,
+    #[error("cannot end with a non-letter or non-digit ASCII character")]
+    NonAsciiAlphanumericLastChar,
 }
 
 #[derive(Error, Debug)]
