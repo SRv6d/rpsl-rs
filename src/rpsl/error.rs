@@ -13,7 +13,14 @@ pub enum InvalidNameError {
 }
 
 #[derive(Error, Debug)]
-pub enum InvalidValueError {}
+pub enum InvalidValueError {
+    #[error("cannot contain non-ASCII characters")]
+    NonAscii,
+    #[error("cannot contain ASCII control characters")]
+    ContainsControlChar,
+    #[error("multi line values require a minimum of two values")]
+    TooFewValues,
+}
 
 #[derive(Error, Debug)]
 /// An error that can occur when parsing or trying to create an attribute that is invalid.
