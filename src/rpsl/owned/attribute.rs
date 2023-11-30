@@ -94,6 +94,23 @@ impl TryFrom<Vec<&str>> for Value {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Clone)]
+/// An attribute contained within an RPSL object.
+pub struct Attribute {
+    /// The name of the attribute.
+    pub name: Name,
+    /// The value(s) of the attribute.
+    pub value: Value,
+}
+
+impl Attribute {
+    /// Create a new attribute.
+    #[must_use]
+    pub fn new(name: Name, value: Value) -> Self {
+        Self { name, value }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

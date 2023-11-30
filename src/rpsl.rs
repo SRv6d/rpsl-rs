@@ -1,4 +1,5 @@
 pub use self::borrowed::{AttributeView, ObjectView};
+pub use self::owned::Attribute;
 
 mod borrowed;
 mod common;
