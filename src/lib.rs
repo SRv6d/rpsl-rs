@@ -6,7 +6,7 @@
 
 pub use parser::{parse_object, parse_whois_response};
 pub use rpsl::error::AttributeError;
-pub use rpsl::{Attribute, AttributeView, ObjectView};
+pub use rpsl::{Attribute, AttributeView, Object, ObjectView};
 
 mod parser;
 mod rpsl;
