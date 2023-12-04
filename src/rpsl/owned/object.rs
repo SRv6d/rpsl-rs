@@ -1,4 +1,5 @@
 use super::Attribute;
+use std::ops::Index;
 
 /// An RPSL object.
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -26,5 +27,13 @@ impl Object {
     #[must_use]
     pub fn new(attributes: Vec<Attribute>) -> Self {
         Object(attributes)
+    }
+}
+
+impl Index<usize> for Object {
+    type Output = Attribute;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
     }
 }
