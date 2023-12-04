@@ -107,6 +107,7 @@ use std::{fmt, ops::Index};
 /// # }
 /// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
+#[allow(clippy::len_without_is_empty)]
 pub struct Object(Vec<Attribute>);
 
 impl Object {
@@ -132,6 +133,12 @@ impl Object {
     pub fn new(attributes: Vec<Attribute>) -> Self {
         Object(attributes)
     }
+
+    /// Returns the number of attributes in the object.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
 }
 
 impl Index<usize> for Object {
@@ -139,6 +146,15 @@ impl Index<usize> for Object {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
+    }
+}
+
+impl IntoIterator for Object {
+    type Item = Attribute;
+    type IntoIter = std::vec::IntoIter<Attribute>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
     }
 }
 
