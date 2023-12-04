@@ -72,15 +72,16 @@ impl FromStr for Value {
 impl TryFrom<Vec<&str>> for Value {
     type Error = InvalidValueError;
 
-    /// Create a new multi line `Value` from a vector of string slices.
+    /// Create a new `Value` from a vector of string slices.
     ///
     /// A valid value may consist of any ASCII character, excluding control characters.
     ///
     /// # Errors
-    /// Returns an error if a value contains invalid characters or not enough values are provided.
+    /// Returns an error if a value contains invalid characters.
     fn try_from(values: Vec<&str>) -> Result<Self, Self::Error> {
-        if values.len() < 2 {
-            return Err(InvalidValueError::TooFewValues);
+        if values.len() == 1 {
+            let value = values[0].parse()?;
+            return Ok(value);
         }
         let values = values
             .into_iter()
@@ -196,8 +197,10 @@ mod tests {
     }
 
     #[test]
-    fn value_from_vec_w_less_than_2_values_is_err() {
-        assert!(Value::try_from(vec![]).is_err());
-        assert!(Value::try_from(vec!["not multiline"]).is_err());
+    fn value_from_vec_w_1_value_is_single_line() {
+        assert_eq!(
+            Value::try_from(vec!["Packet Street 6"]).unwrap(),
+            Value::SingleLine(Some("Packet Street 6".to_string()))
+        );
     }
 }

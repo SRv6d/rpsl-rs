@@ -18,8 +18,6 @@ pub enum InvalidValueError {
     NonAscii,
     #[error("cannot contain ASCII control characters")]
     ContainsControlChar,
-    #[error("multi line values require a minimum of two values")]
-    TooFewValues,
 }
 
 #[derive(Error, Debug)]
