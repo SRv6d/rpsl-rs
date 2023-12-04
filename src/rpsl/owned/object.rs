@@ -139,6 +139,26 @@ impl Object {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+
+    /// Get the value(s) of specific attribute(s).
+    pub fn get(&self, name: &str) -> Vec<&String> {
+        let values_matching_name = self.0.iter().filter(|a| a.name == name).map(|a| &a.value);
+
+        let mut values: Vec<&String> = Vec::new();
+        for value in values_matching_name {
+            match value {
+                super::attribute::Value::SingleLine(ref v) => {
+                    if let Some(v) = v.as_ref() {
+                        values.push(v);
+                    }
+                }
+                super::attribute::Value::MultiLine(ref v) => {
+                    values.extend(v.iter().filter_map(Option::as_ref));
+                }
+            }
+        }
+        values
+    }
 }
 
 impl Index<usize> for Object {
@@ -249,5 +269,59 @@ mod tests {
             Attribute::new("source".parse().unwrap(), "RIPE".parse().unwrap()),
         ]);
         assert_eq!(object, role_acme);
+    }
+
+    #[test]
+    fn values_by_name() {
+        let as42 =
+            Object::new(vec![
+            Attribute::new("aut-num".parse().unwrap(), "AS42".parse().unwrap()),
+            Attribute::new(
+                "remarks".parse().unwrap(),
+                "All imported prefixes will be tagged with geographic communities and"
+                    .parse()
+                    .unwrap(),
+            ),
+            Attribute::new(
+                "remarks".parse().unwrap(),
+                "the type of peering relationship according to the table below, using the default"
+                    .parse()
+                    .unwrap(),
+            ),
+            Attribute::new(
+                "remarks".parse().unwrap(),
+                "announce rule (x=0).".parse().unwrap(),
+            ),
+            Attribute::new("remarks".parse().unwrap(), "".parse().unwrap()),
+            Attribute::new(
+                "remarks".parse().unwrap(),
+                "The following communities can be used by peers and customers".parse().unwrap(),
+            ),
+            Attribute::new(
+                "remarks".parse().unwrap(),
+                vec![
+                    "x = 0 - Announce (default rule)",
+                    "x = 1 - Prepend x1",
+                    "x = 2 - Prepend x2",
+                    "x = 3 - Prepend x3",
+                    "x = 9 - Do not announce",
+                ].try_into().unwrap(),
+            ),
+        ]);
+        assert_eq!(as42.get("aut-num"), vec!["AS42"]);
+        assert_eq!(
+            as42.get("remarks"),
+            vec![
+                "All imported prefixes will be tagged with geographic communities and",
+                "the type of peering relationship according to the table below, using the default",
+                "announce rule (x=0).",
+                "The following communities can be used by peers and customers",
+                "x = 0 - Announce (default rule)",
+                "x = 1 - Prepend x1",
+                "x = 2 - Prepend x2",
+                "x = 3 - Prepend x3",
+                "x = 9 - Do not announce",
+            ]
+        );
     }
 }
