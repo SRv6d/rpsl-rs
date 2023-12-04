@@ -2,7 +2,7 @@ use crate::rpsl::{
     common::coerce_empty_value,
     error::{InvalidNameError, InvalidValueError},
 };
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 /// The name of an attribute.
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -30,6 +30,12 @@ impl FromStr for Name {
         }
 
         Ok(Self(name.to_string()))
+    }
+}
+
+impl fmt::Display for Name {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -109,6 +115,40 @@ impl Attribute {
     #[must_use]
     pub fn new(name: Name, value: Value) -> Self {
         Self { name, value }
+    }
+}
+
+impl fmt::Display for Attribute {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match &self.value {
+            Value::SingleLine(value) => {
+                writeln!(f, "{:16}{}", format!("{}:", self.name), {
+                    match value {
+                        Some(value) => value,
+                        None => "",
+                    }
+                })
+            }
+            Value::MultiLine(values) => {
+                writeln!(f, "{:16}{}", format!("{}:", self.name), {
+                    match &values[0] {
+                        Some(value) => value,
+                        None => "",
+                    }
+                })?;
+
+                let mut continuation_values = String::new();
+                for value in &values[1..] {
+                    continuation_values.push_str(&format!("{:16}{}\n", "", {
+                        match &value {
+                            Some(value) => value,
+                            None => "",
+                        }
+                    }));
+                }
+                write!(f, "{continuation_values}")
+            }
+        }
     }
 }
 
@@ -201,6 +241,52 @@ mod tests {
         assert_eq!(
             Value::try_from(vec!["Packet Street 6"]).unwrap(),
             Value::SingleLine(Some("Packet Street 6".to_string()))
+        );
+    }
+
+    #[test]
+    fn attribute_display_single_line() {
+        assert_eq!(
+            Attribute::new("ASNumber".parse().unwrap(), "32934".parse().unwrap()).to_string(),
+            "ASNumber:       32934\n"
+        );
+        assert_eq!(
+            Attribute::new("ASName".parse().unwrap(), "FACEBOOK".parse().unwrap()).to_string(),
+            "ASName:         FACEBOOK\n"
+        );
+        assert_eq!(
+            Attribute::new("RegDate".parse().unwrap(), "2004-08-24".parse().unwrap()).to_string(),
+            "RegDate:        2004-08-24\n"
+        );
+        assert_eq!(
+            Attribute::new(
+                "Ref".parse().unwrap(),
+                "https://rdap.arin.net/registry/autnum/32934"
+                    .parse()
+                    .unwrap()
+            )
+            .to_string(),
+            "Ref:            https://rdap.arin.net/registry/autnum/32934\n"
+        );
+    }
+
+    #[test]
+    fn attribute_display_multi_line() {
+        assert_eq!(
+            Attribute::new(
+                "remarks".parse().unwrap(),
+                vec![
+                    "AS1299 is matching RPKI validation state and reject",
+                    "invalid prefixes from peers and customers."
+                ]
+                .try_into()
+                .unwrap()
+            )
+            .to_string(),
+            concat!(
+                "remarks:        AS1299 is matching RPKI validation state and reject\n",
+                "                invalid prefixes from peers and customers.\n",
+            )
         );
     }
 }

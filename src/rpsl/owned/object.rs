@@ -1,5 +1,5 @@
 use super::Attribute;
-use std::ops::Index;
+use std::{fmt, ops::Index};
 
 /// An RPSL object.
 ///
@@ -139,6 +139,16 @@ impl Index<usize> for Object {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
+    }
+}
+
+impl fmt::Display for Object {
+    /// Display the object as RPSL.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for attribute in &self.0 {
+            write!(f, "{attribute}")?;
+        }
+        writeln!(f)
     }
 }
 
