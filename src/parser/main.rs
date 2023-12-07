@@ -37,7 +37,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
     Ok((remaining, message_or_newlines))
 }
 
-/// Parse an RPSL object from it's textual representation.
+/// Parse RPSL into an [`Object`] from textual representation.
 ///
 /// ```text
 /// as-set:     as-nflx
@@ -167,8 +167,56 @@ pub fn parse_object(rpsl: &str) -> Result<ObjectView, Error<&str>> {
     Ok(object)
 }
 
-/// Parse a whois server response containing multiple RPSL objects in their textual representation.
+/// Parse a WHOIS server response into the [`Object`]s contained within.
 ///
+/// ```text
+/// ASNumber:       32934
+/// ASName:         FACEBOOK
+/// ASHandle:       AS32934
+/// RegDate:        2004-08-24
+/// Updated:        2012-02-24
+/// Comment:        Please send abuse reports to abuse@facebook.com
+/// Ref:            https://rdap.arin.net/registry/autnum/32934
+///
+///
+/// OrgName:        Facebook, Inc.
+/// OrgId:          THEFA-3
+/// Address:        1601 Willow Rd.
+/// City:           Menlo Park
+/// StateProv:      CA
+/// PostalCode:     94025
+/// Country:        US
+/// RegDate:        2004-08-11
+/// Updated:        2012-04-17
+/// Ref:            https://rdap.arin.net/registry/entity/THEFA-3
+///
+///                        ↓
+/// ┌──────────────────────────────────────────────────────────────────┐
+/// │  Object                                                          │
+/// ├──────────────────────────────────────────────────────────────────┤
+/// │  [ASNumber] ───  32934                                           │
+/// │  [ASName]   ───  FACEBOOK                                        │
+/// │  [ASHandle] ───  AS32934                                         │
+/// │  [RegDate]  ───  2004-08-24                                      │
+/// │  [Updated]  ───  2012-02-24                                      │
+/// │  [Comment]  ───  Please send abuse reports to abuse@facebook.com |
+/// │  [Ref]      ───  https://rdap.arin.net/registry/autnum/32934     │
+/// └──────────────────────────────────────────────────────────────────┘
+/// ┌──────────────────────────────────────────────────────────────────┐
+/// │  Object                                                          │
+/// ├──────────────────────────────────────────────────────────────────┤
+/// │  [OrgName]    ───  Facebook, Inc.                                │
+/// │  [OrgId]      ───  THEFA-3                                       │
+/// │  [Address]    ───  1601 Willow Rd.                               │
+/// │  [City]       ───  Menlo Park                                    │
+/// │  [StateProv]  ───  CA                                            │
+/// │  [PostalCode] ───  94025                                         │
+/// │  [Country]    ───  US                                            │
+/// │  [RegDate]    ───  2004-08-11                                    │
+/// │  [Updated]    ───  2012-04-17                                    │
+/// │  [Ref]        ───  https://rdap.arin.net/registry/entity/THEFA-3 │
+/// └──────────────────────────────────────────────────────────────────┘
+/// ```
 /// # Errors
 /// Returns a Nom error if the input is not valid RPSL.
 ///

@@ -1,6 +1,6 @@
 use crate::rpsl::common::coerce_empty_value;
 
-/// The name of the referenced attribute.
+/// A type containing a string slice pointing to the name of an attribute.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct NameView<'a>(&'a str);
 
@@ -10,7 +10,7 @@ impl<'a> NameView<'a> {
     }
 }
 
-/// The value of the referenced attribute.
+/// A type containing a string slice pointing to the value of an attribute.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ValueView<'a> {
     SingleLine(Option<&'a str>),
@@ -26,7 +26,7 @@ impl<'a> ValueView<'a> {
     }
 }
 
-/// An attribute contained within a referenced RPSL object.
+/// A view into an attribute of an RPSL object in textual representation somewhere in memory.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct AttributeView<'a> {
     /// The name of the referenced attribute.

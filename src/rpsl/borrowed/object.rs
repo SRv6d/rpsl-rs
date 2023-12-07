@@ -1,6 +1,6 @@
 use super::attribute::AttributeView;
 
-/// A view of an RPSL object.
+/// A view into an RPSL object in textual representation somewhere in memory.
 ///
 /// This is the borrowed equivalent of an [`Object`], only cointaining references to the
 /// original data in the form of [`AttributeView`]s.

@@ -108,7 +108,7 @@ impl TryFrom<Vec<&str>> for Value {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-/// An attribute contained within an RPSL object.
+/// An attribute of an RPSL [`Object`].
 pub struct Attribute {
     /// The name of the attribute.
     pub name: Name,

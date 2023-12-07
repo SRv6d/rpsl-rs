@@ -1,7 +1,7 @@
 use super::Attribute;
 use std::{fmt, ops::Index};
 
-/// An RPSL object.
+/// A RPSL object.
 ///
 /// ```text
 /// ┌───────────────────────────────────────────────┐
@@ -36,7 +36,37 @@ use std::{fmt, ops::Index};
 /// # }
 /// ```
 ///
-/// /// Each attribute can be accessed by index.
+/// Although creating an [`Object`] from a vector of [`Attribute`]s works, the more idiomatic way
+/// to do it is by using the [`object!`] macro.
+/// ```
+/// # use rpsl_parser::{Attribute, Object, object};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # let role_acme = Object::new(vec![
+/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
+/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
+/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
+/// #     Attribute::new("address".parse()?, "Internet".parse()?),
+/// #     Attribute::new("email".parse()?, "rpsl-parser@github.com".parse()?),
+/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
+/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// # ]);
+/// assert_eq!(
+///     role_acme,
+///     object! {
+///         "role": "ACME Company";
+///         "address": "Packet Street 6";
+///         "address": "128 Series of Tubes";
+///         "address": "Internet";
+///         "email": "rpsl-parser@github.com";
+///         "nic-hdl": "RPSL1-RIPE";
+///         "source": "RIPE";
+///     },
+/// );
+/// # Ok(())
+/// # }
+/// ```
+///
+/// Each attribute can be accessed by index.
 /// ```
 /// # use rpsl_parser::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
