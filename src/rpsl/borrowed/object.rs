@@ -73,3 +73,74 @@ impl<'a> ObjectView<'a> {
         self.0.len()
     }
 }
+
+impl PartialEq<crate::rpsl::Object> for ObjectView<'_> {
+    fn eq(&self, other: &crate::rpsl::Object) -> bool {
+        // TODO: Avoid cloning
+        for (s, o) in self.clone().into_iter().zip(other.clone().into_iter()) {
+            if s != o {
+                return false;
+            }
+        }
+        true
+    }
+}
+
+impl<'a> IntoIterator for ObjectView<'a> {
+    type Item = AttributeView<'a>;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+mod test {
+    use super::*;
+
+    #[test]
+    fn eq_owned_object_is_eq() {
+        let borrowed = ObjectView::new(vec![
+            AttributeView::new_single("role", "ACME Company"),
+            AttributeView::new_single("address", "Packet Street 6"),
+            AttributeView::new_single("address", "128 Series of Tubes"),
+            AttributeView::new_single("address", "Internet"),
+        ]);
+        let owned = crate::rpsl::Object::new(vec![
+            crate::rpsl::Attribute::new("role".parse().unwrap(), "ACME Company".parse().unwrap()),
+            crate::rpsl::Attribute::new(
+                "address".parse().unwrap(),
+                "Packet Street 6".parse().unwrap(),
+            ),
+            crate::rpsl::Attribute::new(
+                "address".parse().unwrap(),
+                "128 Series of Tubes".parse().unwrap(),
+            ),
+            crate::rpsl::Attribute::new("address".parse().unwrap(), "Internet".parse().unwrap()),
+        ]);
+        assert_eq!(borrowed, owned);
+    }
+
+    #[test]
+    fn ne_owned_object_is_ne() {
+        let borrowed = ObjectView::new(vec![
+            AttributeView::new_single("role", "Umbrella Corporation"),
+            AttributeView::new_single("address", "Paraguas Street"),
+            AttributeView::new_single("address", "Racoon City"),
+            AttributeView::new_single("address", "Colorado"),
+        ]);
+        let owned = crate::rpsl::Object::new(vec![
+            crate::rpsl::Attribute::new("role".parse().unwrap(), "ACME Company".parse().unwrap()),
+            crate::rpsl::Attribute::new(
+                "address".parse().unwrap(),
+                "Packet Street 6".parse().unwrap(),
+            ),
+            crate::rpsl::Attribute::new(
+                "address".parse().unwrap(),
+                "128 Series of Tubes".parse().unwrap(),
+            ),
+            crate::rpsl::Attribute::new("address".parse().unwrap(), "Internet".parse().unwrap()),
+        ]);
+        assert_ne!(borrowed, owned);
+    }
+}

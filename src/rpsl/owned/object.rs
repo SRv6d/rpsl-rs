@@ -201,7 +201,7 @@ impl Index<usize> for Object {
 
 impl IntoIterator for Object {
     type Item = Attribute;
-    type IntoIter = std::vec::IntoIter<Attribute>;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
