@@ -20,6 +20,7 @@ impl PartialEq<&str> for NameView<'_> {
     }
 }
 
+#[allow(clippy::from_over_into)]
 impl<'a> Into<&'a str> for NameView<'a> {
     fn into(self) -> &'a str {
         self.as_str()
