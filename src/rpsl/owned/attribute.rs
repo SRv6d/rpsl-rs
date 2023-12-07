@@ -115,6 +115,18 @@ impl TryFrom<Vec<&str>> for Value {
     }
 }
 
+impl IntoIterator for Value {
+    type Item = Option<String>;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match self {
+            Self::SingleLine(value) => vec![value].into_iter(),
+            Self::MultiLine(values) => values.into_iter(),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 /// An attribute of an RPSL [`Object`].
 pub struct Attribute {

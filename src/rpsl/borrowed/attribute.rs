@@ -33,6 +33,18 @@ impl<'a> ValueView<'a> {
     }
 }
 
+impl<'a> IntoIterator for ValueView<'a> {
+    type Item = Option<&'a str>;
+    type IntoIter = std::vec::IntoIter<Self::Item>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        match self {
+            Self::SingleLine(value) => vec![value].into_iter(),
+            Self::MultiLine(values) => values.into_iter(),
+        }
+    }
+}
+
 /// A view into an attribute of an RPSL object in textual representation somewhere in memory.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct AttributeView<'a> {
