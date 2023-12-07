@@ -10,6 +10,12 @@ impl<'a> NameView<'a> {
     }
 }
 
+impl PartialEq<&str> for NameView<'_> {
+    fn eq(&self, other: &&str) -> bool {
+        self.0 == *other
+    }
+}
+
 /// A type containing a string slice pointing to the value of an attribute.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ValueView<'a> {
