@@ -45,6 +45,66 @@ impl<'a> IntoIterator for ValueView<'a> {
     }
 }
 
+impl PartialEq<&str> for ValueView<'_> {
+    fn eq(&self, other: &&str) -> bool {
+        match self {
+            ValueView::MultiLine(_) => false,
+            ValueView::SingleLine(value) => match value {
+                Some(value) => value == other,
+                None => coerce_empty_value(other).is_none(),
+            },
+        }
+    }
+}
+
+impl PartialEq<Vec<&str>> for ValueView<'_> {
+    fn eq(&self, other: &Vec<&str>) -> bool {
+        match self {
+            ValueView::SingleLine(_) => false,
+            ValueView::MultiLine(values) => {
+                if values.len() != other.len() {
+                    return false;
+                }
+                for (s, o) in values.iter().zip(other.iter()) {
+                    match s {
+                        Some(value) => {
+                            if value != o {
+                                return false;
+                            }
+                        }
+                        None => {
+                            if coerce_empty_value(o).is_some() {
+                                return false;
+                            }
+                        }
+                    }
+                }
+                true
+            }
+        }
+    }
+}
+
+impl PartialEq<Vec<Option<&str>>> for ValueView<'_> {
+    fn eq(&self, other: &Vec<Option<&str>>) -> bool {
+        match self {
+            ValueView::SingleLine(_) => false,
+            ValueView::MultiLine(values) => {
+                if values.len() != other.len() {
+                    return false;
+                }
+
+                for (s, o) in values.iter().zip(other.iter()) {
+                    if s != o {
+                        return false;
+                    }
+                }
+                true
+            }
+        }
+    }
+}
+
 /// A view into an attribute of an RPSL object in textual representation somewhere in memory.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct AttributeView<'a> {
@@ -77,6 +137,53 @@ mod test {
         assert_eq!(
             ValueView::new_multi(vec!["multi", "value", "attribute"]).len(),
             3
+        );
+    }
+
+    #[test]
+    fn value_eq_is_eq() {
+        assert_eq!(ValueView::SingleLine(Some("single value")), "single value");
+        assert_eq!(ValueView::SingleLine(None), " ");
+        assert_eq!(
+            ValueView::MultiLine(vec![Some("multi"), Some("value"), Some("attribute")]),
+            vec!["multi", "value", "attribute"]
+        );
+        assert_eq!(
+            ValueView::MultiLine(vec![Some("multi"), None, Some("attribute")]),
+            vec!["multi", "    ", "attribute"]
+        );
+        assert_eq!(
+            ValueView::MultiLine(vec![Some("multi"), Some("value"), Some("attribute")]),
+            vec![Some("multi"), Some("value"), Some("attribute")]
+        );
+        assert_eq!(
+            ValueView::MultiLine(vec![Some("multi"), None, Some("attribute")]),
+            vec![Some("multi"), None, Some("attribute")]
+        );
+    }
+
+    #[test]
+    fn value_ne_is_ne() {
+        assert_ne!(
+            ValueView::SingleLine(Some("single value")),
+            "other single value"
+        );
+        assert_ne!(ValueView::SingleLine(None), "not none");
+        assert_ne!(
+            ValueView::SingleLine(Some("single value")),
+            vec!["other", "multi", "value", "attribute"]
+        );
+        assert_ne!(
+            ValueView::MultiLine(vec![Some("multi"), Some("value"), Some("attribute")]),
+            vec!["other", "multi", "value", "attribute"]
+        );
+        assert_ne!(
+            ValueView::MultiLine(vec![Some("multi"), Some("value"), Some("attribute")]),
+            vec![Some("multi"), None, Some("attribute")]
+        );
+        assert_ne!(
+            ValueView::MultiLine(vec![Some("multi"), None, Some("attribute")]),
+            vec![Some("multi"), Some("    "), Some("attribute")]
         );
     }
 }

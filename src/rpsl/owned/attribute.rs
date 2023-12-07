@@ -127,6 +127,62 @@ impl IntoIterator for Value {
     }
 }
 
+impl PartialEq<&str> for Value {
+    fn eq(&self, other: &&str) -> bool {
+        match &self {
+            Self::MultiLine(_) => false,
+            Self::SingleLine(value) => match value {
+                Some(value) => value == *other,
+                None => coerce_empty_value(other).is_none(),
+            },
+        }
+    }
+}
+
+impl PartialEq<Vec<&str>> for Value {
+    fn eq(&self, other: &Vec<&str>) -> bool {
+        match &self {
+            Self::SingleLine(_) => false,
+            Self::MultiLine(values) => {
+                if values.len() != other.len() {
+                    return false;
+                }
+
+                let other_coerced = other.iter().map(|&v| coerce_empty_value(v));
+
+                for (s, o) in values.iter().zip(other_coerced) {
+                    if s.as_deref() != o {
+                        return false;
+                    }
+                }
+
+                true
+            }
+        }
+    }
+}
+
+impl PartialEq<Vec<Option<&str>>> for Value {
+    fn eq(&self, other: &Vec<Option<&str>>) -> bool {
+        match &self {
+            Self::SingleLine(_) => false,
+            Self::MultiLine(values) => {
+                if values.len() != other.len() {
+                    return false;
+                }
+
+                for (s, o) in values.iter().zip(other.iter()) {
+                    if s.as_deref() != *o {
+                        return false;
+                    }
+                }
+
+                true
+            }
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Eq, Clone)]
 /// An attribute of an RPSL [`Object`].
 pub struct Attribute {
@@ -234,6 +290,84 @@ mod tests {
                 .unwrap()
                 .len(),
             3
+        );
+    }
+
+    #[test]
+    fn value_eq_is_eq() {
+        assert_eq!(
+            Value::SingleLine(Some("single value".to_string())),
+            "single value"
+        );
+        assert_eq!(Value::SingleLine(None), " ");
+        assert_eq!(
+            Value::MultiLine(vec![
+                Some("multi".to_string()),
+                Some("value".to_string()),
+                Some("attribute".to_string())
+            ]),
+            vec!["multi", "value", "attribute"]
+        );
+        assert_eq!(
+            Value::MultiLine(vec![
+                Some("multi".to_string()),
+                None,
+                Some("attribute".to_string())
+            ]),
+            vec!["multi", "    ", "attribute"]
+        );
+        assert_eq!(
+            Value::MultiLine(vec![
+                Some("multi".to_string()),
+                Some("value".to_string()),
+                Some("attribute".to_string())
+            ]),
+            vec![Some("multi"), Some("value"), Some("attribute")]
+        );
+        assert_eq!(
+            Value::MultiLine(vec![
+                Some("multi".to_string()),
+                None,
+                Some("attribute".to_string())
+            ]),
+            vec![Some("multi"), None, Some("attribute")]
+        );
+    }
+
+    #[test]
+    fn value_ne_is_ne() {
+        assert_ne!(
+            Value::SingleLine(Some("single value".to_string())),
+            "other single value"
+        );
+        assert_ne!(Value::SingleLine(None), "not none");
+        assert_ne!(
+            Value::SingleLine(Some("single value".to_string())),
+            vec!["other", "multi", "value", "attribute"]
+        );
+        assert_ne!(
+            Value::MultiLine(vec![
+                Some("multi".to_string()),
+                Some("value".to_string()),
+                Some("attribute".to_string())
+            ]),
+            vec!["other", "multi", "value", "attribute"]
+        );
+        assert_ne!(
+            Value::MultiLine(vec![
+                Some("multi".to_string()),
+                Some("value".to_string()),
+                Some("attribute".to_string())
+            ]),
+            vec![Some("multi"), None, Some("attribute")]
+        );
+        assert_ne!(
+            Value::MultiLine(vec![
+                Some("multi".to_string()),
+                None,
+                Some("attribute".to_string())
+            ]),
+            vec![Some("multi"), Some("    "), Some("attribute")]
         );
     }
 
