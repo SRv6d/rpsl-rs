@@ -8,11 +8,21 @@ impl<'a> NameView<'a> {
     pub(crate) fn new(name: &'a str) -> Self {
         Self(name)
     }
+
+    pub fn as_str(&self) -> &'a str {
+        self.0
+    }
 }
 
 impl PartialEq<&str> for NameView<'_> {
     fn eq(&self, other: &&str) -> bool {
         self.0 == *other
+    }
+}
+
+impl<'a> Into<&'a str> for NameView<'a> {
+    fn into(self) -> &'a str {
+        self.as_str()
     }
 }
 
@@ -134,6 +144,22 @@ impl<'a> AttributeView<'a> {
     }
 }
 
+impl PartialEq<crate::rpsl::Attribute> for AttributeView<'_> {
+    fn eq(&self, other: &crate::rpsl::Attribute) -> bool {
+        other.name == self.name.as_str() && {
+            // TODO: Avoid unnecessary allocations.
+            let s: Vec<Option<&str>> = self.value.clone().into_iter().collect();
+            let o: Vec<Option<String>> = other.value.clone().into_iter().collect();
+            for (s, o) in s.iter().zip(o.iter()) {
+                if s != &o.as_deref() {
+                    return false;
+                }
+            }
+            true
+        }
+    }
+}
+
 mod test {
     use super::*;
 
@@ -190,6 +216,45 @@ mod test {
         assert_ne!(
             ValueView::MultiLine(vec![Some("multi"), None, Some("attribute")]),
             vec![Some("multi"), Some("    "), Some("attribute")]
+        );
+    }
+    #[test]
+    fn name_view_comparable_to_str() {
+        assert_eq!(NameView::new("person"), "person");
+    }
+
+    #[test]
+    fn eq_owned_attribute_is_eq() {
+        assert_eq!(
+            AttributeView::new_single("as-name", "REMARKABLE"),
+            crate::rpsl::Attribute::new("as-name".parse().unwrap(), "REMARKABLE".parse().unwrap())
+        );
+        assert_eq!(
+            AttributeView::new_multi("remarks", vec!["Equal", "Values"]),
+            crate::rpsl::Attribute::new(
+                "remarks".parse().unwrap(),
+                std::convert::TryInto::<crate::rpsl::Value>::try_into(vec!["Equal", "Values"])
+                    .unwrap()
+            )
+        );
+    }
+
+    #[test]
+    fn ne_owned_attribute_ne() {
+        assert_ne!(
+            AttributeView::new_single("as-name", "REMARKABLE"),
+            crate::rpsl::Attribute::new(
+                "as-name".parse().unwrap(),
+                "UNREMARKABLE".parse().unwrap()
+            )
+        );
+        assert_ne!(
+            AttributeView::new_multi("remarks", vec!["Some", "Values"]),
+            crate::rpsl::Attribute::new(
+                "remarks".parse().unwrap(),
+                std::convert::TryInto::<crate::rpsl::Value>::try_into(vec!["Different", "Values"])
+                    .unwrap()
+            )
         );
     }
 }
