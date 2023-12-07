@@ -164,7 +164,7 @@ impl Object {
         Object(attributes)
     }
 
-    /// Returns the number of attributes in the object.
+    /// The number of attributes in the object.
     #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()

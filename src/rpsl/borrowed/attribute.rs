@@ -24,6 +24,13 @@ impl<'a> ValueView<'a> {
     pub(crate) fn new_multi(values: Vec<&'a str>) -> Self {
         Self::MultiLine(values.into_iter().map(coerce_empty_value).collect())
     }
+    /// The number of values referenced within the view.
+    pub fn len(&self) -> usize {
+        match &self {
+            ValueView::SingleLine(_) => 1,
+            ValueView::MultiLine(values) => values.len(),
+        }
+    }
 }
 
 /// A view into an attribute of an RPSL object in textual representation somewhere in memory.
@@ -46,5 +53,18 @@ impl<'a> AttributeView<'a> {
         let name = NameView::new(name);
         let value = ValueView::new_multi(values);
         Self { name, value }
+    }
+}
+
+mod test {
+    use super::*;
+
+    #[test]
+    fn value_len() {
+        assert_eq!(ValueView::new_single("single value").len(), 1);
+        assert_eq!(
+            ValueView::new_multi(vec!["multi", "value", "attribute"]).len(),
+            3
+        );
     }
 }

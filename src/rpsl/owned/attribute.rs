@@ -62,6 +62,14 @@ impl Value {
 
         Ok(())
     }
+
+    /// The number of values contained within.
+    pub fn len(&self) -> usize {
+        match &self {
+            Value::SingleLine(_) => 1,
+            Value::MultiLine(values) => values.len(),
+        }
+    }
 }
 
 impl FromStr for Value {
@@ -204,6 +212,17 @@ mod tests {
     fn value_from_empty_str() {
         let value = "   ";
         assert_eq!(value.parse::<Value>().unwrap(), Value::SingleLine(None));
+    }
+
+    #[test]
+    fn value_len() {
+        assert_eq!("single value".parse::<Value>().unwrap().len(), 1);
+        assert_eq!(
+            std::convert::TryInto::<Value>::try_into(vec!["multi", "value", "attribute"])
+                .unwrap()
+                .len(),
+            3
+        );
     }
 
     proptest! {

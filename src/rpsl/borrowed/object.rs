@@ -60,10 +60,16 @@ use super::attribute::AttributeView;
 /// # }
 /// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
+#[allow(clippy::len_without_is_empty)]
 pub struct ObjectView<'a>(Vec<AttributeView<'a>>);
 
 impl<'a> ObjectView<'a> {
     pub(crate) fn new(attributes: Vec<AttributeView<'a>>) -> Self {
         Self(attributes)
+    }
+    /// The number of attributes referenced within the view.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
     }
 }
