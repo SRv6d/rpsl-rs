@@ -15,6 +15,9 @@ use super::attribute::AttributeView;
 /// source:         RIPE ◀─────────────────────── &"source"  ───  &"RIPE"
 /// ```
 ///
+/// Since an [`ObjectView`] is purely used to provide a view into the referenced data, it can only
+/// be created from RPSL text using the [`parse_object`] and [`parse_whois_response`] functions.
+///
 /// # Examples
 ///  
 /// Like an owned [`Object`], its attributes can be accessed by index.
