@@ -184,7 +184,7 @@ impl PartialEq<Vec<Option<&str>>> for Value {
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
-/// An attribute of an RPSL [`Object`].
+/// An attribute of an RPSL [`Object`](crate::Object).
 pub struct Attribute {
     /// The name of the attribute.
     pub name: Name,

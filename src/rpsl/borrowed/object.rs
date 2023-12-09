@@ -3,7 +3,9 @@ use super::attribute::AttributeView;
 /// A view into an RPSL object in textual representation somewhere in memory.
 ///
 /// This is the borrowed equivalent of an [`Object`], only cointaining references to the
-/// original data in the form of [`AttributeView`]s.
+/// original data in the form of [`AttributeView`]s. It presents largely the same interface as
+/// its owned equivalent, although it will always return references.
+///
 ///
 /// ```text
 /// role:           ACME Company ◀─────────────── &"role"    ───  &"ACME Company"
@@ -15,8 +17,8 @@ use super::attribute::AttributeView;
 /// source:         RIPE ◀─────────────────────── &"source"  ───  &"RIPE"
 /// ```
 ///
-/// Since an [`ObjectView`] is purely used to provide a view into the referenced data, it can only
-/// be created from RPSL text using the [`parse_object`] and [`parse_whois_response`] functions.
+/// Since an [`ObjectView`] is purely used to provide a view into referenced RPSL data, it can only
+/// be created from RPSL text using the [`parse_object`] and [`parse_whois_response`](crate::parse_whois_response) functions.
 ///
 /// # Examples
 ///  
@@ -34,8 +36,8 @@ use super::attribute::AttributeView;
 /// # source:         RIPE
 /// #
 /// # ")?;
-/// assert_eq!(role_acme[0], Attribute::new("role", "ACME Company")?);
-/// assert_eq!(role_acme[3], Attribute::new("nic-hdl", "RPSL1-RIPE")?);
+/// assert_eq!(role_acme[0], Attribute::new("role".parse()?, "ACME Company".parse()?));
+/// assert_eq!(role_acme[3], Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?));
 /// # Ok(())
 /// # }
 /// ```
@@ -62,6 +64,9 @@ use super::attribute::AttributeView;
 /// # Ok(())
 /// # }
 /// ```
+/// [`Object`]: crate::Object
+/// [`parse_object`]: crate::parse_object
+/// [`parse_whois_response`]: crate::parse_whois_response
 #[derive(Debug, PartialEq, Eq, Clone)]
 #[allow(clippy::len_without_is_empty)]
 pub struct ObjectView<'a>(Vec<AttributeView<'a>>);

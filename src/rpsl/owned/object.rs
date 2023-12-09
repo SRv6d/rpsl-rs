@@ -37,7 +37,7 @@ use std::{fmt, ops::Index};
 /// ```
 ///
 /// Although creating an [`Object`] from a vector of [`Attribute`]s works, the more idiomatic way
-/// to do it is by using the [`object!`] macro.
+/// to do it is by using the [`object!`](crate::object) macro.
 /// ```
 /// # use rpsl_parser::{Attribute, Object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -230,14 +230,14 @@ impl fmt::Display for Object {
 ///     "address": "128 Series of Tubes";
 ///     "address": "Internet";
 /// };
-/// assert_eq!(obj[0].name, "role".parse()?);
-/// assert_eq!(obj[0].value, "ACME Company".parse()?);
-/// assert_eq!(obj[1].name, "address".parse()?);
-/// assert_eq!(obj[1].value, "Packet Street 6".parse()?);
-/// assert_eq!(obj[2].name, "address".parse()?);
-/// assert_eq!(obj[2].value, "128 Series of Tubes".parse()?);
-/// assert_eq!(obj[3].name, "address".parse()?);
-/// assert_eq!(obj[3].value, "Internet".parse()?);
+/// assert_eq!(obj[0].name, "role");
+/// assert_eq!(obj[0].value, "ACME Company");
+/// assert_eq!(obj[1].name, "address");
+/// assert_eq!(obj[1].value, "Packet Street 6");
+/// assert_eq!(obj[2].name, "address");
+/// assert_eq!(obj[2].value, "128 Series of Tubes");
+/// assert_eq!(obj[3].name, "address");
+/// assert_eq!(obj[3].value, "Internet");
 /// # Ok(())
 /// # }
 /// ```
@@ -250,10 +250,10 @@ impl fmt::Display for Object {
 ///    "role": "ACME Company";
 ///    "address": "Packet Street 6", "128 Series of Tubes", "Internet";
 /// };
-/// assert_eq!(obj[0].name, "role".parse()?);
-/// assert_eq!(obj[0].value, "ACME Company".parse()?);
-/// assert_eq!(obj[1].name, "address".parse()?);
-/// assert_eq!(obj[1].value, vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?);
+/// assert_eq!(obj[0].name, "role");
+/// assert_eq!(obj[0].value, "ACME Company");
+/// assert_eq!(obj[1].name, "address");
+/// assert_eq!(obj[1].value, vec!["Packet Street 6", "128 Series of Tubes", "Internet"]);
 /// # Ok(())
 /// # }
 #[macro_export]
