@@ -29,6 +29,8 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 > [!WARNING]
 > This project is still in early stages of development and its API is not yet stable.
 
+[**Docs**](https://docs.rs/rpsl-parser/latest/rpsl_parser/) | [**Performance**](https://github.com/SRv6d/rpsl-parser/tree/main/docs/benchmark)
+
 ## Examples
 
 ### Parsing RPSL
