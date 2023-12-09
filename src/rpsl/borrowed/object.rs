@@ -3,7 +3,7 @@ use std::{fmt, ops::Index};
 
 /// A view into an RPSL object in textual representation somewhere in memory.
 ///
-/// This is the borrowed equivalent of an [`Object`], only cointaining references to the
+/// This is the borrowed equivalent of an [`Object`], only containing references to the
 /// original data in the form of [`AttributeView`]s. It presents largely the same interface as
 /// its owned equivalent, although it will always return references.
 ///
@@ -257,7 +257,7 @@ mod test {
             vec![
                 AttributeView::new_single("role", "Umbrella Corporation"),
                 AttributeView::new_single("address", "Paraguas Street"),
-                AttributeView::new_single("address", "Racoon City"),
+                AttributeView::new_single("address", "Raccoon City"),
                 AttributeView::new_single("address", "Colorado"),
             ],
             None,
