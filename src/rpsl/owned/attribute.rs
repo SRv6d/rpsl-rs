@@ -8,6 +8,13 @@ use std::{fmt, str::FromStr};
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Name(String);
 
+impl Name {
+    /// Create a new `Name` from a String without validation.
+    pub(in crate::rpsl) fn new(name: String) -> Self {
+        Self(name)
+    }
+}
+
 impl FromStr for Name {
     type Err = InvalidNameError;
 
@@ -61,6 +68,16 @@ impl Value {
         }
 
         Ok(())
+    }
+
+    /// Create a new `Value` from a String without validation.
+    pub(in crate::rpsl) fn new_single(value: Option<String>) -> Self {
+        Self::SingleLine(value)
+    }
+
+    /// Create a new `Value` from a vector of strings without validation.
+    pub(in crate::rpsl) fn new_multi(values: Vec<Option<String>>) -> Self {
+        Self::MultiLine(values)
     }
 
     /// The number of values contained within.

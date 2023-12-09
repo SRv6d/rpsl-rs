@@ -65,6 +65,53 @@ use std::ops::Index;
 /// # Ok(())
 /// # }
 /// ```
+///
+/// Views can be compared to their owned equivalents.
+/// ```
+/// # use rpsl_parser::{parse_object, Attribute, object};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # let role_acme = parse_object("
+/// # role:           ACME Company
+/// # address:        Packet Street 6
+/// #                 128 Series of Tubes
+/// #                 Internet
+/// # email:          rpsl-parser@github.com
+/// # nic-hdl:        RPSL1-RIPE
+/// # source:         RIPE
+/// #
+/// # ")?;
+/// assert_eq!(
+///     role_acme,
+///     object! {
+///         "role": "ACME Company";
+///         "address": "Packet Street 6", "128 Series of Tubes", "Internet";
+///         "email": "rpsl-parser@github.com";
+///         "nic-hdl": "RPSL1-RIPE";
+///         "source": "RIPE";
+///      },
+/// );
+/// # Ok(())
+/// # }
+/// ```
+///
+/// As well as converted to them if required.
+/// ```
+/// # use rpsl_parser::{parse_object, Attribute};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # let role_acme = parse_object("
+/// # role:           ACME Company
+/// # address:        Packet Street 6
+/// #                 128 Series of Tubes
+/// #                 Internet
+/// # email:          rpsl-parser@github.com
+/// # nic-hdl:        RPSL1-RIPE
+/// # source:         RIPE
+/// #
+/// # ")?;
+/// role_acme.to_owned();
+/// # Ok(())
+/// # }
+/// ```
 /// [`Object`]: crate::Object
 /// [`parse_object`]: crate::parse_object
 /// [`parse_whois_response`]: crate::parse_whois_response
@@ -76,11 +123,18 @@ impl<'a> ObjectView<'a> {
     pub(crate) fn new(attributes: Vec<AttributeView<'a>>) -> Self {
         Self(attributes)
     }
+
+    /// Turn the view into an owned [`Object`](crate::Object).
+    pub fn to_owned(&self) -> crate::rpsl::Object {
+        crate::rpsl::Object::new(self.0.iter().map(AttributeView::to_owned).collect())
+    }
+
     /// The number of attributes referenced within the view.
     #[must_use]
     pub fn len(&self) -> usize {
         self.0.len()
     }
+
     /// Get the value(s) of specific attribute(s).
     pub fn get(&self, name: &str) -> Vec<&str> {
         let values_matching_name = self.0.iter().filter(|a| a.name == name).map(|a| &a.value);

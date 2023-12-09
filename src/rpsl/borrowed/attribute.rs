@@ -12,6 +12,10 @@ impl<'a> NameView<'a> {
     pub fn as_str(&self) -> &'a str {
         self.0
     }
+
+    pub fn to_owned(&self) -> crate::rpsl::Name {
+        crate::rpsl::Name::new(self.0.to_owned())
+    }
 }
 
 impl PartialEq<&str> for NameView<'_> {
@@ -46,6 +50,20 @@ impl<'a> ValueView<'a> {
         match &self {
             ValueView::SingleLine(_) => 1,
             ValueView::MultiLine(values) => values.len(),
+        }
+    }
+
+    pub fn to_owned(&self) -> crate::rpsl::Value {
+        match self {
+            Self::SingleLine(value) => {
+                crate::rpsl::Value::new_single(value.map_or(None, |v| Some(v.to_string())))
+            }
+            Self::MultiLine(values) => crate::rpsl::Value::new_multi(
+                values
+                    .iter()
+                    .map(|v| v.map_or(None, |v| Some(v.to_string())))
+                    .collect(),
+            ),
         }
     }
 }
@@ -142,6 +160,12 @@ impl<'a> AttributeView<'a> {
         let name = NameView::new(name);
         let value = ValueView::new_multi(values);
         Self { name, value }
+    }
+
+    #[must_use]
+    /// Turn the view into an owned [`Attribute`](crate::Attribute).
+    pub fn to_owned(&self) -> crate::rpsl::Attribute {
+        crate::rpsl::Attribute::new(self.name.to_owned(), self.value.to_owned())
     }
 }
 
