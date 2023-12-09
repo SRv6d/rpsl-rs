@@ -1,25 +1,75 @@
 use super::component;
-use crate::rpsl;
+use crate::rpsl::Object;
 use nom::{
     branch::alt,
     bytes::complete::tag,
-    character::complete::multispace0,
+    character::complete::{multispace0, newline},
     combinator::all_consuming,
     error::Error,
     multi::{many0, many1},
-    sequence::delimited,
-    Finish,
+    sequence::{delimited, terminated},
+    Finish, IResult,
 };
 
-/// Parse a string containing a RPSL object.
+/// Parse an object with at least one attribute terminated by a newline.
+///
+/// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
+/// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
+fn object_block(input: &str) -> IResult<&str, Object> {
+    let (remaining, attributes) = terminated(many1(component::attribute), newline)(input)?;
+    Ok((remaining, attributes.into()))
+}
+
+/// Uses the object block parser but allows for optional padding with server messages or newlines.
+fn padded_object_block(input: &str) -> IResult<&str, Object> {
+    let (remaining, object) = delimited(
+        optional_message_or_newlines,
+        object_block,
+        optional_message_or_newlines,
+    )(input)?;
+    Ok((remaining, object))
+}
+
+/// Parse an unlimited number of optional server messages or newlines.
+fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
+    let (remaining, message_or_newlines) =
+        many0(alt((component::server_message, tag("\n"))))(input)?;
+    Ok((remaining, message_or_newlines))
+}
+
+/// Parse an RPSL object from it's textual representation.
+///
+/// ```text
+/// as-set:     as-nflx
+/// descr:      Netflix AS numbers
+/// members:    AS40027
+/// members:    AS2906
+/// members:    AS55095
+/// mnt-by:     MAINT-AS40027
+/// changed:    rwoolley@netflix.com 20210226
+/// source:     RADB
+///                        ↓
+/// ┌───────────────────────────────────────────────┐
+/// │  Object                                       │
+/// ├───────────────────────────────────────────────┤
+/// │  [as-set]  ───  as-nflx                       │
+/// │  [descr]   ───  Netflix AS numbers            │
+/// │  [members] ──┬─ AS40027                       │
+/// │              ├─ AS2906                        │
+/// │              └─ AS55095                       │
+/// │  [mnt-by]  ───  MAINT-AS40027                 │
+/// │  [changed] ───  rwoolley@netflix.com 20210226 │
+/// │  [source]  ───  RADB                          │
+/// └───────────────────────────────────────────────┘
+/// ```
 ///
 /// # Errors
-/// Returns nom `Error` if any error occurs during parsing.
+/// Returns a Nom error if the input is not valid RPSL.
 ///
 /// # Examples
 /// ```
-/// # use rpsl_parser::{parse_rpsl_object, rpsl};
-/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
+/// # use rpsl_parser::{parse_object, Attribute, Object};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let role_acme = "
 /// role:        ACME Company
 /// address:     Packet Street 6
@@ -28,27 +78,19 @@ use nom::{
 /// email:       rpsl-parser@github.com
 /// nic-hdl:     RPSL1-RIPE
 /// source:      RIPE
+///
 /// ";
-/// let parsed_attributes = parse_rpsl_object(role_acme)?;
+/// let object = parse_object(role_acme)?;
 /// assert_eq!(
-///     parsed_attributes,
-///     rpsl::Object::new(vec![
-///         rpsl::Attribute::new("role".to_string(), vec![Some("ACME Company".to_string())]),
-///         rpsl::Attribute::new(
-///             "address".to_string(),
-///             vec![Some("Packet Street 6".to_string())],
-///         ),
-///         rpsl::Attribute::new(
-///             "address".to_string(),
-///             vec![Some("128 Series of Tubes".to_string())],
-///         ),
-///         rpsl::Attribute::new("address".to_string(), vec![Some("Internet".to_string())]),
-///         rpsl::Attribute::new(
-///             "email".to_string(),
-///             vec![Some("rpsl-parser@github.com".to_string())],
-///         ),
-///         rpsl::Attribute::new("nic-hdl".to_string(), vec![Some("RPSL1-RIPE".to_string())]),
-///         rpsl::Attribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
+///     object,
+///     Object::new(vec![
+///         Attribute::new("role", "ACME Company")?,
+///         Attribute::new("address", "Packet Street 6")?,
+///         Attribute::new("address", "128 Series of Tubes")?,
+///         Attribute::new("address", "Internet")?,
+///         Attribute::new("email", "rpsl-parser@github.com")?,
+///         Attribute::new("nic-hdl", "RPSL1-RIPE")?,
+///         Attribute::new("source", "RIPE")?,
 ///     ])
 /// );
 /// # Ok(())
@@ -57,41 +99,39 @@ use nom::{
 ///
 /// Values spread over multiple lines can be parsed too.
 /// ```
-/// # use rpsl_parser::{parse_rpsl_object, rpsl};
-/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
-/// let multi_value = "
+/// # use rpsl_parser::{parse_object, Attribute, Object};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let multiline_remark = "
 /// remarks:     Value 1
 ///              Value 2
+///
 /// ";
 /// assert_eq!(
-///     parse_rpsl_object(multi_value)?,
-///     rpsl::Object::new(vec![rpsl::Attribute::new(
-///         "remarks".to_string(),
-///         vec![Some("Value 1".to_string()), Some("Value 2".to_string())]
-///     ),])
+///     parse_object(multiline_remark)?,
+///     Object::new(vec![
+///         Attribute::new("remarks", vec!["Value 1", "Value 2"])?
+///     ])
 /// );
 /// # Ok(())
 /// # }
 /// ```
 ///
-/// Empty values are valid RPSL and are represented as `None`.
+/// An attribute that does not have a value is valid.
 /// ```
-/// # use rpsl_parser::{parse_rpsl_object, rpsl};
-/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
-/// let empty_value = "
+/// # use rpsl_parser::{parse_object, Attribute, Object};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// let without_value = "
 /// as-name:     REMARKABLE
 /// remarks:
 /// remarks:     ^^^^^^^^^^ nothing here
+///
 /// ";
 /// assert_eq!(
-///     parse_rpsl_object(empty_value)?,
-///     rpsl::Object::new(vec![
-///         rpsl::Attribute::new("as-name".to_string(), vec![Some("REMARKABLE".to_string())]),
-///         rpsl::Attribute::new("remarks".to_string(), vec![None]),
-///         rpsl::Attribute::new(
-///             "remarks".to_string(),
-///             vec![Some("^^^^^^^^^^ nothing here".to_string())]
-///         ),
+///     parse_object(without_value)?,
+///     Object::new(vec![
+///         Attribute::new("as-name", "REMARKABLE")?,
+///         Attribute::without_value("remarks")?,
+///         Attribute::new("remarks", "^^^^^^^^^^ nothing here")?,
 ///     ])
 /// );
 /// # Ok(())
@@ -99,49 +139,43 @@ use nom::{
 /// ```
 ///
 /// The same goes for values containing only whitespace.
-/// Since whitespace to the left of a value is trimmed, they are equivalent to an empty value.
+/// Since whitespace to the left of a value is trimmed, they are equivalent to no value.
 ///
 /// ```
-/// # use rpsl_parser::{parse_rpsl_object, rpsl};
-/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
+/// # use rpsl_parser::{parse_object, Attribute, Object};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let whitespace_value = "
 /// as-name:     REMARKABLE
 /// remarks:               
 /// remarks:     ^^^^^^^^^^ nothing but hot air
+///
 /// ";
 /// assert_eq!(
-///     parse_rpsl_object(whitespace_value)?,
-///     rpsl::Object::new(vec![
-///         rpsl::Attribute::new("as-name".to_string(), vec![Some("REMARKABLE".to_string())]),
-///         rpsl::Attribute::new("remarks".to_string(), vec![None]),
-///         rpsl::Attribute::new(
-///             "remarks".to_string(),
-///             vec![Some("^^^^^^^^^^ nothing but hot air".to_string())]
-///         ),
+///     parse_object(whitespace_value)?,
+///     Object::new(vec![
+///         Attribute::new("as-name", "REMARKABLE")?,
+///         Attribute::without_value("remarks")?,
+///         Attribute::new("remarks", "^^^^^^^^^^ nothing but hot air")?,
 ///     ])
 /// );
 /// # Ok(())
 /// # }
 /// ```
-pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
-    let (_, object) = all_consuming(delimited(
-        multispace0,
-        many1(component::attribute),
-        multispace0,
-    ))(rpsl)
-    .finish()?;
-
-    Ok(rpsl::Object::from(object))
+pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
+    let (_, object) =
+        all_consuming(delimited(multispace0, object_block, multispace0))(rpsl).finish()?;
+    Ok(object)
 }
 
-/// Parse a string containing a whois server response into a vector of RPSL objects.
+/// Parse a whois server response containing multiple RPSL objects in their textual representation.
+///
 /// # Errors
-/// Returns nom `Error` if any error occurs during parsing.
+/// Returns a Nom error if the input is not valid RPSL.
 ///
 /// # Examples
 /// ```
-/// # use rpsl_parser::{parse_whois_server_response, rpsl};
-/// # fn main() -> Result<(), nom::error::Error<&'static str>> {
+/// # use rpsl_parser::{parse_whois_response, Attribute, Object};
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let whois_response = "
 /// ASNumber:       32934
 /// ASName:         FACEBOOK
@@ -162,201 +196,110 @@ pub fn parse_rpsl_object(rpsl: &str) -> Result<rpsl::Object, Error<&str>> {
 /// RegDate:        2004-08-11
 /// Updated:        2012-04-17
 /// Ref:            https://rdap.arin.net/registry/entity/THEFA-3
+///
 /// ";
-/// let parsed_objects = parse_whois_server_response(whois_response)?;
+/// let objects: Vec<Object> = parse_whois_response(whois_response)?;
 /// assert_eq!(
-///     parsed_objects,
-///     rpsl::ObjectCollection::new(vec![
-///         rpsl::Object::new(vec![
-///             rpsl::Attribute::new("ASNumber".to_string(), vec![Some("32934".to_string())]),
-///             rpsl::Attribute::new("ASName".to_string(), vec![Some("FACEBOOK".to_string())]),
-///             rpsl::Attribute::new("ASHandle".to_string(), vec![Some("AS32934".to_string())]),
-///             rpsl::Attribute::new("RegDate".to_string(), vec![Some("2004-08-24".to_string())]),
-///             rpsl::Attribute::new("Updated".to_string(), vec![Some("2012-02-24".to_string())]),
-///             rpsl::Attribute::new("Comment".to_string(), vec![Some("Please send abuse reports to abuse@facebook.com".to_string())]),
-///             rpsl::Attribute::new("Ref".to_string(), vec![Some("https://rdap.arin.net/registry/autnum/32934".to_string())]),
-///         ]),
-///         rpsl::Object::new(vec![
-///             rpsl::Attribute::new("OrgName".to_string(), vec![Some("Facebook, Inc.".to_string())]),
-///             rpsl::Attribute::new("OrgId".to_string(), vec![Some("THEFA-3".to_string())]),
-///             rpsl::Attribute::new("Address".to_string(), vec![Some("1601 Willow Rd.".to_string())]),
-///             rpsl::Attribute::new("City".to_string(), vec![Some("Menlo Park".to_string())]),
-///             rpsl::Attribute::new("StateProv".to_string(), vec![Some("CA".to_string())]),
-///             rpsl::Attribute::new("PostalCode".to_string(), vec![Some("94025".to_string())]),
-///             rpsl::Attribute::new("Country".to_string(), vec![Some("US".to_string())]),
-///             rpsl::Attribute::new("RegDate".to_string(), vec![Some("2004-08-11".to_string())]),
-///             rpsl::Attribute::new("Updated".to_string(), vec![Some("2012-04-17".to_string())]),
-///             rpsl::Attribute::new("Ref".to_string(), vec![Some("https://rdap.arin.net/registry/entity/THEFA-3".to_string())]),
-///        ]),
-///    ])
+///     objects,
+///     vec![
+///             Object::new(vec![
+///                 Attribute::new("ASNumber", "32934")?,
+///                 Attribute::new("ASName", "FACEBOOK")?,
+///                 Attribute::new("ASHandle", "AS32934")?,
+///                 Attribute::new("RegDate", "2004-08-24")?,
+///                 Attribute::new("Updated", "2012-02-24")?,
+///                 Attribute::new("Comment", "Please send abuse reports to abuse@facebook.com")?,
+///                 Attribute::new("Ref", "https://rdap.arin.net/registry/autnum/32934")?,
+///             ]),
+///             Object::new(vec![
+///                 Attribute::new("OrgName", "Facebook, Inc.")?,
+///                 Attribute::new("OrgId", "THEFA-3")?,
+///                 Attribute::new("Address", "1601 Willow Rd.")?,
+///                 Attribute::new("City", "Menlo Park")?,
+///                 Attribute::new("StateProv", "CA")?,
+///                 Attribute::new("PostalCode", "94025")?,
+///                 Attribute::new("Country", "US")?,
+///                 Attribute::new("RegDate", "2004-08-11")?,
+///                 Attribute::new("Updated", "2012-04-17")?,
+///                 Attribute::new("Ref", "https://rdap.arin.net/registry/entity/THEFA-3")?,
+///             ]),
+///         ]
 /// );
 /// # Ok(())
 /// # }
-/// ```     
-pub fn parse_whois_server_response(response: &str) -> Result<rpsl::ObjectCollection, Error<&str>> {
-    let rpsl_object = many1(component::attribute);
-
-    let (_, objects) = all_consuming(many1(delimited(
-        many0(alt((component::server_message, tag("\n")))),
-        rpsl_object,
-        many0(alt((component::server_message, tag("\n")))), // TODO: DRY
-    )))(response)
-    .finish()?;
-
-    Ok(rpsl::ObjectCollection::from(objects))
+pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, Error<&str>> {
+    let (_, objects): (&str, Vec<Object>) =
+        all_consuming(many1(padded_object_block))(response).finish()?;
+    Ok(objects)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rpsl;
+    use crate::Attribute;
 
     #[test]
-    fn parse_valid_rpsl_object() {
-        let rpsl = concat!(
-            "\n",
-            "role:           Twelve99 Routing Registry\n",
-            "remarks:\n",
-            "remarks:        This is a remark.\n",
-            "address:        Arelion Sweden AB\n",
-            "address:        Evenemangsgatan 2C\n",
-            "address:        SE-169 79 SOLNA\n",
-            "address:        Sweden\n",
-            "e-mail:         routing-registry@99.net\n",
-            "nic-hdl:        TRR2-RIPE\n",
-            "notify:         routing-registry@99.net\n",
-            "mnt-by:         Twelve99-IRR-MNT\n",
-            "created:        2002-05-27T15:05:16Z\n",
-            "last-modified:  2023-01-30T11:49:56Z\n",
-            "source:         RIPE\n",
-            "\n",
-            "\n",
+    fn object_block_valid() {
+        let object = concat!(
+            "email:       rpsl-parser@github.com\n",
+            "nic-hdl:     RPSL1-RIPE\n",
+            "\n"
         );
-        let expected = rpsl::Object::new(vec![
-            rpsl::Attribute::new(
-                "role".to_string(),
-                vec![Some("Twelve99 Routing Registry".to_string())],
-            ),
-            rpsl::Attribute::new("remarks".to_string(), vec![None]),
-            rpsl::Attribute::new(
-                "remarks".to_string(),
-                vec![Some("This is a remark.".to_string())],
-            ),
-            rpsl::Attribute::new(
-                "address".to_string(),
-                vec![Some("Arelion Sweden AB".to_string())],
-            ),
-            rpsl::Attribute::new(
-                "address".to_string(),
-                vec![Some("Evenemangsgatan 2C".to_string())],
-            ),
-            rpsl::Attribute::new(
-                "address".to_string(),
-                vec![Some("SE-169 79 SOLNA".to_string())],
-            ),
-            rpsl::Attribute::new("address".to_string(), vec![Some("Sweden".to_string())]),
-            rpsl::Attribute::new(
-                "e-mail".to_string(),
-                vec![Some("routing-registry@99.net".to_string())],
-            ),
-            rpsl::Attribute::new("nic-hdl".to_string(), vec![Some("TRR2-RIPE".to_string())]),
-            rpsl::Attribute::new(
-                "notify".to_string(),
-                vec![Some("routing-registry@99.net".to_string())],
-            ),
-            rpsl::Attribute::new(
-                "mnt-by".to_string(),
-                vec![Some("Twelve99-IRR-MNT".to_string())],
-            ),
-            rpsl::Attribute::new(
-                "created".to_string(),
-                vec![Some("2002-05-27T15:05:16Z".to_string())],
-            ),
-            rpsl::Attribute::new(
-                "last-modified".to_string(),
-                vec![Some("2023-01-30T11:49:56Z".to_string())],
-            ),
-            rpsl::Attribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
-        ]);
-
-        assert_eq!(parse_rpsl_object(rpsl).unwrap(), expected);
+        assert_eq!(
+            object_block(object),
+            Ok((
+                "",
+                Object::new(vec![
+                    Attribute::new("email", "rpsl-parser@github.com").unwrap(),
+                    Attribute::new("nic-hdl", "RPSL1-RIPE").unwrap()
+                ])
+            ))
+        );
     }
 
     #[test]
-    fn parse_valid_server_response() {
-        let rpsl = concat!(
-            "as-block:       AS12557 - AS13223\n",
-            "descr:          RIPE NCC ASN block\n",
-            "remarks:        These AS Numbers are assigned to network operators in the RIPE NCC service region.\n",
-            "mnt-by:         RIPE-NCC-HM-MNT\n",
-            "created:        2018-11-22T15:27:24Z\n",
-            "last-modified:  2018-11-22T15:27:24Z\n",
-            "source:         RIPE\n",
-            "\n",
-            "% Information related to 'AS13030\n",
-            "\n",
-            "% Abuse contact for 'AS13030' is 'abuse@init7.net'\n",
-            "\n",
-            "aut-num:        AS13030\n",
-            "as-name:        INIT7\n",
-            "org:            ORG-ISA1-RIPE\n",
-            "remarks:        Init7 Global Backbone\n",
-            "\n",
-            "organisation:   ORG-ISA1-RIPE\n",
-            "org-name:       Init7 (Switzerland) Ltd.\n",
-            "\n"
+    fn object_block_without_newline_termination_is_err() {
+        let object = concat!(
+            "email:       rpsl-parser@github.com\n",
+            "nic-hdl:     RPSL1-RIPE\n",
         );
-        let expected = rpsl::ObjectCollection::new(vec![
-            rpsl::Object::new(vec![
-                rpsl::Attribute::new(
-                    "as-block".to_string(),
-                    vec![Some("AS12557 - AS13223".to_string())],
-                ),
-                rpsl::Attribute::new(
-                    "descr".to_string(),
-                    vec![Some("RIPE NCC ASN block".to_string())],
-                ),
-                rpsl::Attribute::new(
-                    "remarks".to_string(),
-                    vec![Some(
-                        "These AS Numbers are assigned to network operators in the RIPE NCC service region.".to_string(),
-                    )],
-                ),
-                rpsl::Attribute::new(
-                    "mnt-by".to_string(),
-                    vec![Some("RIPE-NCC-HM-MNT".to_string())],
-                ),
-                rpsl::Attribute::new(
-                    "created".to_string(),
-                    vec![Some("2018-11-22T15:27:24Z".to_string())],
-                ),
-                rpsl::Attribute::new(
-                    "last-modified".to_string(),
-                    vec![Some("2018-11-22T15:27:24Z".to_string())],
-                ),
-                rpsl::Attribute::new("source".to_string(), vec![Some("RIPE".to_string())]),
-            ]),
-            rpsl::Object::new(vec![
-                rpsl::Attribute::new("aut-num".to_string(), vec![Some("AS13030".to_string())]),
-                rpsl::Attribute::new("as-name".to_string(), vec![Some("INIT7".to_string())]),
-                rpsl::Attribute::new("org".to_string(), vec![Some("ORG-ISA1-RIPE".to_string())]),
-                rpsl::Attribute::new(
-                    "remarks".to_string(),
-                    vec![Some("Init7 Global Backbone".to_string())],
-                ),
-            ]),
-            rpsl::Object::new(vec![
-                rpsl::Attribute::new(
-                    "organisation".to_string(),
-                    vec![Some("ORG-ISA1-RIPE".to_string())],
-                ),
-                rpsl::Attribute::new(
-                    "org-name".to_string(),
-                    vec![Some("Init7 (Switzerland) Ltd.".to_string())],
-                ),
-            ]),
-        ]);
+        assert!(object_block(object).is_err());
+    }
 
-        assert_eq!(parse_whois_server_response(rpsl).unwrap(), expected);
+    #[test]
+    fn optional_comment_or_newlines_consumed() {
+        assert_eq!(
+            optional_message_or_newlines("% Note: This is a server message\n")
+                .unwrap()
+                .0,
+            ""
+        );
+        assert_eq!(
+            optional_message_or_newlines(concat!(
+                "\n",
+                "% Note: This is a server message followed by an empty line\n"
+            ))
+            .unwrap()
+            .0,
+            ""
+        );
+        assert_eq!(
+            optional_message_or_newlines(concat!(
+                "% Note: This is a server message preceding some newlines.\n",
+                "\n",
+                "\n",
+            ))
+            .unwrap()
+            .0,
+            ""
+        );
+    }
+
+    #[test]
+    fn optional_comment_or_newlines_optional() {
+        assert_eq!(
+            optional_message_or_newlines(""),
+            Ok(("", Vec::<&str>::new()))
+        );
     }
 }

@@ -1,13 +1,4 @@
-use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
-
-pub fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("parse AS3257", |b| {
-        b.iter(|| rpsl_parser::parse_object(black_box(AS3257)))
-    });
-}
-
-criterion_group!(benches, criterion_benchmark);
-criterion_main!(benches);
+use rpsl_parser::{parse_object, Object};
 
 const AS3257: &str = r#"aut-num:        AS3257
 as-name:        GTT-BACKBONE
@@ -9578,3 +9569,8 @@ last-modified:  2023-07-21T10:03:34Z
 source:         RIPE
 
 "#;
+
+fn main() {
+    let aut_num_gtt: Object = parse_object(AS3257).unwrap();
+    println!("{:#?}", aut_num_gtt);
+}

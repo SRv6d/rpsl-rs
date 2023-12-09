@@ -1,15 +1,33 @@
-use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    c.bench_function("parse AS3257", |b| {
-        b.iter(|| rpsl_parser::parse_object(black_box(AS3257)))
+    c.bench_function("parse whois response for AS3257", |b| {
+        b.iter(|| rpsl_parser::parse_whois_response(black_box(AS3257_WHOIS_RESPONSE)))
     });
 }
 
 criterion_group!(benches, criterion_benchmark);
 criterion_main!(benches);
 
-const AS3257: &str = r#"aut-num:        AS3257
+const AS3257_WHOIS_RESPONSE: &str = r#"
+% Note: this output has been filtered.
+%       To receive output for a database update, use the "-B" flag.
+
+% Information related to 'AS3209 - AS3353'
+
+as-block:       AS3209 - AS3353
+descr:          RIPE NCC ASN block
+remarks:        These AS Numbers are assigned to network operators in the RIPE NCC service region.
+mnt-by:         RIPE-NCC-HM-MNT
+created:        2018-11-22T15:27:19Z
+last-modified:  2018-11-22T15:27:19Z
+source:         RIPE
+
+% Information related to 'AS3257'
+
+% Abuse contact for 'AS3257' is 'abuse@gtt.net'
+
+aut-num:        AS3257
 as-name:        GTT-BACKBONE
 descr:          GTT
 org:            ORG-GCI2-RIPE
@@ -34,6 +52,7 @@ import:         from AS714 accept AS714
 import:         from AS766 accept AS766
 import:         from AS792 accept AS792
 import:         from AS812 accept AS-ROGERS:AS-CUSTOMERS
+import:         from AS819 accept AS819
 import:         from AS852 accept AS-TELUS
 import:         from AS855 accept AS855
 import:         from AS979 accept AS979
@@ -58,6 +77,7 @@ import:         from AS1610 accept AS1610
 import:         from AS1612 accept AS1612
 import:         from AS1678 accept AS1678
 import:         from AS1680 accept AS1680
+import:         from AS1746 accept AS1746
 import:         from AS1764 accept AS-NEXTLAYER
 import:         from AS1803 accept AS1803
 import:         from AS1820 accept AS-WTUC
@@ -81,14 +101,12 @@ import:         from AS3165 accept AS3165
 import:         from AS3170 accept AS-VELOXSERV
 import:         from AS3206 accept AS3206
 import:         from AS3212 accept AS3212
-import:         from AS3214 accept AS-XTOM
 import:         from AS3215 accept AS3215
 import:         from AS3252 accept AS-FBRX
 import:         from AS3255 accept AS3255
 import:         from AS3264 accept AS3264
 import:         from AS3291 accept AS3291
 import:         from AS3292 accept AS3292
-import:         from AS3302 accept AS-TIPNETIT
 import:         from AS3352 accept AS3352
 import:         from AS3367 accept AS-F6
 import:         from AS3399 accept AS-OBE
@@ -105,6 +123,7 @@ import:         from AS3943 accept AS3943
 import:         from AS4058 accept AS4058
 import:         from AS4150 accept AS4150
 import:         from AS4181 accept AS-TDS-TRANSIT
+import:         from AS4213 accept AS4213
 import:         from AS4229 accept AS4229
 import:         from AS4230 accept AS-EMBRATELNET
 import:         from AS4250 accept AS4250
@@ -144,7 +163,6 @@ import:         from AS5670 accept AS-VAPOR
 import:         from AS5697 accept AS5697
 import:         from AS5715 accept AS-NTAJC
 import:         from AS5738 accept AS5738:AS-CUSTOMERS
-import:         from AS5742 accept AS-CCI
 import:         from AS5760 accept AS5760
 import:         from AS5769 accept AS5769
 import:         from AS5777 accept AS5777
@@ -161,6 +179,7 @@ import:         from AS6181 accept AS-FUSE
 import:         from AS6199 accept AS6199
 import:         from AS6220 accept AS6220
 import:         from AS6267 accept AS6267
+import:         from AS6307 accept AS6307
 import:         from AS6325 accept AS6325
 import:         from AS6327 accept AS-BIGPIPE
 import:         from AS6391 accept AS-URBAN
@@ -192,6 +211,7 @@ import:         from AS6770 accept AS6770
 import:         from AS6774 accept AS6774:AS-BICS-TRANSIT
 import:         from AS6779 accept AS6779
 import:         from AS6805 accept AS6805
+import:         from AS6810 accept AS-BEZEQ
 import:         from AS6812 accept AS-VIRTUSTREAM-EU
 import:         from AS6830 accept AS6830
 import:         from AS6848 accept AS6848
@@ -275,7 +295,6 @@ import:         from AS8587 accept AS8587
 import:         from AS8607 accept AS-TIMICO
 import:         from AS8612 accept AS8612
 import:         from AS8648 accept AS8648
-import:         from AS8657 accept AS-CPRM
 import:         from AS8751 accept AS-MEDIASAT
 import:         from AS8757 accept AS-NSFOCUS
 import:         from AS8781 accept AS8781
@@ -322,10 +341,8 @@ import:         from AS10099 accept AS-10099NTT
 import:         from AS10122 accept AS10122
 import:         from AS10325 accept AS10325
 import:         from AS10361 accept AS10361
-import:         from AS10397 accept AS10397
 import:         from AS10461 accept AS10461
 import:         from AS10490 accept AS-SOX-TRANSIT
-import:         from AS10561 accept AS10561
 import:         from AS10625 accept AS10625
 import:         from AS10661 accept AS10661
 import:         from AS10674 accept AS10674
@@ -336,6 +353,7 @@ import:         from AS10835 accept AS-10835
 import:         from AS10886 accept AS10886:AS-ISP-PART
 import:         from AS10905 accept AS10905
 import:         from AS10910 accept AS10910
+import:         from AS10962 accept AS10962
 import:         from AS10982 accept AS10982
 import:         from AS10996 accept AS10996
 import:         from AS11013 accept AS-11013
@@ -376,6 +394,7 @@ import:         from AS11807 accept AS11807
 import:         from AS11849 accept AS11849
 import:         from AS11852 accept AS11852
 import:         from AS11856 accept AS11856
+import:         from AS11857 accept AS11857
 import:         from AS11866 accept AS11866
 import:         from AS11876 accept AS11876
 import:         from AS11878 accept AS-TZULO
@@ -392,7 +411,7 @@ import:         from AS12083 accept AS-WOW
 import:         from AS12085 accept AS-EQUINIX
 import:         from AS12096 accept AS12096
 import:         from AS12105 accept AS12105
-import:         from AS12129 accept AS12129
+import:         from AS12129 accept AS-I123
 import:         from AS12132 accept AS12132
 import:         from AS12133 accept AS12133
 import:         from AS12168 accept AS12168
@@ -411,6 +430,7 @@ import:         from AS12362 accept AS12362
 import:         from AS12372 accept AS12372
 import:         from AS12387 accept AS-TON
 import:         from AS12389 accept AS-ROSTELECOM
+import:         from AS12400 accept AS12400
 import:         from AS12409 accept AS12409
 import:         from AS12414 accept AS12414
 import:         from AS12470 accept AS12470
@@ -482,6 +502,7 @@ import:         from AS13414 accept AS-TWITTER
 import:         from AS13428 accept AS13428
 import:         from AS13431 accept AS13431
 import:         from AS13443 accept AS13443
+import:         from AS13445 accept AS13445
 import:         from AS13446 accept AS13446
 import:         from AS13448 accept AS13448
 import:         from AS13464 accept AS13464
@@ -498,11 +519,11 @@ import:         from AS13557 accept AS13557
 import:         from AS13628 accept AS13628
 import:         from AS13631 accept AS13631
 import:         from AS13649 accept AS-FLEXENTIAL
+import:         from AS13655 accept AS13655
 import:         from AS13658 accept AS13658
 import:         from AS13739 accept AS13739
 import:         from AS13760 accept AS-UNITI
 import:         from AS13768 accept AS13768:AS-CUSTOMERS
-import:         from AS13778 accept AS13778
 import:         from AS13789 accept AS13789
 import:         from AS13798 accept AS13798
 import:         from AS13821 accept AS13821
@@ -520,10 +541,8 @@ import:         from AS14014 accept AS14014
 import:         from AS14016 accept AS14016
 import:         from AS14037 accept AS-DZEU
 import:         from AS14049 accept AS14049
-import:         from AS14074 accept AS14074
 import:         from AS14080 accept AS14080
 import:         from AS14086 accept AS14086
-import:         from AS14108 accept AS14108
 import:         from AS14135 accept AS14135
 import:         from AS14148 accept AS14148
 import:         from AS14157 accept AS14157
@@ -535,6 +554,7 @@ import:         from AS14253 accept AS14253
 import:         from AS14332 accept AS14332
 import:         from AS14335 accept AS14335
 import:         from AS14343 accept AS14343
+import:         from AS14360 accept AS14360
 import:         from AS14361 accept AS14361
 import:         from AS14365 accept AS14365
 import:         from AS14371 accept AS14371
@@ -624,7 +644,6 @@ import:         from AS16168 accept AS16168
 import:         from AS16189 accept AS-SET-KLEEGROUP-IP4
 import:         from AS16236 accept AS16236
 import:         from AS16238 accept AS16238
-import:         from AS16297 accept AS16297
 import:         from AS16360 accept AS16360
 import:         from AS16364 accept AS16364
 import:         from AS16406 accept AS16406
@@ -657,6 +676,7 @@ import:         from AS16940 accept AS16940
 import:         from AS17012 accept AS-PAYPAL
 import:         from AS17035 accept AS17035
 import:         from AS17045 accept AS17045
+import:         from AS17060 accept AS17060
 import:         from AS17088 accept AS17088
 import:         from AS17130 accept AS17130
 import:         from AS17139 accept AS-CORPCOLO
@@ -677,7 +697,6 @@ import:         from AS18214 accept AS18214
 import:         from AS18434 accept AS18434
 import:         from AS18450 accept AS-WEBNX
 import:         from AS18451 accept AS18451
-import:         from AS18456 accept AS18456
 import:         from AS18465 accept AS18465
 import:         from AS18474 accept AS18474
 import:         from AS18485 accept AS-NTTGN-US
@@ -730,8 +749,10 @@ import:         from AS19448 accept AS19448
 import:         from AS19457 accept AS19457
 import:         from AS19460 accept AS19460
 import:         from AS19515 accept AS19515:AS-CUSTOMERS
+import:         from AS19526 accept AS19526
 import:         from AS19531 accept AS19531
 import:         from AS19551 accept AS-INCAPSULA
+import:         from AS19566 accept AS19566
 import:         from AS19602 accept AS19602
 import:         from AS19637 accept AS19637
 import:         from AS19679 accept AS-DROPBOX
@@ -763,10 +784,10 @@ import:         from AS20077 accept AS20077
 import:         from AS20115 accept AS-CHTR-BB
 import:         from AS20135 accept AS20135
 import:         from AS20144 accept AS20144
+import:         from AS20148 accept AS20148
 import:         from AS20205 accept AS-AMPLEX
 import:         from AS20216 accept AS20216
 import:         from AS20220 accept AS20220
-import:         from AS20223 accept AS20223
 import:         from AS20249 accept AS20249
 import:         from AS20278 accept AS-NEXEON
 import:         from AS20284 accept AS20284
@@ -811,6 +832,7 @@ import:         from AS21094 accept AS21094
 import:         from AS21188 accept AS21188
 import:         from AS21221 accept AS21221
 import:         from AS21235 accept AS21235
+import:         from AS21245 accept AS21245
 import:         from AS21254 accept AS21254
 import:         from AS21267 accept AS21267
 import:         from AS21277 accept AS-NT
@@ -835,8 +857,10 @@ import:         from AS21646 accept AS21646
 import:         from AS21655 accept AS21655
 import:         from AS21693 accept AS21693
 import:         from AS21700 accept AS-NEPTUNE-NETWORKS
+import:         from AS21719 accept AS21719
 import:         from AS21723 accept AS-CONE
 import:         from AS21724 accept AS21724
+import:         from AS21734 accept AS21734
 import:         from AS21743 accept AS21743
 import:         from AS21755 accept AS21755
 import:         from AS21777 accept AS21777
@@ -882,9 +906,9 @@ import:         from AS22792 accept AS22792
 import:         from AS22803 accept AS-NOV
 import:         from AS22822 accept AS-LLNW
 import:         from AS22838 accept AS22838
+import:         from AS22900 accept AS22900
 import:         from AS22911 accept AS-AS22911
 import:         from AS22915 accept AS22915
-import:         from AS22925 accept AS-ALLIED_TELECOM
 import:         from AS22957 accept AS22957
 import:         from AS22964 accept AS22964
 import:         from AS22973 accept AS22973
@@ -904,12 +928,14 @@ import:         from AS23232 accept AS23232
 import:         from AS23241 accept AS23241
 import:         from AS23247 accept AS23247
 import:         from AS23262 accept AS23262
+import:         from AS23311 accept AS23311
 import:         from AS23312 accept AS23312
 import:         from AS23314 accept AS-Summit
 import:         from AS23316 accept AS23316
 import:         from AS23342 accept AS23342
 import:         from AS23352 accept AS-SERVERCENTRAL
 import:         from AS23367 accept AS-ADAPTIVEDATA
+import:         from AS23368 accept AS23368
 import:         from AS23393 accept AS-NUCDN
 import:         from AS23420 accept AS-DAVENPRO
 import:         from AS23442 accept AS23442
@@ -965,7 +991,6 @@ import:         from AS25433 accept AS25433
 import:         from AS25441 accept AS-IBIS
 import:         from AS25459 accept AS25459
 import:         from AS25465 accept AS25465
-import:         from AS25472 accept AS-WIND-HELLAS
 import:         from AS25542 accept AS25542
 import:         from AS25562 accept AS25562
 import:         from AS25575 accept AS25575
@@ -1007,6 +1032,7 @@ import:         from AS26258 accept AS26258
 import:         from AS26265 accept AS26265
 import:         from AS26278 accept AS26278
 import:         from AS26282 accept AS-SYMC
+import:         from AS26324 accept AS26324
 import:         from AS26342 accept AS26342
 import:         from AS26362 accept AS26362
 import:         from AS26378 accept AS26378
@@ -1017,7 +1043,6 @@ import:         from AS26512 accept AS26512
 import:         from AS26523 accept AS26523
 import:         from AS26546 accept AS26546
 import:         from AS26554 accept AS26554:AS-Customers
-import:         from AS26558 accept AS26558
 import:         from AS26577 accept AS26577
 import:         from AS26582 accept AS26582
 import:         from AS26637 accept AS26637
@@ -1037,6 +1062,7 @@ import:         from AS26863 accept AS-GSK
 import:         from AS26878 accept AS26878
 import:         from AS26914 accept AS26914
 import:         from AS26931 accept AS26931
+import:         from AS26955 accept AS26955
 import:         from AS26962 accept AS26962
 import:         from AS26967 accept AS26967
 import:         from AS26972 accept AS-SIRIUS
@@ -1060,7 +1086,6 @@ import:         from AS27536 accept AS27536
 import:         from AS27566 accept AS-EQUINIX
 import:         from AS27592 accept AS27592
 import:         from AS27596 accept AS27596
-import:         from AS27612 accept AS27612
 import:         from AS27621 accept AS27621
 import:         from AS27646 accept AS27646
 import:         from AS27647 accept AS27647
@@ -1070,7 +1095,6 @@ import:         from AS27978 accept AS27978
 import:         from AS28007 accept AS28007
 import:         from AS28398 accept AS-GBIC
 import:         from AS28458 accept AS-IENTC-MX
-import:         from AS28513 accept AS-28513
 import:         from AS28663 accept AS-FLYS
 import:         from AS28677 accept AS28677
 import:         from AS28685 accept AS28685
@@ -1125,12 +1149,12 @@ import:         from AS29435 accept AS29435
 import:         from AS29446 accept AS29446
 import:         from AS29449 accept AS29449
 import:         from AS29457 accept AS29457
-import:         from AS29467 accept AS29467
 import:         from AS29518 accept AS29518:AS-BREDBAND2
 import:         from AS29535 accept AS29535
 import:         from AS29550 accept AS-AS29550
 import:         from AS29551 accept AS29551
 import:         from AS29591 accept AS29591
+import:         from AS29596 accept AS29596
 import:         from AS29617 accept AS29617
 import:         from AS29636 accept AS29636
 import:         from AS29644 accept AS-AIRSPEED
@@ -1210,7 +1234,6 @@ import:         from AS31108 accept AS31108
 import:         from AS31115 accept AS31115
 import:         from AS31116 accept AS31116
 import:         from AS31122 accept AS-DIGIWEB
-import:         from AS31131 accept AS31131
 import:         from AS31147 accept AS31147
 import:         from AS31154 accept AS31154
 import:         from AS31221 accept AS31221
@@ -1257,7 +1280,7 @@ import:         from AS31917 accept AS31917
 import:         from AS31936 accept AS31936
 import:         from AS31980 accept AS31980
 import:         from AS31983 accept AS31983
-import:         from AS32030 accept AS-VOIPSTER
+import:         from AS31989 accept AS31989
 import:         from AS32035 accept AS-NETFORTRIS
 import:         from AS32059 accept AS32059
 import:         from AS32098 accept AS-32098
@@ -1333,6 +1356,7 @@ import:         from AS33529 accept AS-PEAKWEB
 import:         from AS33532 accept AS33532
 import:         from AS33536 accept AS33536
 import:         from AS33549 accept AS33549
+import:         from AS33574 accept AS33574
 import:         from AS33576 accept AS-IMPORTED
 import:         from AS33597 accept AS-INFORELAY
 import:         from AS33619 accept AS33619
@@ -1370,6 +1394,7 @@ import:         from AS34393 accept AS34393
 import:         from AS34409 accept AS34409
 import:         from AS34428 accept AS-GLPR
 import:         from AS34442 accept AS34442
+import:         from AS34471 accept AS34471
 import:         from AS34510 accept AS34510
 import:         from AS34523 accept AS34523
 import:         from AS34525 accept AS34525
@@ -1418,6 +1443,7 @@ import:         from AS35522 accept AS35522
 import:         from AS35548 accept AS35548
 import:         from AS35574 accept AS-LOTTOMATICA
 import:         from AS35593 accept AS35593
+import:         from AS35625 accept AS35625
 import:         from AS35643 accept AS35643
 import:         from AS35679 accept AS35679
 import:         from AS35695 accept AS35695
@@ -1437,7 +1463,6 @@ import:         from AS35953 accept AS35953
 import:         from AS35974 accept AS-CARPATHIA
 import:         from AS35975 accept AS35975
 import:         from AS35985 accept AS-ONERINGNETWORKS
-import:         from AS35993 accept AS35993
 import:         from AS35994 accept AS-AKAMAI
 import:         from AS36007 accept AS-Cloudwm
 import:         from AS36040 accept AS36040
@@ -1454,7 +1479,6 @@ import:         from AS36243 accept AS36243
 import:         from AS36306 accept AS36306
 import:         from AS36352 accept AS-COLOCROSSING
 import:         from AS36385 accept AS36385
-import:         from AS36399 accept AS36399
 import:         from AS36408 accept AS-PANTHER
 import:         from AS36444 accept AS36444
 import:         from AS36459 accept AS36459
@@ -1533,6 +1557,7 @@ import:         from AS39892 accept AS39892
 import:         from AS39912 accept AS39912
 import:         from AS39923 accept AS-UNIXSOLUTIONS
 import:         from AS39964 accept AS39964
+import:         from AS39979 accept AS39979
 import:         from AS40028 accept AS40028:AS-ALL
 import:         from AS40029 accept AS40029
 import:         from AS40065 accept AS-CNSERVERS
@@ -1564,7 +1589,6 @@ import:         from AS40624 accept AS40624
 import:         from AS40657 accept AS40657
 import:         from AS40669 accept AS40669
 import:         from AS40676 accept AS-40676
-import:         from AS40729 accept AS40729
 import:         from AS40731 accept AS40731
 import:         from AS40739 accept AS40739
 import:         from AS40763 accept AS40763
@@ -1610,6 +1634,7 @@ import:         from AS41538 accept AS41538
 import:         from AS41549 accept AS41549
 import:         from AS41564 accept as-px9
 import:         from AS41653 accept AS41653
+import:         from AS41685 accept AS41685
 import:         from AS41764 accept AS41764
 import:         from AS41765 accept AS41765
 import:         from AS41803 accept AS41803
@@ -1705,7 +1730,6 @@ import:         from AS44062 accept AS44062
 import:         from AS44066 accept AS-FIRSTCOLO
 import:         from AS44086 accept AS44086
 import:         from AS44124 accept AS44124
-import:         from AS44134 accept AS44134
 import:         from AS44150 accept AS44150
 import:         from AS44166 accept AS44166
 import:         from AS44212 accept AS44212
@@ -1752,7 +1776,6 @@ import:         from AS45896 accept AS45896
 import:         from AS45899 accept AS45899
 import:         from AS46130 accept AS46130
 import:         from AS46160 accept AS46160
-import:         from AS46168 accept AS46168
 import:         from AS46199 accept AS46199
 import:         from AS46261 accept AS-QP
 import:         from AS46272 accept AS46272
@@ -1766,6 +1789,7 @@ import:         from AS46395 accept AS46395
 import:         from AS46401 accept AS46401
 import:         from AS46454 accept AS46454
 import:         from AS46455 accept AS46455
+import:         from AS46467 accept AS46467
 import:         from AS46475 accept AS46475
 import:         from AS46489 accept AS-TWITCH
 import:         from AS46556 accept AS46556
@@ -1811,7 +1835,6 @@ import:         from AS47720 accept AS47720:AS-CIX
 import:         from AS47754 accept AS47754
 import:         from AS47762 accept AS47762
 import:         from AS47771 accept AS47771
-import:         from AS47787 accept AS-EDGOO
 import:         from AS47793 accept AS47793
 import:         from AS47836 accept AS47836
 import:         from AS47850 accept AS-TAU
@@ -1858,7 +1881,6 @@ import:         from AS48804 accept AS48804
 import:         from AS48809 accept AS48809
 import:         from AS48832 accept as-ZAIN-JO-ALL
 import:         from AS48846 accept AS48846
-import:         from AS48849 accept AS48849
 import:         from AS48850 accept AS48850
 import:         from AS48851 accept AS48851
 import:         from AS48896 accept AS48896
@@ -1907,6 +1929,7 @@ import:         from AS49915 accept AS49915
 import:         from AS49958 accept AS49958
 import:         from AS50020 accept AS50020
 import:         from AS50121 accept AS50121
+import:         from AS50124 accept AS50124
 import:         from AS50153 accept AS50153
 import:         from AS50173 accept AS50173
 import:         from AS50183 accept AS50183
@@ -1979,16 +2002,17 @@ import:         from AS51934 accept AS51934
 import:         from AS51944 accept AS-PROMEDIA
 import:         from AS51960 accept AS51960:AS-PARTNERS
 import:         from AS51984 accept AS51984
+import:         from AS52000 accept AS52000
 import:         from AS52030 accept AS52030
 import:         from AS52101 accept AS52101
 import:         from AS52106 accept AS-GALATEA
 import:         from AS52183 accept AS52183
+import:         from AS52263 accept AS52263
 import:         from AS52320 accept AS-GNT
 import:         from AS52347 accept AS52347
 import:         from AS52393 accept AS52393
 import:         from AS52438 accept AS52438
 import:         from AS52580 accept AS52580
-import:         from AS52873 accept AS52873
 import:         from AS53258 accept AS53258
 import:         from AS53264 accept AS-CDC
 import:         from AS53292 accept AS53292
@@ -2028,6 +2052,7 @@ import:         from AS53831 accept AS53831
 import:         from AS53845 accept AS53845
 import:         from AS53850 accept AS-GORILLASERVERS
 import:         from AS53856 accept AS-NJIX
+import:         from AS53871 accept AS53871
 import:         from AS53889 accept AS-MICFO
 import:         from AS53902 accept AS53902
 import:         from AS53913 accept AS53913
@@ -2061,6 +2086,7 @@ import:         from AS54509 accept AS54509
 import:         from AS54527 accept AS54527:AS-GLOBAL
 import:         from AS54531 accept AS54531
 import:         from AS54535 accept AS54535
+import:         from AS54538 accept AS54538
 import:         from AS54588 accept AS-EQUINIX
 import:         from AS54593 accept AS54593
 import:         from AS54600 accept AS-PEGTECHCUSTOMERS
@@ -2083,7 +2109,9 @@ import:         from AS55011 accept AS55011
 import:         from AS55061 accept AS55061
 import:         from AS55081 accept AS-24SHELLS
 import:         from AS55129 accept AS55129
+import:         from AS55145 accept AS55145
 import:         from AS55191 accept AS55191
+import:         from AS55195 accept AS55195
 import:         from AS55256 accept AS-NETSKOPE
 import:         from AS55259 accept AS55259
 import:         from AS55786 accept AS55786
@@ -2097,6 +2125,7 @@ import:         from AS56478 accept AS56478
 import:         from AS56504 accept AS56504
 import:         from AS56511 accept AS56511
 import:         from AS56515 accept AS56515
+import:         from AS56550 accept AS56550
 import:         from AS56575 accept AS56575
 import:         from AS56595 accept AS-FLUENCY
 import:         from AS56611 accept AS56611
@@ -2108,7 +2137,6 @@ import:         from AS56683 accept AS56683
 import:         from AS56767 accept AS56767
 import:         from AS56773 accept AS56773
 import:         from AS56778 accept AS56778
-import:         from AS56786 accept AS56786
 import:         from AS56894 accept AS56894
 import:         from AS56953 accept AS56953
 import:         from AS56958 accept AS56958
@@ -2144,7 +2172,7 @@ import:         from AS58131 accept AS58131
 import:         from AS58246 accept AS58246
 import:         from AS58307 accept AS-RADIX
 import:         from AS58321 accept AS-OXYLION-GLOBAL
-import:         from AS58453 accept AS-CMI-ALL
+import:         from AS58453 accept AS58453:AS-CMI-ALL
 import:         from AS58511 accept AS-CIT
 import:         from AS58664 accept AS58664
 import:         from AS59028 accept AS59028
@@ -2157,7 +2185,6 @@ import:         from AS59524 accept AS59524
 import:         from AS59545 accept AS59545
 import:         from AS59580 accept AS59580
 import:         from AS59582 accept AS59582
-import:         from AS59605 accept AS-ZAINGP
 import:         from AS59611 accept AS59611
 import:         from AS59655 accept AS59655
 import:         from AS59711 accept AS59711
@@ -2176,7 +2203,6 @@ import:         from AS60144 accept AS60144
 import:         from AS60191 accept AS60191
 import:         from AS60193 accept AS60193
 import:         from AS60219 accept AS60219
-import:         from AS60277 accept AS60277
 import:         from AS60339 accept AS-H3GUK
 import:         from AS60362 accept AS60362
 import:         from AS60384 accept AS60384
@@ -2201,12 +2227,12 @@ import:         from AS60798 accept AS-SERVEREASY1
 import:         from AS60800 accept AS-NETWISE
 import:         from AS60822 accept AS60822
 import:         from AS60893 accept AS60893
-import:         from AS60923 accept AS60923
 import:         from AS60940 accept AS60940
 import:         from AS61003 accept AS-GTHOST
 import:         from AS61018 accept AS61018
 import:         from AS61046 accept AS-HZ-HOSTING-LTD
 import:         from AS61049 accept AS61049
+import:         from AS61135 accept AS-COMNET-INT
 import:         from AS61149 accept AS61149
 import:         from AS61154 accept AS61154
 import:         from AS61181 accept AS61181
@@ -2236,12 +2262,10 @@ import:         from AS62134 accept AS62134
 import:         from AS62167 accept AS62167
 import:         from AS62168 accept AS62168
 import:         from AS62184 accept AS62184
-import:         from AS62190 accept AS62190
 import:         from AS62234 accept AS62234
 import:         from AS62240 accept AS-CLOUVIDER
 import:         from AS62244 accept AS62244
 import:         from AS62363 accept AS-EGW-IPv4
-import:         from AS62488 accept AS62488
 import:         from AS62490 accept AS62490
 import:         from AS62519 accept AS62519
 import:         from AS62523 accept AS62523
@@ -2253,7 +2277,6 @@ import:         from AS62638 accept AS62638
 import:         from AS62646 accept AS62646
 import:         from AS62648 accept AS62648
 import:         from AS62664 accept AS62664
-import:         from AS62665 accept AS62665
 import:         from AS62668 accept AS62668
 import:         from AS62698 accept AS62698
 import:         from AS62703 accept AS62703
@@ -2348,6 +2371,7 @@ import:         from AS137912 accept AS137912
 import:         from AS138005 accept AS138005
 import:         from AS138576 accept AS138576
 import:         from AS138611 accept AS138611
+import:         from AS138915 accept AS138915:AS-CUSTOMER
 import:         from AS139062 accept AS139062
 import:         from AS141039 accept AS141039
 import:         from AS141235 accept AS141235
@@ -2355,12 +2379,10 @@ import:         from AS142111 accept AS142111
 import:         from AS142268 accept AS-QUANTUMCA
 import:         from AS142578 accept AS-ELARGE
 import:         from AS147049 accept AS147049
-import:         from AS196640 accept AS196640
 import:         from AS196670 accept AS196670
 import:         from AS196681 accept AS196681
 import:         from AS196729 accept AS-CZARNET
 import:         from AS196755 accept AS196755
-import:         from AS196933 accept AS196933
 import:         from AS196956 accept AS196956
 import:         from AS196975 accept AS196975
 import:         from AS196983 accept AS196983
@@ -2438,6 +2460,7 @@ import:         from AS199081 accept AS199081
 import:         from AS199095 accept AS199095
 import:         from AS199113 accept AS199113
 import:         from AS199114 accept AS199114
+import:         from AS199124 accept AS199124
 import:         from AS199156 accept AS199156
 import:         from AS199163 accept AS199163
 import:         from AS199190 accept AS199190
@@ -2464,7 +2487,6 @@ import:         from AS199775 accept AS199775
 import:         from AS199790 accept AS-IPTELECOMBG
 import:         from AS199799 accept AS199799
 import:         from AS199880 accept AS199880
-import:         from AS199892 accept AS199892
 import:         from AS200031 accept AS200031
 import:         from AS200032 accept AS200032
 import:         from AS200052 accept AS-FERAL
@@ -2472,7 +2494,6 @@ import:         from AS200089 accept AS-AMSSYSTEM
 import:         from AS200099 accept AS200099
 import:         from AS200125 accept AS200125
 import:         from AS200147 accept AS-HTL
-import:         from AS200187 accept AS200187
 import:         from AS200271 accept AS200271
 import:         from AS200410 accept AS200410
 import:         from AS200416 accept AS200416
@@ -2490,11 +2511,8 @@ import:         from AS200653 accept AS200653
 import:         from AS200692 accept AS200692
 import:         from AS200705 accept AS200705
 import:         from AS200713 accept AS200713
-import:         from AS200738 accept AS200738
-import:         from AS200758 accept AS200758
 import:         from AS200780 accept AS-APPLIWAVE
 import:         from AS200845 accept AS-AVATEL-TRANSIT
-import:         from AS200861 accept AS200861
 import:         from AS200884 accept AS200884
 import:         from AS200899 accept AS200899
 import:         from AS200904 accept AS200904
@@ -2534,7 +2552,6 @@ import:         from AS201895 accept AS201895
 import:         from AS201942 accept AS-SOLTIA
 import:         from AS201947 accept AS201947
 import:         from AS201958 accept AS201958
-import:         from AS201971 accept AS-CREEPERHOSTLTD
 import:         from AS201990 accept AS201990
 import:         from AS201991 accept AS201991
 import:         from AS202010 accept AS202010
@@ -2543,7 +2560,6 @@ import:         from AS202063 accept AS202063
 import:         from AS202075 accept AS202075
 import:         from AS202149 accept AS202149
 import:         from AS202166 accept AS202166
-import:         from AS202219 accept AS202219
 import:         from AS202321 accept AS202321
 import:         from AS202596 accept AS202596
 import:         from AS202623 accept AS202623
@@ -2552,11 +2568,11 @@ import:         from AS202713 accept AS202713
 import:         from AS202766 accept AS202766
 import:         from AS202885 accept AS202885
 import:         from AS202964 accept AS202964
+import:         from AS203011 accept AS203011
 import:         from AS203050 accept AS203050
 import:         from AS203055 accept AS203055
 import:         from AS203096 accept AS203096
 import:         from AS203182 accept AS203182
-import:         from AS203184 accept AS203184
 import:         from AS203222 accept AS203222
 import:         from AS203223 accept AS203223
 import:         from AS203256 accept AS203256
@@ -2565,12 +2581,11 @@ import:         from AS203327 accept AS203327
 import:         from AS203346 accept AS-232web
 import:         from AS203351 accept AS203351
 import:         from AS203380 accept AS203380
-import:         from AS203400 accept AS203400
 import:         from AS203410 accept AS203410
+import:         from AS203483 accept AS203483
 import:         from AS203585 accept AS203585
 import:         from AS203591 accept AS203591
 import:         from AS203608 accept AS203608
-import:         from AS203639 accept AS203639
 import:         from AS203649 accept AS-GOINTERNETUK
 import:         from AS203682 accept AS203682
 import:         from AS203689 accept AS203689
@@ -2582,7 +2597,6 @@ import:         from AS204188 accept AS204188
 import:         from AS204258 accept AS204258
 import:         from AS204260 accept AS-DOTSI
 import:         from AS204264 accept AS204264
-import:         from AS204353 accept AS-HC49
 import:         from AS204419 accept AS204419
 import:         from AS204453 accept AS204453
 import:         from AS204476 accept AS204476
@@ -2604,7 +2618,6 @@ import:         from AS205025 accept AS205025
 import:         from AS205039 accept AS205039
 import:         from AS205041 accept AS205041
 import:         from AS205142 accept AS205142
-import:         from AS205185 accept AS205185
 import:         from AS205263 accept AS205263
 import:         from AS205394 accept AS205394
 import:         from AS205476 accept AS205476
@@ -2653,7 +2666,7 @@ import:         from AS207045 accept AS207045
 import:         from AS207063 accept AS207063
 import:         from AS207087 accept AS207087
 import:         from AS207127 accept AS207127
-import:         from AS207137 accept AS-SET-207137
+import:         from AS207137 accept AS-SET-AS207137
 import:         from AS207176 accept AS207176
 import:         from AS207367 accept AS207367
 import:         from AS207543 accept AS207543
@@ -2688,25 +2701,24 @@ import:         from AS210040 accept AS210040
 import:         from AS210043 accept AS210043
 import:         from AS210136 accept AS210136
 import:         from AS210211 accept AS210211
-import:         from AS210253 accept AS210253
 import:         from AS210269 accept AS210269:AS-ALL
 import:         from AS210321 accept AS-OPERADORS
 import:         from AS210329 accept AS210329
 import:         from AS210657 accept AS210657
 import:         from AS211029 accept AS211029
-import:         from AS211152 accept AS211152
 import:         from AS211156 accept AS211156
 import:         from AS211526 accept AS211526
 import:         from AS211597 accept AS-LITFIBRE
+import:         from AS211620 accept AS211620
+import:         from AS211766 accept AS211766
 import:         from AS211826 accept AS211826
 import:         from AS212045 accept AS212045
 import:         from AS212055 accept AS212055
 import:         from AS212097 accept AS-VIMTEL
-import:         from AS212175 accept AS-ICONIC
+import:         from AS212175 accept AS212175:AS-STELIA
 import:         from AS212195 accept AS212195
 import:         from AS212646 accept AS212646
 import:         from AS212708 accept AS212708
-import:         from AS212882 accept as-dnxnetwork-set
 import:         from AS213035 accept AS213035
 import:         from AS213039 accept AS213039
 import:         from AS213094 accept AS-FULLFIBRE
@@ -2717,6 +2729,7 @@ import:         from AS213205 accept AS213205
 import:         from AS213287 accept AS213287
 import:         from AS213308 accept AS213308
 import:         from AS213373 accept AS213373
+import:         from AS213394 accept AS213394
 import:         from AS262206 accept AS262206:AS-GLOBAL
 import:         from AS262287 accept AS262287
 import:         from AS262589 accept AS-ITXBR1
@@ -2727,13 +2740,14 @@ import:         from AS264409 accept AS-HUGENET-CUSTOMERS
 import:         from AS264763 accept AS-DOSBUFF
 import:         from AS265556 accept AS265556
 import:         from AS265680 accept AS-FEZ11
+import:         from AS270120 accept AS270120
+import:         from AS328867 accept AS328867
 import:         from AS329214 accept AS329214
 import:         from AS393226 accept AS393226
 import:         from AS393234 accept AS393234
 import:         from AS393235 accept AS393235
 import:         from AS393241 accept AS393241
 import:         from AS393246 accept AS393246
-import:         from AS393284 accept AS393284
 import:         from AS393303 accept AS393303
 import:         from AS393316 accept AS393316
 import:         from AS393544 accept AS393544
@@ -2759,6 +2773,7 @@ import:         from AS394102 accept AS394102
 import:         from AS394122 accept AS394122
 import:         from AS394141 accept AS394141
 import:         from AS394146 accept AS394146
+import:         from AS394177 accept AS394177
 import:         from AS394186 accept AS394186
 import:         from AS394218 accept AS394218
 import:         from AS394232 accept AS394232
@@ -2798,6 +2813,7 @@ import:         from AS395276 accept AS395276
 import:         from AS395308 accept AS395308
 import:         from AS395309 accept AS395309
 import:         from AS395354 accept AS395354
+import:         from AS395359 accept AS395359
 import:         from AS395363 accept AS395363
 import:         from AS395369 accept AS395369
 import:         from AS395487 accept AS-ACCRETIVE
@@ -2807,7 +2823,6 @@ import:         from AS395636 accept AS395636
 import:         from AS395654 accept AS395654
 import:         from AS395662 accept AS395662
 import:         from AS395717 accept AS395717
-import:         from AS395743 accept AS395743
 import:         from AS395747 accept AS395747
 import:         from AS395753 accept AS395753
 import:         from AS395849 accept AS395849
@@ -2816,10 +2831,10 @@ import:         from AS395954 accept AS395954
 import:         from AS395978 accept AS395978
 import:         from AS396026 accept AS396026
 import:         from AS396055 accept AS396055:AS-FIBERXPR
-import:         from AS396133 accept AS396133
 import:         from AS396158 accept AS396158:AS-ALL
 import:         from AS396188 accept AS396188
 import:         from AS396190 accept AS396190
+import:         from AS396298 accept AS396298
 import:         from AS396356 accept AS-MAXIHOST
 import:         from AS396362 accept AS396362
 import:         from AS396417 accept AS396417
@@ -2843,6 +2858,7 @@ import:         from AS397048 accept AS397048
 import:         from AS397174 accept AS397174
 import:         from AS397289 accept AS397289
 import:         from AS397301 accept AS397301
+import:         from AS397304 accept AS397304
 import:         from AS397308 accept AS397308
 import:         from AS397358 accept AS397358
 import:         from AS397369 accept AS397369
@@ -2855,6 +2871,7 @@ import:         from AS397505 accept AS397505
 import:         from AS397545 accept AS397545
 import:         from AS397599 accept AS397599
 import:         from AS397601 accept AS397601
+import:         from AS397641 accept AS397641
 import:         from AS397642 accept AS397642
 import:         from AS397686 accept AS397686
 import:         from AS397689 accept AS397689
@@ -2897,7 +2914,6 @@ import:         from AS399480 accept AS399480
 import:         from AS399515 accept AS399515
 import:         from AS399539 accept AS399539
 import:         from AS399558 accept AS399558
-import:         from AS399587 accept AS399587:AS-ALL
 import:         from AS399647 accept AS399647
 import:         from AS399678 accept AS399678
 import:         from AS399712 accept AS399712
@@ -2914,6 +2930,7 @@ import:         from AS399989 accept AS399989
 import:         from AS399998 accept AS399998
 import:         from AS400042 accept AS-RIGHTFORGE
 import:         from AS400146 accept AS400146
+import:         from AS400200 accept AS400200
 import:         from AS400202 accept AS400202
 import:         from AS400282 accept AS400282
 import:         from AS400302 accept AS400302
@@ -2923,6 +2940,7 @@ import:         from AS400444 accept AS400444
 import:         from AS400475 accept AS400475
 import:         from AS400511 accept AS400511
 import:         from AS400541 accept AS400541
+import:         from AS400645 accept AS400645
 import:         from AS400662 accept AS400662
 import:         from AS400666 accept AS400666
 import:         from AS400687 accept AS400687
@@ -2945,6 +2963,7 @@ mp-import:      afi ipv6.unicast from AS600 accept AS600
 mp-import:      afi ipv6.unicast from AS766 accept AS766
 mp-import:      afi ipv6.unicast from AS792 accept AS792
 mp-import:      afi ipv6.unicast from AS812 accept AS-ROGERS:AS-CUSTOMERS
+mp-import:      afi ipv6.unicast from AS819 accept AS819
 mp-import:      afi ipv6.unicast from AS852 accept AS-TELUS
 mp-import:      afi ipv6.unicast from AS855 accept AS855
 mp-import:      afi ipv6.unicast from AS1017 accept AS1017
@@ -2964,6 +2983,7 @@ mp-import:      afi ipv6.unicast from AS1680 accept AS1680
 mp-import:      afi ipv6.unicast from AS1764 accept AS-NEXTLAYER-V6
 mp-import:      afi ipv6.unicast from AS1820 accept AS-WTUC
 mp-import:      afi ipv6.unicast from AS1828 accept AS-UNITAS
+mp-import:      afi ipv6.unicast from AS1968 accept AS1968
 mp-import:      afi ipv6.unicast from AS2121 accept AS2121
 mp-import:      afi ipv6.unicast from AS2200 accept AS-RENATER
 mp-import:      afi ipv6.unicast from AS2381 accept AS-WISCNET
@@ -2976,11 +2996,9 @@ mp-import:      afi ipv6.unicast from AS2721 accept AS2721
 mp-import:      afi ipv6.unicast from AS2728 accept AS2728
 mp-import:      afi ipv6.unicast from AS2734 accept AS-CORESITE
 mp-import:      afi ipv6.unicast from AS3170 accept AS-VELOXSERV
-mp-import:      afi ipv6.unicast from AS3214 accept AS-XTOM
 mp-import:      afi ipv6.unicast from AS3252 accept AS-FBRX
 mp-import:      afi ipv6.unicast from AS3255 accept AS3255
 mp-import:      afi ipv6.unicast from AS3264 accept AS3264
-mp-import:      afi ipv6.unicast from AS3302 accept AS3302
 mp-import:      afi ipv6.unicast from AS3367 accept AS3367
 mp-import:      afi ipv6.unicast from AS3399 accept AS-OBE
 mp-import:      afi ipv6.unicast from AS3584 accept AS3584
@@ -2995,6 +3013,7 @@ mp-import:      afi ipv6.unicast from AS3943 accept AS3943
 mp-import:      afi ipv6.unicast from AS4058 accept AS4058
 mp-import:      afi ipv6.unicast from AS4150 accept AS4150
 mp-import:      afi ipv6.unicast from AS4181 accept AS-TDS-TRANSIT
+mp-import:      afi ipv6.unicast from AS4213 accept AS4213
 mp-import:      afi ipv6.unicast from AS4229 accept AS4229
 mp-import:      afi ipv6.unicast from AS4230 accept AS-EMBRATELNET
 mp-import:      afi ipv6.unicast from AS4250 accept AS4250
@@ -3025,7 +3044,6 @@ mp-import:      afi ipv6.unicast from AS5669 accept AS5669
 mp-import:      afi ipv6.unicast from AS5670 accept AS-VAPOR
 mp-import:      afi ipv6.unicast from AS5697 accept AS5697
 mp-import:      afi ipv6.unicast from AS5738 accept AS5738:AS-CUSTOMERS
-mp-import:      afi ipv6.unicast from AS5742 accept AS-CCI
 mp-import:      afi ipv6.unicast from AS5760 accept AS5760
 mp-import:      afi ipv6.unicast from AS5769 accept AS5769
 mp-import:      afi ipv6.unicast from AS5777 accept AS5777
@@ -3061,6 +3079,7 @@ mp-import:      afi ipv6.unicast from AS6770 accept AS6770
 mp-import:      afi ipv6.unicast from AS6774 accept AS6774:AS-BICS-TRANSIT
 mp-import:      afi ipv6.unicast from AS6779 accept AS6779
 mp-import:      afi ipv6.unicast from AS6805 accept AS6805
+mp-import:      afi ipv6.unicast from AS6810 accept AS-BEZEQ
 mp-import:      afi ipv6.unicast from AS6812 accept AS-VIRTUSTREAM-EU
 mp-import:      afi ipv6.unicast from AS6848 accept AS6848
 mp-import:      afi ipv6.unicast from AS6866 accept AS-CYTANET
@@ -3122,7 +3141,6 @@ mp-import:      afi ipv6.unicast from AS8587 accept AS8587
 mp-import:      afi ipv6.unicast from AS8607 accept AS8607
 mp-import:      afi ipv6.unicast from AS8612 accept AS8612
 mp-import:      afi ipv6.unicast from AS8648 accept AS8648
-mp-import:      afi ipv6.unicast from AS8657 accept AS-CPRM
 mp-import:      afi ipv6.unicast from AS8751 accept AS-MEDIASAT
 mp-import:      afi ipv6.unicast from AS8757 accept AS-NSFOCUS
 mp-import:      afi ipv6.unicast from AS8781 accept AS-QTEL-SET
@@ -3200,7 +3218,7 @@ mp-import:      afi ipv6.unicast from AS12041 accept AS12041
 mp-import:      afi ipv6.unicast from AS12042 accept AS12042
 mp-import:      afi ipv6.unicast from AS12083 accept AS12083
 mp-import:      afi ipv6.unicast from AS12085 accept AS-EQUINIX
-mp-import:      afi ipv6.unicast from AS12129 accept AS12129
+mp-import:      afi ipv6.unicast from AS12129 accept AS-I123
 mp-import:      afi ipv6.unicast from AS12133 accept AS12133
 mp-import:      afi ipv6.unicast from AS12189 accept AS-PHOENIXNAP
 mp-import:      afi ipv6.unicast from AS12200 accept AS12200
@@ -3214,6 +3232,7 @@ mp-import:      afi ipv6.unicast from AS12360 accept AS-KTK-V4
 mp-import:      afi ipv6.unicast from AS12372 accept AS12372
 mp-import:      afi ipv6.unicast from AS12387 accept AS-TON
 mp-import:      afi ipv6.unicast from AS12389 accept AS-ROSTELECOM
+mp-import:      afi ipv6.unicast from AS12400 accept AS12400
 mp-import:      afi ipv6.unicast from AS12409 accept AS12409
 mp-import:      afi ipv6.unicast from AS12414 accept AS12414
 mp-import:      afi ipv6.unicast from AS12470 accept AS12470
@@ -3293,7 +3312,6 @@ mp-import:      afi ipv6.unicast from AS14014 accept AS14014
 mp-import:      afi ipv6.unicast from AS14016 accept AS14016
 mp-import:      afi ipv6.unicast from AS14037 accept AS-DZEU
 mp-import:      afi ipv6.unicast from AS14061 accept AS14061
-mp-import:      afi ipv6.unicast from AS14074 accept AS14074
 mp-import:      afi ipv6.unicast from AS14080 accept AS14080
 mp-import:      afi ipv6.unicast from AS14086 accept AS14086
 mp-import:      afi ipv6.unicast from AS14135 accept AS14135
@@ -3476,6 +3494,7 @@ mp-import:      afi ipv6.unicast from AS21056 accept AS-WELCOMEITALIA
 mp-import:      afi ipv6.unicast from AS21069 accept AS21069
 mp-import:      afi ipv6.unicast from AS21221 accept AS21221
 mp-import:      afi ipv6.unicast from AS21235 accept AS21235
+mp-import:      afi ipv6.unicast from AS21245 accept AS21245
 mp-import:      afi ipv6.unicast from AS21277 accept AS-NT
 mp-import:      afi ipv6.unicast from AS21321 accept AS21321
 mp-import:      afi ipv6.unicast from AS21345 accept AS-MESSAGELABSEUROPE
@@ -3492,11 +3511,11 @@ mp-import:      afi ipv6.unicast from AS21559 accept AS21559:AS-OSNPR
 mp-import:      afi ipv6.unicast from AS21570 accept AS21570
 mp-import:      afi ipv6.unicast from AS21693 accept AS21693
 mp-import:      afi ipv6.unicast from AS21700 accept AS-NEPTUNE-NETWORKS
+mp-import:      afi ipv6.unicast from AS21719 accept AS21719
 mp-import:      afi ipv6.unicast from AS21723 accept AS-CONE
 mp-import:      afi ipv6.unicast from AS21724 accept AS21724
 mp-import:      afi ipv6.unicast from AS21743 accept AS21743
 mp-import:      afi ipv6.unicast from AS21755 accept AS21755
-mp-import:      afi ipv6.unicast from AS21775 accept AS21775
 mp-import:      afi ipv6.unicast from AS21777 accept AS21777
 mp-import:      afi ipv6.unicast from AS21804 accept AS-ACCESS_TRANSIT
 mp-import:      afi ipv6.unicast from AS21859 accept AS-ZENLAYER
@@ -3525,9 +3544,9 @@ mp-import:      afi ipv6.unicast from AS22773 accept AS22773:AS-CONE
 mp-import:      afi ipv6.unicast from AS22792 accept AS22792
 mp-import:      afi ipv6.unicast from AS22822 accept AS-LLNW
 mp-import:      afi ipv6.unicast from AS22838 accept AS22838
+mp-import:      afi ipv6.unicast from AS22900 accept AS22900
 mp-import:      afi ipv6.unicast from AS22911 accept AS-AS22911
 mp-import:      afi ipv6.unicast from AS22915 accept AS22915
-mp-import:      afi ipv6.unicast from AS22925 accept AS-ALLIED_TELECOM
 mp-import:      afi ipv6.unicast from AS22957 accept AS22957
 mp-import:      afi ipv6.unicast from AS22964 accept AS22964
 mp-import:      afi ipv6.unicast from AS22987 accept AS22987
@@ -3541,6 +3560,7 @@ mp-import:      afi ipv6.unicast from AS23314 accept AS-Summit
 mp-import:      afi ipv6.unicast from AS23342 accept AS23342
 mp-import:      afi ipv6.unicast from AS23352 accept AS-SERVERCENTRAL
 mp-import:      afi ipv6.unicast from AS23367 accept AS-ADAPTIVEDATA
+mp-import:      afi ipv6.unicast from AS23368 accept AS23368
 mp-import:      afi ipv6.unicast from AS23393 accept AS-NUCDN
 mp-import:      afi ipv6.unicast from AS23420 accept AS-DAVENPRO
 mp-import:      afi ipv6.unicast from AS23470 accept AS23470:AS-ALL
@@ -3576,7 +3596,6 @@ mp-import:      afi ipv6.unicast from AS25369 accept AS-BANDWIDTH
 mp-import:      afi ipv6.unicast from AS25376 accept AS-NETNORTH
 mp-import:      afi ipv6.unicast from AS25441 accept AS-IBIS
 mp-import:      afi ipv6.unicast from AS25459 accept AS25459
-mp-import:      afi ipv6.unicast from AS25472 accept AS-WIND-HELLAS
 mp-import:      afi ipv6.unicast from AS25542 accept AS25542
 mp-import:      afi ipv6.unicast from AS25562 accept AS25562
 mp-import:      afi ipv6.unicast from AS25575 accept AS25575
@@ -3600,6 +3619,7 @@ mp-import:      afi ipv6.unicast from AS26167 accept AS26167
 mp-import:      afi ipv6.unicast from AS26258 accept AS26258
 mp-import:      afi ipv6.unicast from AS26265 accept AS26265
 mp-import:      afi ipv6.unicast from AS26282 accept AS-SYMC
+mp-import:      afi ipv6.unicast from AS26324 accept AS26324
 mp-import:      afi ipv6.unicast from AS26342 accept AS26342
 mp-import:      afi ipv6.unicast from AS26380 accept AS26380
 mp-import:      afi ipv6.unicast from AS26462 accept AS26462
@@ -3608,7 +3628,6 @@ mp-import:      afi ipv6.unicast from AS26512 accept AS26512
 mp-import:      afi ipv6.unicast from AS26523 accept AS26523
 mp-import:      afi ipv6.unicast from AS26546 accept AS26546
 mp-import:      afi ipv6.unicast from AS26554 accept AS26554
-mp-import:      afi ipv6.unicast from AS26558 accept AS26558
 mp-import:      afi ipv6.unicast from AS26637 accept AS26637
 mp-import:      afi ipv6.unicast from AS26667 accept AS26667
 mp-import:      afi ipv6.unicast from AS26673 accept AS26673
@@ -3617,6 +3636,7 @@ mp-import:      afi ipv6.unicast from AS26769 accept AS26769
 mp-import:      afi ipv6.unicast from AS26848 accept AS26848
 mp-import:      afi ipv6.unicast from AS26863 accept AS-GSK
 mp-import:      afi ipv6.unicast from AS26878 accept AS26878
+mp-import:      afi ipv6.unicast from AS26955 accept AS26955
 mp-import:      afi ipv6.unicast from AS26967 accept AS26967
 mp-import:      afi ipv6.unicast from AS27299 accept AS27299
 mp-import:      afi ipv6.unicast from AS27311 accept AS27311
@@ -3634,7 +3654,6 @@ mp-import:      afi ipv6.unicast from AS27978 accept AS27978
 mp-import:      afi ipv6.unicast from AS28007 accept AS28007
 mp-import:      afi ipv6.unicast from AS28398 accept AS-GBIC
 mp-import:      afi ipv6.unicast from AS28458 accept AS-IENTC-MX
-mp-import:      afi ipv6.unicast from AS28513 accept AS28513
 mp-import:      afi ipv6.unicast from AS28663 accept AS-FLYS
 mp-import:      afi ipv6.unicast from AS28677 accept AS28677
 mp-import:      afi ipv6.unicast from AS28685 accept AS28685
@@ -3671,12 +3690,12 @@ mp-import:      afi ipv6.unicast from AS29386 accept AS29386
 mp-import:      afi ipv6.unicast from AS29396 accept AS-UNET
 mp-import:      afi ipv6.unicast from AS29405 accept AS29405
 mp-import:      afi ipv6.unicast from AS29449 accept AS29449
-mp-import:      afi ipv6.unicast from AS29467 accept AS29467
 mp-import:      afi ipv6.unicast from AS29518 accept AS29518:AS-BREDBAND2
 mp-import:      afi ipv6.unicast from AS29535 accept AS29535
 mp-import:      afi ipv6.unicast from AS29550 accept AS-AS29550
 mp-import:      afi ipv6.unicast from AS29551 accept AS29551
 mp-import:      afi ipv6.unicast from AS29591 accept AS29591
+mp-import:      afi ipv6.unicast from AS29596 accept AS29596
 mp-import:      afi ipv6.unicast from AS29636 accept AS29636
 mp-import:      afi ipv6.unicast from AS29644 accept AS-AIRSPEED
 mp-import:      afi ipv6.unicast from AS29655 accept AS29655:AS-TRANSIT
@@ -3686,6 +3705,7 @@ mp-import:      afi ipv6.unicast from AS29757 accept AS29757
 mp-import:      afi ipv6.unicast from AS29761 accept AS29761
 mp-import:      afi ipv6.unicast from AS29802 accept AS-29802
 mp-import:      afi ipv6.unicast from AS29838 accept AS-AMC
+mp-import:      afi ipv6.unicast from AS29866 accept AS29866
 mp-import:      afi ipv6.unicast from AS29884 accept AS-EQUINIX
 mp-import:      afi ipv6.unicast from AS29907 accept AS29907
 mp-import:      afi ipv6.unicast from AS29909 accept AS29909:AS-METROOPTIC
@@ -3757,7 +3777,7 @@ mp-import:      afi ipv6.unicast from AS31743 accept AS31743
 mp-import:      afi ipv6.unicast from AS31760 accept AS31760
 mp-import:      afi ipv6.unicast from AS31898 accept AS31898
 mp-import:      afi ipv6.unicast from AS31936 accept AS31936
-mp-import:      afi ipv6.unicast from AS32030 accept AS32030
+mp-import:      afi ipv6.unicast from AS31989 accept AS31989
 mp-import:      afi ipv6.unicast from AS32035 accept AS-NETFORTRIS
 mp-import:      afi ipv6.unicast from AS32098 accept AS-32098
 mp-import:      afi ipv6.unicast from AS32133 accept AS32133
@@ -3799,6 +3819,7 @@ mp-import:      afi ipv6.unicast from AS33438 accept AS-HIGHWINDS
 mp-import:      afi ipv6.unicast from AS33445 accept AS33445
 mp-import:      afi ipv6.unicast from AS33459 accept AS33459
 mp-import:      afi ipv6.unicast from AS33494 accept AS33494
+mp-import:      afi ipv6.unicast from AS33574 accept AS33574
 mp-import:      afi ipv6.unicast from AS33576 accept AS-IMPORTED
 mp-import:      afi ipv6.unicast from AS33597 accept AS-INFORELAY
 mp-import:      afi ipv6.unicast from AS33619 accept AS33619
@@ -3828,6 +3849,7 @@ mp-import:      afi ipv6.unicast from AS34309 accept AS34309
 mp-import:      afi ipv6.unicast from AS34409 accept AS34409
 mp-import:      afi ipv6.unicast from AS34428 accept AS-GLPR
 mp-import:      afi ipv6.unicast from AS34442 accept AS34442
+mp-import:      afi ipv6.unicast from AS34471 accept AS34471
 mp-import:      afi ipv6.unicast from AS34510 accept AS34510
 mp-import:      afi ipv6.unicast from AS34525 accept AS34525
 mp-import:      afi ipv6.unicast from AS34549 accept AS-MEER
@@ -3860,13 +3882,13 @@ mp-import:      afi ipv6.unicast from AS35491 accept AS35491
 mp-import:      afi ipv6.unicast from AS35548 accept AS35548
 mp-import:      afi ipv6.unicast from AS35574 accept AS35574
 mp-import:      afi ipv6.unicast from AS35593 accept AS35593
+mp-import:      afi ipv6.unicast from AS35625 accept AS35625
 mp-import:      afi ipv6.unicast from AS35699 accept AS35699
 mp-import:      afi ipv6.unicast from AS35745 accept AS35745
 mp-import:      afi ipv6.unicast from AS35838 accept AS35838
 mp-import:      afi ipv6.unicast from AS35908 accept AS35908
 mp-import:      afi ipv6.unicast from AS35953 accept AS35953
 mp-import:      afi ipv6.unicast from AS35975 accept AS35975
-mp-import:      afi ipv6.unicast from AS35993 accept AS35993
 mp-import:      afi ipv6.unicast from AS35994 accept AS-AKAMAI
 mp-import:      afi ipv6.unicast from AS36007 accept AS36007
 mp-import:      afi ipv6.unicast from AS36040 accept AS36040
@@ -3950,7 +3972,6 @@ mp-import:      afi ipv6.unicast from AS40523 accept AS40523
 mp-import:      afi ipv6.unicast from AS40528 accept AS40528
 mp-import:      afi ipv6.unicast from AS40581 accept AS40581
 mp-import:      afi ipv6.unicast from AS40676 accept AS-40676
-mp-import:      afi ipv6.unicast from AS40729 accept AS40729
 mp-import:      afi ipv6.unicast from AS40739 accept AS40739
 mp-import:      afi ipv6.unicast from AS40763 accept AS40763
 mp-import:      afi ipv6.unicast from AS40769 accept AS40769
@@ -4043,7 +4064,6 @@ mp-import:      afi ipv6.unicast from AS43898 accept AS43898
 mp-import:      afi ipv6.unicast from AS43915 accept AS43915
 mp-import:      afi ipv6.unicast from AS44066 accept AS-FIRSTCOLO
 mp-import:      afi ipv6.unicast from AS44124 accept AS44124
-mp-import:      afi ipv6.unicast from AS44134 accept AS44134
 mp-import:      afi ipv6.unicast from AS44150 accept AS44150
 mp-import:      afi ipv6.unicast from AS44212 accept AS44212
 mp-import:      afi ipv6.unicast from AS44217 accept AS44217
@@ -4102,7 +4122,6 @@ mp-import:      afi ipv6.unicast from AS47443 accept AS47443
 mp-import:      afi ipv6.unicast from AS47674 accept AS-DOTSI
 mp-import:      afi ipv6.unicast from AS47680 accept AS47680
 mp-import:      afi ipv6.unicast from AS47720 accept AS47720:AS-CIX
-mp-import:      afi ipv6.unicast from AS47787 accept AS-EDGOO
 mp-import:      afi ipv6.unicast from AS47836 accept AS47836
 mp-import:      afi ipv6.unicast from AS47866 accept AS47866
 mp-import:      afi ipv6.unicast from AS47872 accept AS47872
@@ -4129,7 +4148,6 @@ mp-import:      afi ipv6.unicast from AS48638 accept AS-CRONOS
 mp-import:      afi ipv6.unicast from AS48659 accept AS48659
 mp-import:      afi ipv6.unicast from AS48804 accept AS48804
 mp-import:      afi ipv6.unicast from AS48832 accept AS48832
-mp-import:      afi ipv6.unicast from AS48849 accept AS48849
 mp-import:      afi ipv6.unicast from AS48850 accept AS48850
 mp-import:      afi ipv6.unicast from AS48896 accept AS48896
 mp-import:      afi ipv6.unicast from AS48910 accept AS48910
@@ -4160,6 +4178,7 @@ mp-import:      afi ipv6.unicast from AS49765 accept AS49765
 mp-import:      afi ipv6.unicast from AS49870 accept AS49870
 mp-import:      afi ipv6.unicast from AS49915 accept AS49915
 mp-import:      afi ipv6.unicast from AS50121 accept AS50121
+mp-import:      afi ipv6.unicast from AS50124 accept AS50124
 mp-import:      afi ipv6.unicast from AS50173 accept AS50173
 mp-import:      afi ipv6.unicast from AS50188 accept AS50188
 mp-import:      afi ipv6.unicast from AS50226 accept AS50226
@@ -4198,14 +4217,15 @@ mp-import:      afi ipv6.unicast from AS51857 accept AS51857
 mp-import:      afi ipv6.unicast from AS51871 accept AS51871
 mp-import:      afi ipv6.unicast from AS51890 accept AS51890
 mp-import:      afi ipv6.unicast from AS51944 accept AS-PROMEDIA
+mp-import:      afi ipv6.unicast from AS52000 accept AS52000
 mp-import:      afi ipv6.unicast from AS52030 accept AS52030
 mp-import:      afi ipv6.unicast from AS52106 accept AS-GALATEA
+mp-import:      afi ipv6.unicast from AS52263 accept AS52263
 mp-import:      afi ipv6.unicast from AS52320 accept AS-GNT
 mp-import:      afi ipv6.unicast from AS52347 accept AS52347
 mp-import:      afi ipv6.unicast from AS52393 accept AS52393
 mp-import:      afi ipv6.unicast from AS52438 accept AS52438
 mp-import:      afi ipv6.unicast from AS52580 accept AS52580
-mp-import:      afi ipv6.unicast from AS52873 accept AS52873
 mp-import:      afi ipv6.unicast from AS53264 accept AS-CDC
 mp-import:      afi ipv6.unicast from AS53292 accept AS53292
 mp-import:      afi ipv6.unicast from AS53340 accept AS-FIBERHUB
@@ -4254,6 +4274,7 @@ mp-import:      afi ipv6.unicast from AS55002 accept AS55002
 mp-import:      afi ipv6.unicast from AS55011 accept AS55011
 mp-import:      afi ipv6.unicast from AS55061 accept AS55061
 mp-import:      afi ipv6.unicast from AS55081 accept AS-24SHELLS
+mp-import:      afi ipv6.unicast from AS55145 accept AS55145
 mp-import:      afi ipv6.unicast from AS55191 accept AS55191
 mp-import:      afi ipv6.unicast from AS55195 accept AS55195
 mp-import:      afi ipv6.unicast from AS55256 accept AS-NETSKOPE
@@ -4267,6 +4288,7 @@ mp-import:      afi ipv6.unicast from AS56478 accept AS56478
 mp-import:      afi ipv6.unicast from AS56504 accept AS56504
 mp-import:      afi ipv6.unicast from AS56511 accept AS56511
 mp-import:      afi ipv6.unicast from AS56515 accept AS56515
+mp-import:      afi ipv6.unicast from AS56550 accept AS56550
 mp-import:      afi ipv6.unicast from AS56595 accept AS-FLUENCY
 mp-import:      afi ipv6.unicast from AS56611 accept AS56611
 mp-import:      afi ipv6.unicast from AS56630 accept AS-MELBICOM
@@ -4274,7 +4296,6 @@ mp-import:      afi ipv6.unicast from AS56647 accept AS56647
 mp-import:      afi ipv6.unicast from AS56655 accept AS-TERRAHOST
 mp-import:      afi ipv6.unicast from AS56683 accept AS56683
 mp-import:      afi ipv6.unicast from AS56767 accept AS56767
-mp-import:      afi ipv6.unicast from AS56786 accept AS56786
 mp-import:      afi ipv6.unicast from AS56894 accept AS56894
 mp-import:      afi ipv6.unicast from AS56953 accept AS56953
 mp-import:      afi ipv6.unicast from AS56958 accept AS56958
@@ -4300,7 +4321,7 @@ mp-import:      afi ipv6.unicast from AS58065 accept as-px9
 mp-import:      afi ipv6.unicast from AS58246 accept AS58246
 mp-import:      afi ipv6.unicast from AS58307 accept AS-RADIX
 mp-import:      afi ipv6.unicast from AS58321 accept AS-OXYLION-GLOBAL
-mp-import:      afi ipv6.unicast from AS58453 accept AS58453
+mp-import:      afi ipv6.unicast from AS58453 accept AS58453:AS-CMI-ALL
 mp-import:      afi ipv6.unicast from AS58511 accept AS-CIT
 mp-import:      afi ipv6.unicast from AS58664 accept AS58664
 mp-import:      afi ipv6.unicast from AS59028 accept AS59028
@@ -4311,7 +4332,6 @@ mp-import:      afi ipv6.unicast from AS59455 accept AS59455
 mp-import:      afi ipv6.unicast from AS59524 accept AS59524
 mp-import:      afi ipv6.unicast from AS59545 accept AS59545
 mp-import:      afi ipv6.unicast from AS59580 accept AS59580
-mp-import:      afi ipv6.unicast from AS59605 accept AS-ZAINGP
 mp-import:      afi ipv6.unicast from AS59711 accept AS59711
 mp-import:      afi ipv6.unicast from AS59816 accept AS-SAFEHOSTS
 mp-import:      afi ipv6.unicast from AS59827 accept AS59827
@@ -4348,6 +4368,7 @@ mp-import:      afi ipv6.unicast from AS60940 accept AS60940
 mp-import:      afi ipv6.unicast from AS61003 accept AS61003
 mp-import:      afi ipv6.unicast from AS61046 accept AS-HZ-HOSTING-LTD
 mp-import:      afi ipv6.unicast from AS61049 accept AS61049
+mp-import:      afi ipv6.unicast from AS61135 accept AS-COMNET-INT
 mp-import:      afi ipv6.unicast from AS61149 accept AS61149
 mp-import:      afi ipv6.unicast from AS61154 accept AS61154
 mp-import:      afi ipv6.unicast from AS61215 accept AS61215
@@ -4369,12 +4390,10 @@ mp-import:      afi ipv6.unicast from AS62087 accept AS62087
 mp-import:      afi ipv6.unicast from AS62167 accept AS62167
 mp-import:      afi ipv6.unicast from AS62168 accept AS62168
 mp-import:      afi ipv6.unicast from AS62184 accept AS62184
-mp-import:      afi ipv6.unicast from AS62190 accept AS62190
 mp-import:      afi ipv6.unicast from AS62234 accept AS62234
 mp-import:      afi ipv6.unicast from AS62240 accept AS-CLOUVIDER
 mp-import:      afi ipv6.unicast from AS62244 accept AS62244
 mp-import:      afi ipv6.unicast from AS62363 accept AS-EGW-IPv4
-mp-import:      afi ipv6.unicast from AS62488 accept AS62488
 mp-import:      afi ipv6.unicast from AS62542 accept AS62542
 mp-import:      afi ipv6.unicast from AS62563 accept AS-GTHOST
 mp-import:      afi ipv6.unicast from AS62597 accept AS-NSONE
@@ -4415,6 +4434,7 @@ mp-import:      afi ipv6.unicast from AS64275 accept AS64275
 mp-import:      afi ipv6.unicast from AS64277 accept AS64277
 mp-import:      afi ipv6.unicast from AS64304 accept AS64304
 mp-import:      afi ipv6.unicast from AS64426 accept AS64426
+mp-import:      afi ipv6.unicast from AS65538 accept AS65538
 mp-import:      afi ipv6.unicast from AS131274 accept AS131274
 mp-import:      afi ipv6.unicast from AS131314 accept AS131314
 mp-import:      afi ipv6.unicast from AS133335 accept AS133335
@@ -4430,9 +4450,9 @@ mp-import:      afi ipv6.unicast from AS137912 accept AS137912
 mp-import:      afi ipv6.unicast from AS138005 accept AS138005
 mp-import:      afi ipv6.unicast from AS138576 accept AS138576
 mp-import:      afi ipv6.unicast from AS138611 accept AS138611
+mp-import:      afi ipv6.unicast from AS138915 accept AS138915:AS-CUSTOMER
 mp-import:      afi ipv6.unicast from AS141039 accept AS141039
 mp-import:      afi ipv6.unicast from AS147049 accept AS147049
-mp-import:      afi ipv6.unicast from AS196640 accept AS196640
 mp-import:      afi ipv6.unicast from AS196670 accept AS196670
 mp-import:      afi ipv6.unicast from AS196729 accept AS196729
 mp-import:      afi ipv6.unicast from AS196755 accept AS196755
@@ -4477,6 +4497,7 @@ mp-import:      afi ipv6.unicast from AS198890 accept AS198890
 mp-import:      afi ipv6.unicast from AS198949 accept AS198949:AS-SD
 mp-import:      afi ipv6.unicast from AS199081 accept AS199081
 mp-import:      afi ipv6.unicast from AS199113 accept AS199113
+mp-import:      afi ipv6.unicast from AS199124 accept AS199124
 mp-import:      afi ipv6.unicast from AS199156 accept AS199156
 mp-import:      afi ipv6.unicast from AS199163 accept AS199163
 mp-import:      afi ipv6.unicast from AS199237 accept AS199237
@@ -4496,11 +4517,9 @@ mp-import:      afi ipv6.unicast from AS199775 accept AS199775
 mp-import:      afi ipv6.unicast from AS199790 accept AS199790
 mp-import:      afi ipv6.unicast from AS199799 accept AS199799
 mp-import:      afi ipv6.unicast from AS199880 accept AS199880
-mp-import:      afi ipv6.unicast from AS199892 accept AS199892
 mp-import:      afi ipv6.unicast from AS200032 accept AS200032
 mp-import:      afi ipv6.unicast from AS200052 accept AS-FERAL
 mp-import:      afi ipv6.unicast from AS200099 accept AS200099
-mp-import:      afi ipv6.unicast from AS200187 accept AS200187
 mp-import:      afi ipv6.unicast from AS200271 accept AS200271
 mp-import:      afi ipv6.unicast from AS200410 accept AS200410
 mp-import:      afi ipv6.unicast from AS200416 accept AS200416
@@ -4514,11 +4533,8 @@ mp-import:      afi ipv6.unicast from AS200612 accept AS-SETGBI
 mp-import:      afi ipv6.unicast from AS200653 accept AS200653
 mp-import:      afi ipv6.unicast from AS200705 accept AS200705
 mp-import:      afi ipv6.unicast from AS200713 accept AS200713
-mp-import:      afi ipv6.unicast from AS200738 accept AS200738
-mp-import:      afi ipv6.unicast from AS200758 accept AS200758
 mp-import:      afi ipv6.unicast from AS200780 accept AS-APPLIWAVE
 mp-import:      afi ipv6.unicast from AS200845 accept AS-AVATEL-TRANSIT
-mp-import:      afi ipv6.unicast from AS200861 accept AS200861
 mp-import:      afi ipv6.unicast from AS200899 accept AS200899
 mp-import:      afi ipv6.unicast from AS200904 accept AS200904
 mp-import:      afi ipv6.unicast from AS200961 accept AS200961
@@ -4542,7 +4558,6 @@ mp-import:      afi ipv6.unicast from AS201895 accept AS201895
 mp-import:      afi ipv6.unicast from AS201942 accept AS-SOLTIA
 mp-import:      afi ipv6.unicast from AS201947 accept AS201947
 mp-import:      afi ipv6.unicast from AS201958 accept AS201958
-mp-import:      afi ipv6.unicast from AS201971 accept AS-CREEPERHOSTLTD
 mp-import:      afi ipv6.unicast from AS201990 accept AS201990
 mp-import:      afi ipv6.unicast from AS202010 accept AS202010
 mp-import:      afi ipv6.unicast from AS202032 accept AS202032
@@ -4550,6 +4565,7 @@ mp-import:      afi ipv6.unicast from AS202075 accept AS202075
 mp-import:      afi ipv6.unicast from AS202623 accept AS202623
 mp-import:      afi ipv6.unicast from AS202713 accept AS202713
 mp-import:      afi ipv6.unicast from AS202766 accept AS202766
+mp-import:      afi ipv6.unicast from AS202885 accept AS202885
 mp-import:      afi ipv6.unicast from AS203050 accept AS203050
 mp-import:      afi ipv6.unicast from AS203055 accept AS203055
 mp-import:      afi ipv6.unicast from AS203182 accept AS203182
@@ -4560,14 +4576,12 @@ mp-import:      afi ipv6.unicast from AS203346 accept AS-232web
 mp-import:      afi ipv6.unicast from AS203351 accept AS203351
 mp-import:      afi ipv6.unicast from AS203410 accept AS203410
 mp-import:      afi ipv6.unicast from AS203608 accept AS203608
-mp-import:      afi ipv6.unicast from AS203639 accept AS203639
 mp-import:      afi ipv6.unicast from AS203649 accept AS203649
 mp-import:      afi ipv6.unicast from AS203724 accept AS203724
 mp-import:      afi ipv6.unicast from AS204126 accept AS204126
 mp-import:      afi ipv6.unicast from AS204188 accept AS204188
 mp-import:      afi ipv6.unicast from AS204258 accept AS204258
 mp-import:      afi ipv6.unicast from AS204260 accept AS-DOTSI
-mp-import:      afi ipv6.unicast from AS204353 accept AS204353
 mp-import:      afi ipv6.unicast from AS204419 accept AS204419
 mp-import:      afi ipv6.unicast from AS204476 accept AS204476
 mp-import:      afi ipv6.unicast from AS204536 accept AS204536
@@ -4584,7 +4598,6 @@ mp-import:      afi ipv6.unicast from AS205025 accept AS205025
 mp-import:      afi ipv6.unicast from AS205039 accept AS205039
 mp-import:      afi ipv6.unicast from AS205041 accept AS205041
 mp-import:      afi ipv6.unicast from AS205142 accept AS205142
-mp-import:      afi ipv6.unicast from AS205185 accept AS205185
 mp-import:      afi ipv6.unicast from AS205394 accept AS205394
 mp-import:      afi ipv6.unicast from AS205476 accept AS205476
 mp-import:      afi ipv6.unicast from AS205544 accept AS205544
@@ -4617,7 +4630,7 @@ mp-import:      afi ipv6.unicast from AS207044 accept AS-AIRSPEED
 mp-import:      afi ipv6.unicast from AS207045 accept AS207045
 mp-import:      afi ipv6.unicast from AS207063 accept AS207063
 mp-import:      afi ipv6.unicast from AS207127 accept AS207127
-mp-import:      afi ipv6.unicast from AS207137 accept AS-SET-207137
+mp-import:      afi ipv6.unicast from AS207137 accept AS-SET-AS207137
 mp-import:      afi ipv6.unicast from AS207176 accept AS207176
 mp-import:      afi ipv6.unicast from AS207367 accept AS207367
 mp-import:      afi ipv6.unicast from AS207543 accept AS207543
@@ -4639,19 +4652,18 @@ mp-import:      afi ipv6.unicast from AS209549 accept AS-Provide
 mp-import:      afi ipv6.unicast from AS209704 accept AS209704
 mp-import:      afi ipv6.unicast from AS209811 accept AS209811
 mp-import:      afi ipv6.unicast from AS210211 accept AS210211
-mp-import:      afi ipv6.unicast from AS210253 accept AS210253
 mp-import:      afi ipv6.unicast from AS210269 accept AS210269:AS-ALL
 mp-import:      afi ipv6.unicast from AS210321 accept AS-OPERADORS
 mp-import:      afi ipv6.unicast from AS210329 accept AS210329
 mp-import:      afi ipv6.unicast from AS211029 accept AS211029
 mp-import:      afi ipv6.unicast from AS211526 accept AS211526
 mp-import:      afi ipv6.unicast from AS211597 accept AS-LITFIBRE
+mp-import:      afi ipv6.unicast from AS211766 accept AS211766
 mp-import:      afi ipv6.unicast from AS212045 accept AS212045
 mp-import:      afi ipv6.unicast from AS212055 accept AS212055
 mp-import:      afi ipv6.unicast from AS212097 accept AS-VIMTEL
-mp-import:      afi ipv6.unicast from AS212175 accept AS-ICONIC
+mp-import:      afi ipv6.unicast from AS212175 accept AS212175:AS-STELIA
 mp-import:      afi ipv6.unicast from AS212708 accept AS212708
-mp-import:      afi ipv6.unicast from AS212882 accept as-dnxnetwork-set
 mp-import:      afi ipv6.unicast from AS213039 accept AS213039
 mp-import:      afi ipv6.unicast from AS213094 accept AS-FULLFIBRE
 mp-import:      afi ipv6.unicast from AS213101 accept AS213101
@@ -4659,6 +4671,7 @@ mp-import:      afi ipv6.unicast from AS213202 accept AS-CSG
 mp-import:      afi ipv6.unicast from AS213205 accept AS213205
 mp-import:      afi ipv6.unicast from AS213308 accept AS213308
 mp-import:      afi ipv6.unicast from AS213373 accept AS213373
+mp-import:      afi ipv6.unicast from AS213394 accept AS213394
 mp-import:      afi ipv6.unicast from AS262206 accept AS262206:AS-GLOBAL
 mp-import:      afi ipv6.unicast from AS262287 accept AS262287
 mp-import:      afi ipv6.unicast from AS262589 accept AS-ITXBR1
@@ -4669,6 +4682,7 @@ mp-import:      afi ipv6.unicast from AS264409 accept AS-HUGENET-CUSTOMERS
 mp-import:      afi ipv6.unicast from AS264763 accept AS-DOSBUFF
 mp-import:      afi ipv6.unicast from AS265556 accept AS265556
 mp-import:      afi ipv6.unicast from AS265680 accept AS-FEZ11
+mp-import:      afi ipv6.unicast from AS270120 accept AS270120
 mp-import:      afi ipv6.unicast from AS393234 accept AS393234
 mp-import:      afi ipv6.unicast from AS393241 accept AS393241
 mp-import:      afi ipv6.unicast from AS393246 accept AS393246
@@ -4680,6 +4694,7 @@ mp-import:      afi ipv6.unicast from AS393900 accept AS393900
 mp-import:      afi ipv6.unicast from AS394015 accept AS394015
 mp-import:      afi ipv6.unicast from AS394102 accept AS394102
 mp-import:      afi ipv6.unicast from AS394141 accept AS394141
+mp-import:      afi ipv6.unicast from AS394177 accept AS394177
 mp-import:      afi ipv6.unicast from AS394186 accept AS394186
 mp-import:      afi ipv6.unicast from AS394232 accept AS394232
 mp-import:      afi ipv6.unicast from AS394303 accept AS394303
@@ -4737,6 +4752,7 @@ mp-import:      afi ipv6.unicast from AS397418 accept AS397418
 mp-import:      afi ipv6.unicast from AS397494 accept AS397494
 mp-import:      afi ipv6.unicast from AS397505 accept AS397505
 mp-import:      afi ipv6.unicast from AS397545 accept AS397545
+mp-import:      afi ipv6.unicast from AS397599 accept AS397599
 mp-import:      afi ipv6.unicast from AS397601 accept AS397601
 mp-import:      afi ipv6.unicast from AS397727 accept AS397727
 mp-import:      afi ipv6.unicast from AS397912 accept AS397912
@@ -4760,7 +4776,6 @@ mp-import:      afi ipv6.unicast from AS399458 accept AS399458
 mp-import:      afi ipv6.unicast from AS399480 accept AS399480
 mp-import:      afi ipv6.unicast from AS399515 accept AS399515
 mp-import:      afi ipv6.unicast from AS399558 accept AS399558
-mp-import:      afi ipv6.unicast from AS399587 accept AS399587:AS-ALL
 mp-import:      afi ipv6.unicast from AS399647 accept AS399647
 mp-import:      afi ipv6.unicast from AS399808 accept AS399808
 mp-import:      afi ipv6.unicast from AS399809 accept AS399809
@@ -4774,6 +4789,7 @@ mp-import:      afi ipv6.unicast from AS399989 accept AS-ALL
 mp-import:      afi ipv6.unicast from AS399998 accept AS399998
 mp-import:      afi ipv6.unicast from AS400042 accept AS-RIGHTFORGE
 mp-import:      afi ipv6.unicast from AS400146 accept AS400146
+mp-import:      afi ipv6.unicast from AS400200 accept AS400200
 mp-import:      afi ipv6.unicast from AS400202 accept AS400202
 mp-import:      afi ipv6.unicast from AS400282 accept AS400282
 mp-import:      afi ipv6.unicast from AS400302 accept AS400302
@@ -4807,6 +4823,7 @@ export:         to AS714 announce ANY
 export:         to AS766 announce ANY
 export:         to AS792 announce ANY
 export:         to AS812 announce ANY
+export:         to AS819 announce ANY
 export:         to AS852 announce ANY
 export:         to AS855 announce ANY
 export:         to AS979 announce ANY
@@ -4831,6 +4848,7 @@ export:         to AS1610 announce ANY
 export:         to AS1612 announce ANY
 export:         to AS1678 announce ANY
 export:         to AS1680 announce ANY
+export:         to AS1746 announce ANY
 export:         to AS1764 announce ANY
 export:         to AS1803 announce ANY
 export:         to AS1820 announce ANY
@@ -4854,14 +4872,12 @@ export:         to AS3165 announce ANY
 export:         to AS3170 announce ANY
 export:         to AS3206 announce ANY
 export:         to AS3212 announce ANY
-export:         to AS3214 announce ANY
 export:         to AS3215 announce ANY
 export:         to AS3252 announce ANY
 export:         to AS3255 announce ANY
 export:         to AS3264 announce ANY
 export:         to AS3291 announce ANY
 export:         to AS3292 announce ANY
-export:         to AS3302 announce ANY
 export:         to AS3352 announce ANY
 export:         to AS3367 announce ANY
 export:         to AS3399 announce ANY
@@ -4878,6 +4894,7 @@ export:         to AS3943 announce ANY
 export:         to AS4058 announce ANY
 export:         to AS4150 announce ANY
 export:         to AS4181 announce ANY
+export:         to AS4213 announce ANY
 export:         to AS4229 announce ANY
 export:         to AS4230 announce ANY
 export:         to AS4250 announce ANY
@@ -4917,7 +4934,6 @@ export:         to AS5670 announce ANY
 export:         to AS5697 announce ANY
 export:         to AS5715 announce ANY
 export:         to AS5738 announce ANY
-export:         to AS5742 announce ANY
 export:         to AS5760 announce ANY
 export:         to AS5769 announce ANY
 export:         to AS5777 announce ANY
@@ -4934,6 +4950,7 @@ export:         to AS6181 announce ANY
 export:         to AS6199 announce ANY
 export:         to AS6220 announce ANY
 export:         to AS6267 announce ANY
+export:         to AS6307 announce ANY
 export:         to AS6325 announce ANY
 export:         to AS6327 announce ANY
 export:         to AS6391 announce ANY
@@ -4965,6 +4982,7 @@ export:         to AS6770 announce ANY
 export:         to AS6774 announce ANY
 export:         to AS6779 announce ANY
 export:         to AS6805 announce ANY
+export:         to AS6810 announce ANY
 export:         to AS6812 announce ANY
 export:         to AS6830 announce ANY
 export:         to AS6848 announce ANY
@@ -5048,7 +5066,6 @@ export:         to AS8587 announce ANY
 export:         to AS8607 announce ANY
 export:         to AS8612 announce ANY
 export:         to AS8648 announce ANY
-export:         to AS8657 announce ANY
 export:         to AS8751 announce ANY
 export:         to AS8757 announce ANY
 export:         to AS8781 announce ANY
@@ -5095,10 +5112,8 @@ export:         to AS10099 announce ANY
 export:         to AS10122 announce ANY
 export:         to AS10325 announce ANY
 export:         to AS10361 announce ANY
-export:         to AS10397 announce ANY
 export:         to AS10461 announce ANY
 export:         to AS10490 announce ANY
-export:         to AS10561 announce ANY
 export:         to AS10625 announce ANY
 export:         to AS10661 announce ANY
 export:         to AS10674 announce ANY
@@ -5109,6 +5124,7 @@ export:         to AS10835 announce ANY
 export:         to AS10886 announce ANY
 export:         to AS10905 announce ANY
 export:         to AS10910 announce ANY
+export:         to AS10962 announce ANY
 export:         to AS10982 announce ANY
 export:         to AS10996 announce ANY
 export:         to AS11013 announce ANY
@@ -5149,6 +5165,7 @@ export:         to AS11807 announce ANY
 export:         to AS11849 announce ANY
 export:         to AS11852 announce ANY
 export:         to AS11856 announce ANY
+export:         to AS11857 announce ANY
 export:         to AS11866 announce ANY
 export:         to AS11876 announce ANY
 export:         to AS11878 announce ANY
@@ -5184,6 +5201,7 @@ export:         to AS12362 announce ANY
 export:         to AS12372 announce ANY
 export:         to AS12387 announce ANY
 export:         to AS12389 announce ANY
+export:         to AS12400 announce ANY
 export:         to AS12409 announce ANY
 export:         to AS12414 announce ANY
 export:         to AS12470 announce ANY
@@ -5255,6 +5273,7 @@ export:         to AS13414 announce ANY
 export:         to AS13428 announce ANY
 export:         to AS13431 announce ANY
 export:         to AS13443 announce ANY
+export:         to AS13445 announce ANY
 export:         to AS13446 announce ANY
 export:         to AS13448 announce ANY
 export:         to AS13464 announce ANY
@@ -5271,11 +5290,11 @@ export:         to AS13557 announce ANY
 export:         to AS13628 announce ANY
 export:         to AS13631 announce ANY
 export:         to AS13649 announce ANY
+export:         to AS13655 announce ANY
 export:         to AS13658 announce ANY
 export:         to AS13739 announce ANY
 export:         to AS13760 announce ANY
 export:         to AS13768 announce ANY
-export:         to AS13778 announce ANY
 export:         to AS13789 announce ANY
 export:         to AS13798 announce ANY
 export:         to AS13821 announce ANY
@@ -5293,10 +5312,8 @@ export:         to AS14014 announce ANY
 export:         to AS14016 announce ANY
 export:         to AS14037 announce ANY
 export:         to AS14049 announce ANY
-export:         to AS14074 announce ANY
 export:         to AS14080 announce ANY
 export:         to AS14086 announce ANY
-export:         to AS14108 announce ANY
 export:         to AS14135 announce ANY
 export:         to AS14148 announce ANY
 export:         to AS14157 announce ANY
@@ -5308,6 +5325,7 @@ export:         to AS14253 announce ANY
 export:         to AS14332 announce ANY
 export:         to AS14335 announce ANY
 export:         to AS14343 announce ANY
+export:         to AS14360 announce ANY
 export:         to AS14361 announce ANY
 export:         to AS14365 announce ANY
 export:         to AS14371 announce ANY
@@ -5397,7 +5415,6 @@ export:         to AS16168 announce ANY
 export:         to AS16189 announce ANY
 export:         to AS16236 announce ANY
 export:         to AS16238 announce ANY
-export:         to AS16297 announce ANY
 export:         to AS16360 announce ANY
 export:         to AS16364 announce ANY
 export:         to AS16406 announce ANY
@@ -5430,6 +5447,7 @@ export:         to AS16940 announce ANY
 export:         to AS17012 announce ANY
 export:         to AS17035 announce ANY
 export:         to AS17045 announce ANY
+export:         to AS17060 announce ANY
 export:         to AS17088 announce ANY
 export:         to AS17130 announce ANY
 export:         to AS17139 announce ANY
@@ -5450,7 +5468,6 @@ export:         to AS18214 announce ANY
 export:         to AS18434 announce ANY
 export:         to AS18450 announce ANY
 export:         to AS18451 announce ANY
-export:         to AS18456 announce ANY
 export:         to AS18465 announce ANY
 export:         to AS18474 announce ANY
 export:         to AS18485 announce ANY
@@ -5503,8 +5520,10 @@ export:         to AS19448 announce ANY
 export:         to AS19457 announce ANY
 export:         to AS19460 announce ANY
 export:         to AS19515 announce ANY
+export:         to AS19526 announce ANY
 export:         to AS19531 announce ANY
 export:         to AS19551 announce ANY
+export:         to AS19566 announce ANY
 export:         to AS19602 announce ANY
 export:         to AS19637 announce ANY
 export:         to AS19679 announce ANY
@@ -5536,10 +5555,10 @@ export:         to AS20077 announce ANY
 export:         to AS20115 announce ANY
 export:         to AS20135 announce ANY
 export:         to AS20144 announce ANY
+export:         to AS20148 announce ANY
 export:         to AS20205 announce ANY
 export:         to AS20216 announce ANY
 export:         to AS20220 announce ANY
-export:         to AS20223 announce ANY
 export:         to AS20249 announce ANY
 export:         to AS20278 announce ANY
 export:         to AS20284 announce ANY
@@ -5584,6 +5603,7 @@ export:         to AS21094 announce ANY
 export:         to AS21188 announce ANY
 export:         to AS21221 announce ANY
 export:         to AS21235 announce ANY
+export:         to AS21245 announce ANY
 export:         to AS21254 announce ANY
 export:         to AS21267 announce ANY
 export:         to AS21277 announce ANY
@@ -5608,8 +5628,10 @@ export:         to AS21646 announce ANY
 export:         to AS21655 announce ANY
 export:         to AS21693 announce ANY
 export:         to AS21700 announce ANY
+export:         to AS21719 announce ANY
 export:         to AS21723 announce ANY
 export:         to AS21724 announce ANY
+export:         to AS21734 announce ANY
 export:         to AS21743 announce ANY
 export:         to AS21755 announce ANY
 export:         to AS21777 announce ANY
@@ -5655,9 +5677,9 @@ export:         to AS22792 announce ANY
 export:         to AS22803 announce ANY
 export:         to AS22822 announce ANY
 export:         to AS22838 announce ANY
+export:         to AS22900 announce ANY
 export:         to AS22911 announce ANY
 export:         to AS22915 announce ANY
-export:         to AS22925 announce ANY
 export:         to AS22957 announce ANY
 export:         to AS22964 announce ANY
 export:         to AS22973 announce ANY
@@ -5677,12 +5699,14 @@ export:         to AS23232 announce ANY
 export:         to AS23241 announce ANY
 export:         to AS23247 announce ANY
 export:         to AS23262 announce ANY
+export:         to AS23311 announce ANY
 export:         to AS23312 announce ANY
 export:         to AS23314 announce ANY
 export:         to AS23316 announce ANY
 export:         to AS23342 announce ANY
 export:         to AS23352 announce ANY
 export:         to AS23367 announce ANY
+export:         to AS23368 announce ANY
 export:         to AS23393 announce ANY
 export:         to AS23420 announce ANY
 export:         to AS23442 announce ANY
@@ -5738,7 +5762,6 @@ export:         to AS25433 announce ANY
 export:         to AS25441 announce ANY
 export:         to AS25459 announce ANY
 export:         to AS25465 announce ANY
-export:         to AS25472 announce ANY
 export:         to AS25542 announce ANY
 export:         to AS25562 announce ANY
 export:         to AS25575 announce ANY
@@ -5780,6 +5803,7 @@ export:         to AS26258 announce ANY
 export:         to AS26265 announce ANY
 export:         to AS26278 announce ANY
 export:         to AS26282 announce ANY
+export:         to AS26324 announce ANY
 export:         to AS26342 announce ANY
 export:         to AS26362 announce ANY
 export:         to AS26378 announce ANY
@@ -5790,7 +5814,6 @@ export:         to AS26512 announce ANY
 export:         to AS26523 announce ANY
 export:         to AS26546 announce ANY
 export:         to AS26554 announce ANY
-export:         to AS26558 announce ANY
 export:         to AS26577 announce ANY
 export:         to AS26582 announce ANY
 export:         to AS26637 announce ANY
@@ -5810,6 +5833,7 @@ export:         to AS26863 announce ANY
 export:         to AS26878 announce ANY
 export:         to AS26914 announce ANY
 export:         to AS26931 announce ANY
+export:         to AS26955 announce ANY
 export:         to AS26962 announce ANY
 export:         to AS26967 announce ANY
 export:         to AS26972 announce ANY
@@ -5833,7 +5857,6 @@ export:         to AS27536 announce ANY
 export:         to AS27566 announce ANY
 export:         to AS27592 announce ANY
 export:         to AS27596 announce ANY
-export:         to AS27612 announce ANY
 export:         to AS27621 announce ANY
 export:         to AS27646 announce ANY
 export:         to AS27647 announce ANY
@@ -5843,7 +5866,6 @@ export:         to AS27978 announce ANY
 export:         to AS28007 announce ANY
 export:         to AS28398 announce ANY
 export:         to AS28458 announce ANY
-export:         to AS28513 announce ANY
 export:         to AS28663 announce ANY
 export:         to AS28677 announce ANY
 export:         to AS28685 announce ANY
@@ -5898,12 +5920,12 @@ export:         to AS29435 announce ANY
 export:         to AS29446 announce ANY
 export:         to AS29449 announce ANY
 export:         to AS29457 announce ANY
-export:         to AS29467 announce ANY
 export:         to AS29518 announce ANY
 export:         to AS29535 announce ANY
 export:         to AS29550 announce ANY
 export:         to AS29551 announce ANY
 export:         to AS29591 announce ANY
+export:         to AS29596 announce ANY
 export:         to AS29617 announce ANY
 export:         to AS29636 announce ANY
 export:         to AS29644 announce ANY
@@ -5983,7 +6005,6 @@ export:         to AS31108 announce ANY
 export:         to AS31115 announce ANY
 export:         to AS31116 announce ANY
 export:         to AS31122 announce ANY
-export:         to AS31131 announce ANY
 export:         to AS31147 announce ANY
 export:         to AS31154 announce ANY
 export:         to AS31221 announce ANY
@@ -6030,7 +6051,7 @@ export:         to AS31917 announce ANY
 export:         to AS31936 announce ANY
 export:         to AS31980 announce ANY
 export:         to AS31983 announce ANY
-export:         to AS32030 announce ANY
+export:         to AS31989 announce ANY
 export:         to AS32035 announce ANY
 export:         to AS32059 announce ANY
 export:         to AS32098 announce ANY
@@ -6106,6 +6127,7 @@ export:         to AS33529 announce ANY
 export:         to AS33532 announce ANY
 export:         to AS33536 announce ANY
 export:         to AS33549 announce ANY
+export:         to AS33574 announce ANY
 export:         to AS33576 announce ANY
 export:         to AS33597 announce ANY
 export:         to AS33619 announce ANY
@@ -6143,6 +6165,7 @@ export:         to AS34393 announce ANY
 export:         to AS34409 announce ANY
 export:         to AS34428 announce ANY
 export:         to AS34442 announce ANY
+export:         to AS34471 announce ANY
 export:         to AS34510 announce ANY
 export:         to AS34523 announce ANY
 export:         to AS34525 announce ANY
@@ -6191,6 +6214,7 @@ export:         to AS35522 announce ANY
 export:         to AS35548 announce ANY
 export:         to AS35574 announce ANY
 export:         to AS35593 announce ANY
+export:         to AS35625 announce ANY
 export:         to AS35643 announce ANY
 export:         to AS35679 announce ANY
 export:         to AS35695 announce ANY
@@ -6210,7 +6234,6 @@ export:         to AS35953 announce ANY
 export:         to AS35974 announce ANY
 export:         to AS35975 announce ANY
 export:         to AS35985 announce ANY
-export:         to AS35993 announce ANY
 export:         to AS35994 announce ANY
 export:         to AS36007 announce ANY
 export:         to AS36040 announce ANY
@@ -6227,7 +6250,6 @@ export:         to AS36243 announce ANY
 export:         to AS36306 announce ANY
 export:         to AS36352 announce ANY
 export:         to AS36385 announce ANY
-export:         to AS36399 announce ANY
 export:         to AS36408 announce ANY
 export:         to AS36444 announce ANY
 export:         to AS36459 announce ANY
@@ -6306,6 +6328,7 @@ export:         to AS39892 announce ANY
 export:         to AS39912 announce ANY
 export:         to AS39923 announce ANY
 export:         to AS39964 announce ANY
+export:         to AS39979 announce ANY
 export:         to AS40028 announce ANY
 export:         to AS40029 announce ANY
 export:         to AS40065 announce ANY
@@ -6337,7 +6360,6 @@ export:         to AS40624 announce ANY
 export:         to AS40657 announce ANY
 export:         to AS40669 announce ANY
 export:         to AS40676 announce ANY
-export:         to AS40729 announce ANY
 export:         to AS40731 announce ANY
 export:         to AS40739 announce ANY
 export:         to AS40763 announce ANY
@@ -6383,6 +6405,7 @@ export:         to AS41538 announce ANY
 export:         to AS41549 announce ANY
 export:         to AS41564 announce ANY
 export:         to AS41653 announce ANY
+export:         to AS41685 announce ANY
 export:         to AS41764 announce ANY
 export:         to AS41765 announce ANY
 export:         to AS41803 announce ANY
@@ -6478,7 +6501,6 @@ export:         to AS44062 announce ANY
 export:         to AS44066 announce ANY
 export:         to AS44086 announce ANY
 export:         to AS44124 announce ANY
-export:         to AS44134 announce ANY
 export:         to AS44150 announce ANY
 export:         to AS44166 announce ANY
 export:         to AS44212 announce ANY
@@ -6525,7 +6547,6 @@ export:         to AS45896 announce ANY
 export:         to AS45899 announce ANY
 export:         to AS46130 announce ANY
 export:         to AS46160 announce ANY
-export:         to AS46168 announce ANY
 export:         to AS46199 announce ANY
 export:         to AS46261 announce ANY
 export:         to AS46272 announce ANY
@@ -6539,6 +6560,7 @@ export:         to AS46395 announce ANY
 export:         to AS46401 announce ANY
 export:         to AS46454 announce ANY
 export:         to AS46455 announce ANY
+export:         to AS46467 announce ANY
 export:         to AS46475 announce ANY
 export:         to AS46489 announce ANY
 export:         to AS46556 announce ANY
@@ -6584,7 +6606,6 @@ export:         to AS47720 announce ANY
 export:         to AS47754 announce ANY
 export:         to AS47762 announce ANY
 export:         to AS47771 announce ANY
-export:         to AS47787 announce ANY
 export:         to AS47793 announce ANY
 export:         to AS47836 announce ANY
 export:         to AS47850 announce ANY
@@ -6631,7 +6652,6 @@ export:         to AS48804 announce ANY
 export:         to AS48809 announce ANY
 export:         to AS48832 announce ANY
 export:         to AS48846 announce ANY
-export:         to AS48849 announce ANY
 export:         to AS48850 announce ANY
 export:         to AS48851 announce ANY
 export:         to AS48896 announce ANY
@@ -6680,6 +6700,7 @@ export:         to AS49915 announce ANY
 export:         to AS49958 announce ANY
 export:         to AS50020 announce ANY
 export:         to AS50121 announce ANY
+export:         to AS50124 announce ANY
 export:         to AS50153 announce ANY
 export:         to AS50173 announce ANY
 export:         to AS50183 announce ANY
@@ -6752,16 +6773,17 @@ export:         to AS51934 announce ANY
 export:         to AS51944 announce ANY
 export:         to AS51960 announce ANY
 export:         to AS51984 announce ANY
+export:         to AS52000 announce ANY
 export:         to AS52030 announce ANY
 export:         to AS52101 announce ANY
 export:         to AS52106 announce ANY
 export:         to AS52183 announce ANY
+export:         to AS52263 announce ANY
 export:         to AS52320 announce ANY
 export:         to AS52347 announce ANY
 export:         to AS52393 announce ANY
 export:         to AS52438 announce ANY
 export:         to AS52580 announce ANY
-export:         to AS52873 announce ANY
 export:         to AS53258 announce ANY
 export:         to AS53264 announce ANY
 export:         to AS53292 announce ANY
@@ -6801,6 +6823,7 @@ export:         to AS53831 announce ANY
 export:         to AS53845 announce ANY
 export:         to AS53850 announce ANY
 export:         to AS53856 announce ANY
+export:         to AS53871 announce ANY
 export:         to AS53889 announce ANY
 export:         to AS53902 announce ANY
 export:         to AS53913 announce ANY
@@ -6834,6 +6857,7 @@ export:         to AS54509 announce ANY
 export:         to AS54527 announce ANY
 export:         to AS54531 announce ANY
 export:         to AS54535 announce ANY
+export:         to AS54538 announce ANY
 export:         to AS54588 announce ANY
 export:         to AS54593 announce ANY
 export:         to AS54600 announce ANY
@@ -6856,7 +6880,9 @@ export:         to AS55011 announce ANY
 export:         to AS55061 announce ANY
 export:         to AS55081 announce ANY
 export:         to AS55129 announce ANY
+export:         to AS55145 announce ANY
 export:         to AS55191 announce ANY
+export:         to AS55195 announce ANY
 export:         to AS55256 announce ANY
 export:         to AS55259 announce ANY
 export:         to AS55786 announce ANY
@@ -6870,6 +6896,7 @@ export:         to AS56478 announce ANY
 export:         to AS56504 announce ANY
 export:         to AS56511 announce ANY
 export:         to AS56515 announce ANY
+export:         to AS56550 announce ANY
 export:         to AS56575 announce ANY
 export:         to AS56595 announce ANY
 export:         to AS56611 announce ANY
@@ -6881,7 +6908,6 @@ export:         to AS56683 announce ANY
 export:         to AS56767 announce ANY
 export:         to AS56773 announce ANY
 export:         to AS56778 announce ANY
-export:         to AS56786 announce ANY
 export:         to AS56894 announce ANY
 export:         to AS56953 announce ANY
 export:         to AS56958 announce ANY
@@ -6930,7 +6956,6 @@ export:         to AS59524 announce ANY
 export:         to AS59545 announce ANY
 export:         to AS59580 announce ANY
 export:         to AS59582 announce ANY
-export:         to AS59605 announce ANY
 export:         to AS59611 announce ANY
 export:         to AS59655 announce ANY
 export:         to AS59711 announce ANY
@@ -6949,7 +6974,6 @@ export:         to AS60144 announce ANY
 export:         to AS60191 announce ANY
 export:         to AS60193 announce ANY
 export:         to AS60219 announce ANY
-export:         to AS60277 announce ANY
 export:         to AS60339 announce ANY
 export:         to AS60362 announce ANY
 export:         to AS60384 announce ANY
@@ -6974,12 +6998,12 @@ export:         to AS60798 announce ANY
 export:         to AS60800 announce ANY
 export:         to AS60822 announce ANY
 export:         to AS60893 announce ANY
-export:         to AS60923 announce ANY
 export:         to AS60940 announce ANY
 export:         to AS61003 announce ANY
 export:         to AS61018 announce ANY
 export:         to AS61046 announce ANY
 export:         to AS61049 announce ANY
+export:         to AS61135 announce ANY
 export:         to AS61149 announce ANY
 export:         to AS61154 announce ANY
 export:         to AS61181 announce ANY
@@ -7009,12 +7033,10 @@ export:         to AS62134 announce ANY
 export:         to AS62167 announce ANY
 export:         to AS62168 announce ANY
 export:         to AS62184 announce ANY
-export:         to AS62190 announce ANY
 export:         to AS62234 announce ANY
 export:         to AS62240 announce ANY
 export:         to AS62244 announce ANY
 export:         to AS62363 announce ANY
-export:         to AS62488 announce ANY
 export:         to AS62490 announce ANY
 export:         to AS62519 announce ANY
 export:         to AS62523 announce ANY
@@ -7026,7 +7048,6 @@ export:         to AS62638 announce ANY
 export:         to AS62646 announce ANY
 export:         to AS62648 announce ANY
 export:         to AS62664 announce ANY
-export:         to AS62665 announce ANY
 export:         to AS62668 announce ANY
 export:         to AS62698 announce ANY
 export:         to AS62703 announce ANY
@@ -7121,6 +7142,7 @@ export:         to AS137912 announce ANY
 export:         to AS138005 announce ANY
 export:         to AS138576 announce ANY
 export:         to AS138611 announce ANY
+export:         to AS138915 announce ANY
 export:         to AS139062 announce ANY
 export:         to AS141039 announce ANY
 export:         to AS141235 announce ANY
@@ -7128,12 +7150,10 @@ export:         to AS142111 announce ANY
 export:         to AS142268 announce ANY
 export:         to AS142578 announce ANY
 export:         to AS147049 announce ANY
-export:         to AS196640 announce ANY
 export:         to AS196670 announce ANY
 export:         to AS196681 announce ANY
 export:         to AS196729 announce ANY
 export:         to AS196755 announce ANY
-export:         to AS196933 announce ANY
 export:         to AS196956 announce ANY
 export:         to AS196975 announce ANY
 export:         to AS196983 announce ANY
@@ -7211,6 +7231,7 @@ export:         to AS199081 announce ANY
 export:         to AS199095 announce ANY
 export:         to AS199113 announce ANY
 export:         to AS199114 announce ANY
+export:         to AS199124 announce ANY
 export:         to AS199156 announce ANY
 export:         to AS199163 announce ANY
 export:         to AS199190 announce ANY
@@ -7237,7 +7258,6 @@ export:         to AS199775 announce ANY
 export:         to AS199790 announce ANY
 export:         to AS199799 announce ANY
 export:         to AS199880 announce ANY
-export:         to AS199892 announce ANY
 export:         to AS200031 announce ANY
 export:         to AS200032 announce ANY
 export:         to AS200052 announce ANY
@@ -7245,7 +7265,6 @@ export:         to AS200089 announce ANY
 export:         to AS200099 announce ANY
 export:         to AS200125 announce ANY
 export:         to AS200147 announce ANY
-export:         to AS200187 announce ANY
 export:         to AS200271 announce ANY
 export:         to AS200410 announce ANY
 export:         to AS200416 announce ANY
@@ -7263,11 +7282,8 @@ export:         to AS200653 announce ANY
 export:         to AS200692 announce ANY
 export:         to AS200705 announce ANY
 export:         to AS200713 announce ANY
-export:         to AS200738 announce ANY
-export:         to AS200758 announce ANY
 export:         to AS200780 announce ANY
 export:         to AS200845 announce ANY
-export:         to AS200861 announce ANY
 export:         to AS200884 announce ANY
 export:         to AS200899 announce ANY
 export:         to AS200904 announce ANY
@@ -7307,7 +7323,6 @@ export:         to AS201895 announce ANY
 export:         to AS201942 announce ANY
 export:         to AS201947 announce ANY
 export:         to AS201958 announce ANY
-export:         to AS201971 announce ANY
 export:         to AS201990 announce ANY
 export:         to AS201991 announce ANY
 export:         to AS202010 announce ANY
@@ -7316,7 +7331,6 @@ export:         to AS202063 announce ANY
 export:         to AS202075 announce ANY
 export:         to AS202149 announce ANY
 export:         to AS202166 announce ANY
-export:         to AS202219 announce ANY
 export:         to AS202321 announce ANY
 export:         to AS202596 announce ANY
 export:         to AS202623 announce ANY
@@ -7325,11 +7339,11 @@ export:         to AS202713 announce ANY
 export:         to AS202766 announce ANY
 export:         to AS202885 announce ANY
 export:         to AS202964 announce ANY
+export:         to AS203011 announce ANY
 export:         to AS203050 announce ANY
 export:         to AS203055 announce ANY
 export:         to AS203096 announce ANY
 export:         to AS203182 announce ANY
-export:         to AS203184 announce ANY
 export:         to AS203222 announce ANY
 export:         to AS203223 announce ANY
 export:         to AS203256 announce ANY
@@ -7338,12 +7352,11 @@ export:         to AS203327 announce ANY
 export:         to AS203346 announce ANY
 export:         to AS203351 announce ANY
 export:         to AS203380 announce ANY
-export:         to AS203400 announce ANY
 export:         to AS203410 announce ANY
+export:         to AS203483 announce ANY
 export:         to AS203585 announce ANY
 export:         to AS203591 announce ANY
 export:         to AS203608 announce ANY
-export:         to AS203639 announce ANY
 export:         to AS203649 announce ANY
 export:         to AS203682 announce ANY
 export:         to AS203689 announce ANY
@@ -7355,7 +7368,6 @@ export:         to AS204188 announce ANY
 export:         to AS204258 announce ANY
 export:         to AS204260 announce ANY
 export:         to AS204264 announce ANY
-export:         to AS204353 announce ANY
 export:         to AS204419 announce ANY
 export:         to AS204453 announce ANY
 export:         to AS204476 announce ANY
@@ -7377,7 +7389,6 @@ export:         to AS205025 announce ANY
 export:         to AS205039 announce ANY
 export:         to AS205041 announce ANY
 export:         to AS205142 announce ANY
-export:         to AS205185 announce ANY
 export:         to AS205263 announce ANY
 export:         to AS205394 announce ANY
 export:         to AS205476 announce ANY
@@ -7461,16 +7472,16 @@ export:         to AS210040 announce ANY
 export:         to AS210043 announce ANY
 export:         to AS210136 announce ANY
 export:         to AS210211 announce ANY
-export:         to AS210253 announce ANY
 export:         to AS210269 announce ANY
 export:         to AS210321 announce ANY
 export:         to AS210329 announce ANY
 export:         to AS210657 announce ANY
 export:         to AS211029 announce ANY
-export:         to AS211152 announce ANY
 export:         to AS211156 announce ANY
 export:         to AS211526 announce ANY
 export:         to AS211597 announce ANY
+export:         to AS211620 announce ANY
+export:         to AS211766 announce ANY
 export:         to AS211826 announce ANY
 export:         to AS212045 announce ANY
 export:         to AS212055 announce ANY
@@ -7479,7 +7490,6 @@ export:         to AS212175 announce ANY
 export:         to AS212195 announce ANY
 export:         to AS212646 announce ANY
 export:         to AS212708 announce ANY
-export:         to AS212882 announce ANY
 export:         to AS213035 announce ANY
 export:         to AS213039 announce ANY
 export:         to AS213094 announce ANY
@@ -7490,6 +7500,7 @@ export:         to AS213205 announce ANY
 export:         to AS213287 announce ANY
 export:         to AS213308 announce ANY
 export:         to AS213373 announce ANY
+export:         to AS213394 announce ANY
 export:         to AS262206 announce ANY
 export:         to AS262287 announce ANY
 export:         to AS262589 announce ANY
@@ -7500,13 +7511,14 @@ export:         to AS264409 announce ANY
 export:         to AS264763 announce ANY
 export:         to AS265556 announce ANY
 export:         to AS265680 announce ANY
+export:         to AS270120 announce ANY
+export:         to AS328867 announce ANY
 export:         to AS329214 announce ANY
 export:         to AS393226 announce ANY
 export:         to AS393234 announce ANY
 export:         to AS393235 announce ANY
 export:         to AS393241 announce ANY
 export:         to AS393246 announce ANY
-export:         to AS393284 announce ANY
 export:         to AS393303 announce ANY
 export:         to AS393316 announce ANY
 export:         to AS393544 announce ANY
@@ -7532,6 +7544,7 @@ export:         to AS394102 announce ANY
 export:         to AS394122 announce ANY
 export:         to AS394141 announce ANY
 export:         to AS394146 announce ANY
+export:         to AS394177 announce ANY
 export:         to AS394186 announce ANY
 export:         to AS394218 announce ANY
 export:         to AS394232 announce ANY
@@ -7571,6 +7584,7 @@ export:         to AS395276 announce ANY
 export:         to AS395308 announce ANY
 export:         to AS395309 announce ANY
 export:         to AS395354 announce ANY
+export:         to AS395359 announce ANY
 export:         to AS395363 announce ANY
 export:         to AS395369 announce ANY
 export:         to AS395487 announce ANY
@@ -7580,7 +7594,6 @@ export:         to AS395636 announce ANY
 export:         to AS395654 announce ANY
 export:         to AS395662 announce ANY
 export:         to AS395717 announce ANY
-export:         to AS395743 announce ANY
 export:         to AS395747 announce ANY
 export:         to AS395753 announce ANY
 export:         to AS395849 announce ANY
@@ -7589,10 +7602,10 @@ export:         to AS395954 announce ANY
 export:         to AS395978 announce ANY
 export:         to AS396026 announce ANY
 export:         to AS396055 announce ANY
-export:         to AS396133 announce ANY
 export:         to AS396158 announce ANY
 export:         to AS396188 announce ANY
 export:         to AS396190 announce ANY
+export:         to AS396298 announce ANY
 export:         to AS396356 announce ANY
 export:         to AS396362 announce ANY
 export:         to AS396417 announce ANY
@@ -7616,6 +7629,7 @@ export:         to AS397048 announce ANY
 export:         to AS397174 announce ANY
 export:         to AS397289 announce ANY
 export:         to AS397301 announce ANY
+export:         to AS397304 announce ANY
 export:         to AS397308 announce ANY
 export:         to AS397358 announce ANY
 export:         to AS397369 announce ANY
@@ -7628,6 +7642,7 @@ export:         to AS397505 announce ANY
 export:         to AS397545 announce ANY
 export:         to AS397599 announce ANY
 export:         to AS397601 announce ANY
+export:         to AS397641 announce ANY
 export:         to AS397642 announce ANY
 export:         to AS397686 announce ANY
 export:         to AS397689 announce ANY
@@ -7670,7 +7685,6 @@ export:         to AS399480 announce ANY
 export:         to AS399515 announce ANY
 export:         to AS399539 announce ANY
 export:         to AS399558 announce ANY
-export:         to AS399587 announce ANY
 export:         to AS399647 announce ANY
 export:         to AS399678 announce ANY
 export:         to AS399712 announce ANY
@@ -7687,6 +7701,7 @@ export:         to AS399989 announce ANY
 export:         to AS399998 announce ANY
 export:         to AS400042 announce ANY
 export:         to AS400146 announce ANY
+export:         to AS400200 announce ANY
 export:         to AS400202 announce ANY
 export:         to AS400282 announce ANY
 export:         to AS400302 announce ANY
@@ -7696,6 +7711,7 @@ export:         to AS400444 announce ANY
 export:         to AS400475 announce ANY
 export:         to AS400511 announce ANY
 export:         to AS400541 announce ANY
+export:         to AS400645 announce ANY
 export:         to AS400662 announce ANY
 export:         to AS400666 announce ANY
 export:         to AS400687 announce ANY
@@ -7718,6 +7734,7 @@ mp-export:      afi ipv6.unicast to AS600 announce ANY
 mp-export:      afi ipv6.unicast to AS766 announce ANY
 mp-export:      afi ipv6.unicast to AS792 announce ANY
 mp-export:      afi ipv6.unicast to AS812 announce ANY
+mp-export:      afi ipv6.unicast to AS819 announce ANY
 mp-export:      afi ipv6.unicast to AS852 announce ANY
 mp-export:      afi ipv6.unicast to AS855 announce ANY
 mp-export:      afi ipv6.unicast to AS1017 announce ANY
@@ -7737,6 +7754,7 @@ mp-export:      afi ipv6.unicast to AS1680 announce ANY
 mp-export:      afi ipv6.unicast to AS1764 announce ANY
 mp-export:      afi ipv6.unicast to AS1820 announce ANY
 mp-export:      afi ipv6.unicast to AS1828 announce ANY
+mp-export:      afi ipv6.unicast to AS1968 announce ANY
 mp-export:      afi ipv6.unicast to AS2121 announce ANY
 mp-export:      afi ipv6.unicast to AS2200 announce ANY
 mp-export:      afi ipv6.unicast to AS2381 announce ANY
@@ -7749,11 +7767,9 @@ mp-export:      afi ipv6.unicast to AS2721 announce ANY
 mp-export:      afi ipv6.unicast to AS2728 announce ANY
 mp-export:      afi ipv6.unicast to AS2734 announce ANY
 mp-export:      afi ipv6.unicast to AS3170 announce ANY
-mp-export:      afi ipv6.unicast to AS3214 announce ANY
 mp-export:      afi ipv6.unicast to AS3252 announce ANY
 mp-export:      afi ipv6.unicast to AS3255 announce ANY
 mp-export:      afi ipv6.unicast to AS3264 announce ANY
-mp-export:      afi ipv6.unicast to AS3302 announce ANY
 mp-export:      afi ipv6.unicast to AS3367 announce ANY
 mp-export:      afi ipv6.unicast to AS3399 announce ANY
 mp-export:      afi ipv6.unicast to AS3584 announce ANY
@@ -7768,6 +7784,7 @@ mp-export:      afi ipv6.unicast to AS3943 announce ANY
 mp-export:      afi ipv6.unicast to AS4058 announce ANY
 mp-export:      afi ipv6.unicast to AS4150 announce ANY
 mp-export:      afi ipv6.unicast to AS4181 announce ANY
+mp-export:      afi ipv6.unicast to AS4213 announce ANY
 mp-export:      afi ipv6.unicast to AS4229 announce ANY
 mp-export:      afi ipv6.unicast to AS4230 announce ANY
 mp-export:      afi ipv6.unicast to AS4250 announce ANY
@@ -7798,7 +7815,6 @@ mp-export:      afi ipv6.unicast to AS5669 announce ANY
 mp-export:      afi ipv6.unicast to AS5670 announce ANY
 mp-export:      afi ipv6.unicast to AS5697 announce ANY
 mp-export:      afi ipv6.unicast to AS5738 announce ANY
-mp-export:      afi ipv6.unicast to AS5742 announce ANY
 mp-export:      afi ipv6.unicast to AS5760 announce ANY
 mp-export:      afi ipv6.unicast to AS5769 announce ANY
 mp-export:      afi ipv6.unicast to AS5777 announce ANY
@@ -7834,6 +7850,7 @@ mp-export:      afi ipv6.unicast to AS6770 announce ANY
 mp-export:      afi ipv6.unicast to AS6774 announce ANY
 mp-export:      afi ipv6.unicast to AS6779 announce ANY
 mp-export:      afi ipv6.unicast to AS6805 announce ANY
+mp-export:      afi ipv6.unicast to AS6810 announce ANY
 mp-export:      afi ipv6.unicast to AS6812 announce ANY
 mp-export:      afi ipv6.unicast to AS6848 announce ANY
 mp-export:      afi ipv6.unicast to AS6866 announce ANY
@@ -7895,7 +7912,6 @@ mp-export:      afi ipv6.unicast to AS8587 announce ANY
 mp-export:      afi ipv6.unicast to AS8607 announce ANY
 mp-export:      afi ipv6.unicast to AS8612 announce ANY
 mp-export:      afi ipv6.unicast to AS8648 announce ANY
-mp-export:      afi ipv6.unicast to AS8657 announce ANY
 mp-export:      afi ipv6.unicast to AS8751 announce ANY
 mp-export:      afi ipv6.unicast to AS8757 announce ANY
 mp-export:      afi ipv6.unicast to AS8781 announce ANY
@@ -7987,6 +8003,7 @@ mp-export:      afi ipv6.unicast to AS12360 announce ANY
 mp-export:      afi ipv6.unicast to AS12372 announce ANY
 mp-export:      afi ipv6.unicast to AS12387 announce ANY
 mp-export:      afi ipv6.unicast to AS12389 announce ANY
+mp-export:      afi ipv6.unicast to AS12400 announce ANY
 mp-export:      afi ipv6.unicast to AS12409 announce ANY
 mp-export:      afi ipv6.unicast to AS12414 announce ANY
 mp-export:      afi ipv6.unicast to AS12470 announce ANY
@@ -8066,7 +8083,6 @@ mp-export:      afi ipv6.unicast to AS14014 announce ANY
 mp-export:      afi ipv6.unicast to AS14016 announce ANY
 mp-export:      afi ipv6.unicast to AS14037 announce ANY
 mp-export:      afi ipv6.unicast to AS14061 announce ANY
-mp-export:      afi ipv6.unicast to AS14074 announce ANY
 mp-export:      afi ipv6.unicast to AS14080 announce ANY
 mp-export:      afi ipv6.unicast to AS14086 announce ANY
 mp-export:      afi ipv6.unicast to AS14135 announce ANY
@@ -8249,6 +8265,7 @@ mp-export:      afi ipv6.unicast to AS21056 announce ANY
 mp-export:      afi ipv6.unicast to AS21069 announce ANY
 mp-export:      afi ipv6.unicast to AS21221 announce ANY
 mp-export:      afi ipv6.unicast to AS21235 announce ANY
+mp-export:      afi ipv6.unicast to AS21245 announce ANY
 mp-export:      afi ipv6.unicast to AS21277 announce ANY
 mp-export:      afi ipv6.unicast to AS21321 announce ANY
 mp-export:      afi ipv6.unicast to AS21345 announce ANY
@@ -8265,11 +8282,11 @@ mp-export:      afi ipv6.unicast to AS21559 announce ANY
 mp-export:      afi ipv6.unicast to AS21570 announce ANY
 mp-export:      afi ipv6.unicast to AS21693 announce ANY
 mp-export:      afi ipv6.unicast to AS21700 announce ANY
+mp-export:      afi ipv6.unicast to AS21719 announce ANY
 mp-export:      afi ipv6.unicast to AS21723 announce ANY
 mp-export:      afi ipv6.unicast to AS21724 announce ANY
 mp-export:      afi ipv6.unicast to AS21743 announce ANY
 mp-export:      afi ipv6.unicast to AS21755 announce ANY
-mp-export:      afi ipv6.unicast to AS21775 announce ANY
 mp-export:      afi ipv6.unicast to AS21777 announce ANY
 mp-export:      afi ipv6.unicast to AS21804 announce ANY
 mp-export:      afi ipv6.unicast to AS21859 announce ANY
@@ -8298,9 +8315,9 @@ mp-export:      afi ipv6.unicast to AS22773 announce ANY
 mp-export:      afi ipv6.unicast to AS22792 announce ANY
 mp-export:      afi ipv6.unicast to AS22822 announce ANY
 mp-export:      afi ipv6.unicast to AS22838 announce ANY
+mp-export:      afi ipv6.unicast to AS22900 announce ANY
 mp-export:      afi ipv6.unicast to AS22911 announce ANY
 mp-export:      afi ipv6.unicast to AS22915 announce ANY
-mp-export:      afi ipv6.unicast to AS22925 announce ANY
 mp-export:      afi ipv6.unicast to AS22957 announce ANY
 mp-export:      afi ipv6.unicast to AS22964 announce ANY
 mp-export:      afi ipv6.unicast to AS22987 announce ANY
@@ -8314,6 +8331,7 @@ mp-export:      afi ipv6.unicast to AS23314 announce ANY
 mp-export:      afi ipv6.unicast to AS23342 announce ANY
 mp-export:      afi ipv6.unicast to AS23352 announce ANY
 mp-export:      afi ipv6.unicast to AS23367 announce ANY
+mp-export:      afi ipv6.unicast to AS23368 announce ANY
 mp-export:      afi ipv6.unicast to AS23393 announce ANY
 mp-export:      afi ipv6.unicast to AS23420 announce ANY
 mp-export:      afi ipv6.unicast to AS23470 announce ANY
@@ -8349,7 +8367,6 @@ mp-export:      afi ipv6.unicast to AS25369 announce ANY
 mp-export:      afi ipv6.unicast to AS25376 announce ANY
 mp-export:      afi ipv6.unicast to AS25441 announce ANY
 mp-export:      afi ipv6.unicast to AS25459 announce ANY
-mp-export:      afi ipv6.unicast to AS25472 announce ANY
 mp-export:      afi ipv6.unicast to AS25542 announce ANY
 mp-export:      afi ipv6.unicast to AS25562 announce ANY
 mp-export:      afi ipv6.unicast to AS25575 announce ANY
@@ -8373,6 +8390,7 @@ mp-export:      afi ipv6.unicast to AS26167 announce ANY
 mp-export:      afi ipv6.unicast to AS26258 announce ANY
 mp-export:      afi ipv6.unicast to AS26265 announce ANY
 mp-export:      afi ipv6.unicast to AS26282 announce ANY
+mp-export:      afi ipv6.unicast to AS26324 announce ANY
 mp-export:      afi ipv6.unicast to AS26342 announce ANY
 mp-export:      afi ipv6.unicast to AS26380 announce ANY
 mp-export:      afi ipv6.unicast to AS26462 announce ANY
@@ -8381,7 +8399,6 @@ mp-export:      afi ipv6.unicast to AS26512 announce ANY
 mp-export:      afi ipv6.unicast to AS26523 announce ANY
 mp-export:      afi ipv6.unicast to AS26546 announce ANY
 mp-export:      afi ipv6.unicast to AS26554 announce ANY
-mp-export:      afi ipv6.unicast to AS26558 announce ANY
 mp-export:      afi ipv6.unicast to AS26637 announce ANY
 mp-export:      afi ipv6.unicast to AS26667 announce ANY
 mp-export:      afi ipv6.unicast to AS26673 announce ANY
@@ -8390,6 +8407,7 @@ mp-export:      afi ipv6.unicast to AS26769 announce ANY
 mp-export:      afi ipv6.unicast to AS26848 announce ANY
 mp-export:      afi ipv6.unicast to AS26863 announce ANY
 mp-export:      afi ipv6.unicast to AS26878 announce ANY
+mp-export:      afi ipv6.unicast to AS26955 announce ANY
 mp-export:      afi ipv6.unicast to AS26967 announce ANY
 mp-export:      afi ipv6.unicast to AS27299 announce ANY
 mp-export:      afi ipv6.unicast to AS27311 announce ANY
@@ -8407,7 +8425,6 @@ mp-export:      afi ipv6.unicast to AS27978 announce ANY
 mp-export:      afi ipv6.unicast to AS28007 announce ANY
 mp-export:      afi ipv6.unicast to AS28398 announce ANY
 mp-export:      afi ipv6.unicast to AS28458 announce ANY
-mp-export:      afi ipv6.unicast to AS28513 announce ANY
 mp-export:      afi ipv6.unicast to AS28663 announce ANY
 mp-export:      afi ipv6.unicast to AS28677 announce ANY
 mp-export:      afi ipv6.unicast to AS28685 announce ANY
@@ -8444,12 +8461,12 @@ mp-export:      afi ipv6.unicast to AS29386 announce ANY
 mp-export:      afi ipv6.unicast to AS29396 announce ANY
 mp-export:      afi ipv6.unicast to AS29405 announce ANY
 mp-export:      afi ipv6.unicast to AS29449 announce ANY
-mp-export:      afi ipv6.unicast to AS29467 announce ANY
 mp-export:      afi ipv6.unicast to AS29518 announce ANY
 mp-export:      afi ipv6.unicast to AS29535 announce ANY
 mp-export:      afi ipv6.unicast to AS29550 announce ANY
 mp-export:      afi ipv6.unicast to AS29551 announce ANY
 mp-export:      afi ipv6.unicast to AS29591 announce ANY
+mp-export:      afi ipv6.unicast to AS29596 announce ANY
 mp-export:      afi ipv6.unicast to AS29636 announce ANY
 mp-export:      afi ipv6.unicast to AS29644 announce ANY
 mp-export:      afi ipv6.unicast to AS29655 announce ANY
@@ -8459,6 +8476,7 @@ mp-export:      afi ipv6.unicast to AS29757 announce ANY
 mp-export:      afi ipv6.unicast to AS29761 announce ANY
 mp-export:      afi ipv6.unicast to AS29802 announce ANY
 mp-export:      afi ipv6.unicast to AS29838 announce ANY
+mp-export:      afi ipv6.unicast to AS29866 announce ANY
 mp-export:      afi ipv6.unicast to AS29884 announce ANY
 mp-export:      afi ipv6.unicast to AS29907 announce ANY
 mp-export:      afi ipv6.unicast to AS29909 announce ANY
@@ -8530,7 +8548,7 @@ mp-export:      afi ipv6.unicast to AS31743 announce ANY
 mp-export:      afi ipv6.unicast to AS31760 announce ANY
 mp-export:      afi ipv6.unicast to AS31898 announce ANY
 mp-export:      afi ipv6.unicast to AS31936 announce ANY
-mp-export:      afi ipv6.unicast to AS32030 announce ANY
+mp-export:      afi ipv6.unicast to AS31989 announce ANY
 mp-export:      afi ipv6.unicast to AS32035 announce ANY
 mp-export:      afi ipv6.unicast to AS32098 announce ANY
 mp-export:      afi ipv6.unicast to AS32133 announce ANY
@@ -8572,6 +8590,7 @@ mp-export:      afi ipv6.unicast to AS33438 announce ANY
 mp-export:      afi ipv6.unicast to AS33445 announce ANY
 mp-export:      afi ipv6.unicast to AS33459 announce ANY
 mp-export:      afi ipv6.unicast to AS33494 announce ANY
+mp-export:      afi ipv6.unicast to AS33574 announce ANY
 mp-export:      afi ipv6.unicast to AS33576 announce ANY
 mp-export:      afi ipv6.unicast to AS33597 announce ANY
 mp-export:      afi ipv6.unicast to AS33619 announce ANY
@@ -8601,6 +8620,7 @@ mp-export:      afi ipv6.unicast to AS34309 announce ANY
 mp-export:      afi ipv6.unicast to AS34409 announce ANY
 mp-export:      afi ipv6.unicast to AS34428 announce ANY
 mp-export:      afi ipv6.unicast to AS34442 announce ANY
+mp-export:      afi ipv6.unicast to AS34471 announce ANY
 mp-export:      afi ipv6.unicast to AS34510 announce ANY
 mp-export:      afi ipv6.unicast to AS34525 announce ANY
 mp-export:      afi ipv6.unicast to AS34549 announce ANY
@@ -8633,13 +8653,13 @@ mp-export:      afi ipv6.unicast to AS35491 announce ANY
 mp-export:      afi ipv6.unicast to AS35548 announce ANY
 mp-export:      afi ipv6.unicast to AS35574 announce ANY
 mp-export:      afi ipv6.unicast to AS35593 announce ANY
+mp-export:      afi ipv6.unicast to AS35625 announce ANY
 mp-export:      afi ipv6.unicast to AS35699 announce ANY
 mp-export:      afi ipv6.unicast to AS35745 announce ANY
 mp-export:      afi ipv6.unicast to AS35838 announce ANY
 mp-export:      afi ipv6.unicast to AS35908 announce ANY
 mp-export:      afi ipv6.unicast to AS35953 announce ANY
 mp-export:      afi ipv6.unicast to AS35975 announce ANY
-mp-export:      afi ipv6.unicast to AS35993 announce ANY
 mp-export:      afi ipv6.unicast to AS35994 announce ANY
 mp-export:      afi ipv6.unicast to AS36007 announce ANY
 mp-export:      afi ipv6.unicast to AS36040 announce ANY
@@ -8723,7 +8743,6 @@ mp-export:      afi ipv6.unicast to AS40523 announce ANY
 mp-export:      afi ipv6.unicast to AS40528 announce ANY
 mp-export:      afi ipv6.unicast to AS40581 announce ANY
 mp-export:      afi ipv6.unicast to AS40676 announce ANY
-mp-export:      afi ipv6.unicast to AS40729 announce ANY
 mp-export:      afi ipv6.unicast to AS40739 announce ANY
 mp-export:      afi ipv6.unicast to AS40763 announce ANY
 mp-export:      afi ipv6.unicast to AS40769 announce ANY
@@ -8816,7 +8835,6 @@ mp-export:      afi ipv6.unicast to AS43898 announce ANY
 mp-export:      afi ipv6.unicast to AS43915 announce ANY
 mp-export:      afi ipv6.unicast to AS44066 announce ANY
 mp-export:      afi ipv6.unicast to AS44124 announce ANY
-mp-export:      afi ipv6.unicast to AS44134 announce ANY
 mp-export:      afi ipv6.unicast to AS44150 announce ANY
 mp-export:      afi ipv6.unicast to AS44212 announce ANY
 mp-export:      afi ipv6.unicast to AS44217 announce ANY
@@ -8875,7 +8893,6 @@ mp-export:      afi ipv6.unicast to AS47443 announce ANY
 mp-export:      afi ipv6.unicast to AS47674 announce ANY
 mp-export:      afi ipv6.unicast to AS47680 announce ANY
 mp-export:      afi ipv6.unicast to AS47720 announce ANY
-mp-export:      afi ipv6.unicast to AS47787 announce ANY
 mp-export:      afi ipv6.unicast to AS47836 announce ANY
 mp-export:      afi ipv6.unicast to AS47866 announce ANY
 mp-export:      afi ipv6.unicast to AS47872 announce ANY
@@ -8902,7 +8919,6 @@ mp-export:      afi ipv6.unicast to AS48638 announce ANY
 mp-export:      afi ipv6.unicast to AS48659 announce ANY
 mp-export:      afi ipv6.unicast to AS48804 announce ANY
 mp-export:      afi ipv6.unicast to AS48832 announce ANY
-mp-export:      afi ipv6.unicast to AS48849 announce ANY
 mp-export:      afi ipv6.unicast to AS48850 announce ANY
 mp-export:      afi ipv6.unicast to AS48896 announce ANY
 mp-export:      afi ipv6.unicast to AS48910 announce ANY
@@ -8933,6 +8949,7 @@ mp-export:      afi ipv6.unicast to AS49765 announce ANY
 mp-export:      afi ipv6.unicast to AS49870 announce ANY
 mp-export:      afi ipv6.unicast to AS49915 announce ANY
 mp-export:      afi ipv6.unicast to AS50121 announce ANY
+mp-export:      afi ipv6.unicast to AS50124 announce ANY
 mp-export:      afi ipv6.unicast to AS50173 announce ANY
 mp-export:      afi ipv6.unicast to AS50188 announce ANY
 mp-export:      afi ipv6.unicast to AS50226 announce ANY
@@ -8971,14 +8988,15 @@ mp-export:      afi ipv6.unicast to AS51857 announce ANY
 mp-export:      afi ipv6.unicast to AS51871 announce ANY
 mp-export:      afi ipv6.unicast to AS51890 announce ANY
 mp-export:      afi ipv6.unicast to AS51944 announce ANY
+mp-export:      afi ipv6.unicast to AS52000 announce ANY
 mp-export:      afi ipv6.unicast to AS52030 announce ANY
 mp-export:      afi ipv6.unicast to AS52106 announce ANY
+mp-export:      afi ipv6.unicast to AS52263 announce ANY
 mp-export:      afi ipv6.unicast to AS52320 announce ANY
 mp-export:      afi ipv6.unicast to AS52347 announce ANY
 mp-export:      afi ipv6.unicast to AS52393 announce ANY
 mp-export:      afi ipv6.unicast to AS52438 announce ANY
 mp-export:      afi ipv6.unicast to AS52580 announce ANY
-mp-export:      afi ipv6.unicast to AS52873 announce ANY
 mp-export:      afi ipv6.unicast to AS53264 announce ANY
 mp-export:      afi ipv6.unicast to AS53292 announce ANY
 mp-export:      afi ipv6.unicast to AS53340 announce ANY
@@ -9027,6 +9045,7 @@ mp-export:      afi ipv6.unicast to AS55002 announce ANY
 mp-export:      afi ipv6.unicast to AS55011 announce ANY
 mp-export:      afi ipv6.unicast to AS55061 announce ANY
 mp-export:      afi ipv6.unicast to AS55081 announce ANY
+mp-export:      afi ipv6.unicast to AS55145 announce ANY
 mp-export:      afi ipv6.unicast to AS55191 announce ANY
 mp-export:      afi ipv6.unicast to AS55195 announce ANY
 mp-export:      afi ipv6.unicast to AS55256 announce ANY
@@ -9040,6 +9059,7 @@ mp-export:      afi ipv6.unicast to AS56478 announce ANY
 mp-export:      afi ipv6.unicast to AS56504 announce ANY
 mp-export:      afi ipv6.unicast to AS56511 announce ANY
 mp-export:      afi ipv6.unicast to AS56515 announce ANY
+mp-export:      afi ipv6.unicast to AS56550 announce ANY
 mp-export:      afi ipv6.unicast to AS56595 announce ANY
 mp-export:      afi ipv6.unicast to AS56611 announce ANY
 mp-export:      afi ipv6.unicast to AS56630 announce ANY
@@ -9047,7 +9067,6 @@ mp-export:      afi ipv6.unicast to AS56647 announce ANY
 mp-export:      afi ipv6.unicast to AS56655 announce ANY
 mp-export:      afi ipv6.unicast to AS56683 announce ANY
 mp-export:      afi ipv6.unicast to AS56767 announce ANY
-mp-export:      afi ipv6.unicast to AS56786 announce ANY
 mp-export:      afi ipv6.unicast to AS56894 announce ANY
 mp-export:      afi ipv6.unicast to AS56953 announce ANY
 mp-export:      afi ipv6.unicast to AS56958 announce ANY
@@ -9084,7 +9103,6 @@ mp-export:      afi ipv6.unicast to AS59455 announce ANY
 mp-export:      afi ipv6.unicast to AS59524 announce ANY
 mp-export:      afi ipv6.unicast to AS59545 announce ANY
 mp-export:      afi ipv6.unicast to AS59580 announce ANY
-mp-export:      afi ipv6.unicast to AS59605 announce ANY
 mp-export:      afi ipv6.unicast to AS59711 announce ANY
 mp-export:      afi ipv6.unicast to AS59816 announce ANY
 mp-export:      afi ipv6.unicast to AS59827 announce ANY
@@ -9121,6 +9139,7 @@ mp-export:      afi ipv6.unicast to AS60940 announce ANY
 mp-export:      afi ipv6.unicast to AS61003 announce ANY
 mp-export:      afi ipv6.unicast to AS61046 announce ANY
 mp-export:      afi ipv6.unicast to AS61049 announce ANY
+mp-export:      afi ipv6.unicast to AS61135 announce ANY
 mp-export:      afi ipv6.unicast to AS61149 announce ANY
 mp-export:      afi ipv6.unicast to AS61154 announce ANY
 mp-export:      afi ipv6.unicast to AS61215 announce ANY
@@ -9142,12 +9161,10 @@ mp-export:      afi ipv6.unicast to AS62087 announce ANY
 mp-export:      afi ipv6.unicast to AS62167 announce ANY
 mp-export:      afi ipv6.unicast to AS62168 announce ANY
 mp-export:      afi ipv6.unicast to AS62184 announce ANY
-mp-export:      afi ipv6.unicast to AS62190 announce ANY
 mp-export:      afi ipv6.unicast to AS62234 announce ANY
 mp-export:      afi ipv6.unicast to AS62240 announce ANY
 mp-export:      afi ipv6.unicast to AS62244 announce ANY
 mp-export:      afi ipv6.unicast to AS62363 announce ANY
-mp-export:      afi ipv6.unicast to AS62488 announce ANY
 mp-export:      afi ipv6.unicast to AS62542 announce ANY
 mp-export:      afi ipv6.unicast to AS62563 announce ANY
 mp-export:      afi ipv6.unicast to AS62597 announce ANY
@@ -9188,6 +9205,7 @@ mp-export:      afi ipv6.unicast to AS64275 announce ANY
 mp-export:      afi ipv6.unicast to AS64277 announce ANY
 mp-export:      afi ipv6.unicast to AS64304 announce ANY
 mp-export:      afi ipv6.unicast to AS64426 announce ANY
+mp-export:      afi ipv6.unicast to AS65538 announce ANY
 mp-export:      afi ipv6.unicast to AS131274 announce ANY
 mp-export:      afi ipv6.unicast to AS131314 announce ANY
 mp-export:      afi ipv6.unicast to AS133335 announce ANY
@@ -9203,9 +9221,9 @@ mp-export:      afi ipv6.unicast to AS137912 announce ANY
 mp-export:      afi ipv6.unicast to AS138005 announce ANY
 mp-export:      afi ipv6.unicast to AS138576 announce ANY
 mp-export:      afi ipv6.unicast to AS138611 announce ANY
+mp-export:      afi ipv6.unicast to AS138915 announce ANY
 mp-export:      afi ipv6.unicast to AS141039 announce ANY
 mp-export:      afi ipv6.unicast to AS147049 announce ANY
-mp-export:      afi ipv6.unicast to AS196640 announce ANY
 mp-export:      afi ipv6.unicast to AS196670 announce ANY
 mp-export:      afi ipv6.unicast to AS196729 announce ANY
 mp-export:      afi ipv6.unicast to AS196755 announce ANY
@@ -9250,6 +9268,7 @@ mp-export:      afi ipv6.unicast to AS198890 announce ANY
 mp-export:      afi ipv6.unicast to AS198949 announce ANY
 mp-export:      afi ipv6.unicast to AS199081 announce ANY
 mp-export:      afi ipv6.unicast to AS199113 announce ANY
+mp-export:      afi ipv6.unicast to AS199124 announce ANY
 mp-export:      afi ipv6.unicast to AS199156 announce ANY
 mp-export:      afi ipv6.unicast to AS199163 announce ANY
 mp-export:      afi ipv6.unicast to AS199237 announce ANY
@@ -9269,11 +9288,9 @@ mp-export:      afi ipv6.unicast to AS199775 announce ANY
 mp-export:      afi ipv6.unicast to AS199790 announce ANY
 mp-export:      afi ipv6.unicast to AS199799 announce ANY
 mp-export:      afi ipv6.unicast to AS199880 announce ANY
-mp-export:      afi ipv6.unicast to AS199892 announce ANY
 mp-export:      afi ipv6.unicast to AS200032 announce ANY
 mp-export:      afi ipv6.unicast to AS200052 announce ANY
 mp-export:      afi ipv6.unicast to AS200099 announce ANY
-mp-export:      afi ipv6.unicast to AS200187 announce ANY
 mp-export:      afi ipv6.unicast to AS200271 announce ANY
 mp-export:      afi ipv6.unicast to AS200410 announce ANY
 mp-export:      afi ipv6.unicast to AS200416 announce ANY
@@ -9287,11 +9304,8 @@ mp-export:      afi ipv6.unicast to AS200612 announce ANY
 mp-export:      afi ipv6.unicast to AS200653 announce ANY
 mp-export:      afi ipv6.unicast to AS200705 announce ANY
 mp-export:      afi ipv6.unicast to AS200713 announce ANY
-mp-export:      afi ipv6.unicast to AS200738 announce ANY
-mp-export:      afi ipv6.unicast to AS200758 announce ANY
 mp-export:      afi ipv6.unicast to AS200780 announce ANY
 mp-export:      afi ipv6.unicast to AS200845 announce ANY
-mp-export:      afi ipv6.unicast to AS200861 announce ANY
 mp-export:      afi ipv6.unicast to AS200899 announce ANY
 mp-export:      afi ipv6.unicast to AS200904 announce ANY
 mp-export:      afi ipv6.unicast to AS200961 announce ANY
@@ -9315,7 +9329,6 @@ mp-export:      afi ipv6.unicast to AS201895 announce ANY
 mp-export:      afi ipv6.unicast to AS201942 announce ANY
 mp-export:      afi ipv6.unicast to AS201947 announce ANY
 mp-export:      afi ipv6.unicast to AS201958 announce ANY
-mp-export:      afi ipv6.unicast to AS201971 announce ANY
 mp-export:      afi ipv6.unicast to AS201990 announce ANY
 mp-export:      afi ipv6.unicast to AS202010 announce ANY
 mp-export:      afi ipv6.unicast to AS202032 announce ANY
@@ -9323,6 +9336,7 @@ mp-export:      afi ipv6.unicast to AS202075 announce ANY
 mp-export:      afi ipv6.unicast to AS202623 announce ANY
 mp-export:      afi ipv6.unicast to AS202713 announce ANY
 mp-export:      afi ipv6.unicast to AS202766 announce ANY
+mp-export:      afi ipv6.unicast to AS202885 announce ANY
 mp-export:      afi ipv6.unicast to AS203050 announce ANY
 mp-export:      afi ipv6.unicast to AS203055 announce ANY
 mp-export:      afi ipv6.unicast to AS203182 announce ANY
@@ -9333,14 +9347,12 @@ mp-export:      afi ipv6.unicast to AS203346 announce ANY
 mp-export:      afi ipv6.unicast to AS203351 announce ANY
 mp-export:      afi ipv6.unicast to AS203410 announce ANY
 mp-export:      afi ipv6.unicast to AS203608 announce ANY
-mp-export:      afi ipv6.unicast to AS203639 announce ANY
 mp-export:      afi ipv6.unicast to AS203649 announce ANY
 mp-export:      afi ipv6.unicast to AS203724 announce ANY
 mp-export:      afi ipv6.unicast to AS204126 announce ANY
 mp-export:      afi ipv6.unicast to AS204188 announce ANY
 mp-export:      afi ipv6.unicast to AS204258 announce ANY
 mp-export:      afi ipv6.unicast to AS204260 announce ANY
-mp-export:      afi ipv6.unicast to AS204353 announce ANY
 mp-export:      afi ipv6.unicast to AS204419 announce ANY
 mp-export:      afi ipv6.unicast to AS204476 announce ANY
 mp-export:      afi ipv6.unicast to AS204536 announce ANY
@@ -9357,7 +9369,6 @@ mp-export:      afi ipv6.unicast to AS205025 announce ANY
 mp-export:      afi ipv6.unicast to AS205039 announce ANY
 mp-export:      afi ipv6.unicast to AS205041 announce ANY
 mp-export:      afi ipv6.unicast to AS205142 announce ANY
-mp-export:      afi ipv6.unicast to AS205185 announce ANY
 mp-export:      afi ipv6.unicast to AS205394 announce ANY
 mp-export:      afi ipv6.unicast to AS205476 announce ANY
 mp-export:      afi ipv6.unicast to AS205544 announce ANY
@@ -9412,19 +9423,18 @@ mp-export:      afi ipv6.unicast to AS209549 announce ANY
 mp-export:      afi ipv6.unicast to AS209704 announce ANY
 mp-export:      afi ipv6.unicast to AS209811 announce ANY
 mp-export:      afi ipv6.unicast to AS210211 announce ANY
-mp-export:      afi ipv6.unicast to AS210253 announce ANY
 mp-export:      afi ipv6.unicast to AS210269 announce ANY
 mp-export:      afi ipv6.unicast to AS210321 announce ANY
 mp-export:      afi ipv6.unicast to AS210329 announce ANY
 mp-export:      afi ipv6.unicast to AS211029 announce ANY
 mp-export:      afi ipv6.unicast to AS211526 announce ANY
 mp-export:      afi ipv6.unicast to AS211597 announce ANY
+mp-export:      afi ipv6.unicast to AS211766 announce ANY
 mp-export:      afi ipv6.unicast to AS212045 announce ANY
 mp-export:      afi ipv6.unicast to AS212055 announce ANY
 mp-export:      afi ipv6.unicast to AS212097 announce ANY
 mp-export:      afi ipv6.unicast to AS212175 announce ANY
 mp-export:      afi ipv6.unicast to AS212708 announce ANY
-mp-export:      afi ipv6.unicast to AS212882 announce ANY
 mp-export:      afi ipv6.unicast to AS213039 announce ANY
 mp-export:      afi ipv6.unicast to AS213094 announce ANY
 mp-export:      afi ipv6.unicast to AS213101 announce ANY
@@ -9432,6 +9442,7 @@ mp-export:      afi ipv6.unicast to AS213202 announce ANY
 mp-export:      afi ipv6.unicast to AS213205 announce ANY
 mp-export:      afi ipv6.unicast to AS213308 announce ANY
 mp-export:      afi ipv6.unicast to AS213373 announce ANY
+mp-export:      afi ipv6.unicast to AS213394 announce ANY
 mp-export:      afi ipv6.unicast to AS262206 announce ANY
 mp-export:      afi ipv6.unicast to AS262287 announce ANY
 mp-export:      afi ipv6.unicast to AS262589 announce ANY
@@ -9442,6 +9453,7 @@ mp-export:      afi ipv6.unicast to AS264409 announce ANY
 mp-export:      afi ipv6.unicast to AS264763 announce ANY
 mp-export:      afi ipv6.unicast to AS265556 announce ANY
 mp-export:      afi ipv6.unicast to AS265680 announce ANY
+mp-export:      afi ipv6.unicast to AS270120 announce ANY
 mp-export:      afi ipv6.unicast to AS393234 announce ANY
 mp-export:      afi ipv6.unicast to AS393241 announce ANY
 mp-export:      afi ipv6.unicast to AS393246 announce ANY
@@ -9453,6 +9465,7 @@ mp-export:      afi ipv6.unicast to AS393900 announce ANY
 mp-export:      afi ipv6.unicast to AS394015 announce ANY
 mp-export:      afi ipv6.unicast to AS394102 announce ANY
 mp-export:      afi ipv6.unicast to AS394141 announce ANY
+mp-export:      afi ipv6.unicast to AS394177 announce ANY
 mp-export:      afi ipv6.unicast to AS394186 announce ANY
 mp-export:      afi ipv6.unicast to AS394232 announce ANY
 mp-export:      afi ipv6.unicast to AS394303 announce ANY
@@ -9510,6 +9523,7 @@ mp-export:      afi ipv6.unicast to AS397418 announce ANY
 mp-export:      afi ipv6.unicast to AS397494 announce ANY
 mp-export:      afi ipv6.unicast to AS397505 announce ANY
 mp-export:      afi ipv6.unicast to AS397545 announce ANY
+mp-export:      afi ipv6.unicast to AS397599 announce ANY
 mp-export:      afi ipv6.unicast to AS397601 announce ANY
 mp-export:      afi ipv6.unicast to AS397727 announce ANY
 mp-export:      afi ipv6.unicast to AS397912 announce ANY
@@ -9533,7 +9547,6 @@ mp-export:      afi ipv6.unicast to AS399458 announce ANY
 mp-export:      afi ipv6.unicast to AS399480 announce ANY
 mp-export:      afi ipv6.unicast to AS399515 announce ANY
 mp-export:      afi ipv6.unicast to AS399558 announce ANY
-mp-export:      afi ipv6.unicast to AS399587 announce ANY
 mp-export:      afi ipv6.unicast to AS399647 announce ANY
 mp-export:      afi ipv6.unicast to AS399808 announce ANY
 mp-export:      afi ipv6.unicast to AS399809 announce ANY
@@ -9547,6 +9560,7 @@ mp-export:      afi ipv6.unicast to AS399989 announce ANY
 mp-export:      afi ipv6.unicast to AS399998 announce ANY
 mp-export:      afi ipv6.unicast to AS400042 announce ANY
 mp-export:      afi ipv6.unicast to AS400146 announce ANY
+mp-export:      afi ipv6.unicast to AS400200 announce ANY
 mp-export:      afi ipv6.unicast to AS400202 announce ANY
 mp-export:      afi ipv6.unicast to AS400282 announce ANY
 mp-export:      afi ipv6.unicast to AS400302 announce ANY
@@ -9574,7 +9588,123 @@ status:         ASSIGNED
 mnt-by:         RIPE-NCC-END-MNT
 mnt-by:         AS3257-ROUTE-MNT
 created:        2002-09-20T10:45:34Z
-last-modified:  2023-07-21T10:03:34Z
+last-modified:  2023-10-26T09:24:07Z
 source:         RIPE
+
+organisation:   ORG-GCI2-RIPE
+org-name:       GTT Communications Inc.
+country:        US
+org-type:       LIR
+address:        Hugenottenallee 167
+address:        63263
+address:        Neu-Isenburg
+address:        GERMANY
+phone:          +1 703 442 5500
+admin-c:        TK7169-RIPE
+tech-c:         TK7169-RIPE
+abuse-c:        AR37017-RIPE
+mnt-ref:        AS3257-ROOT-MNT
+mnt-by:         RIPE-NCC-HM-MNT
+mnt-by:         AS3257-ROOT-MNT
+created:        2016-07-19T07:50:40Z
+last-modified:  2020-12-16T13:16:49Z
+source:         RIPE # Filtered
+
+role:           AS3257 Net Admin
+address:        GTT
+address:        Hugenottenallee 167
+address:        63263 Neu-Isenburg
+address:        Germany
+phone:          +49 6102 8235381
+remarks:        Information: http://www.gtt.net
+remarks:        Concerning abuse and spam ... mailto: abuse@gtt.net
+abuse-mailbox:  abuse@gtt.net
+admin-c:        SE33-RIPE
+tech-c:         TK333-RIPE
+nic-hdl:        NET3257-RIPE
+remarks:        hostmaster role account
+mnt-by:         AS3257-PERS-MNT
+created:        2009-07-06T08:22:53Z
+last-modified:  2018-01-08T11:39:38Z
+source:         RIPE # Filtered
+
+person:         Sven Engelhardt
+address:        Hugenottenallee 167
+address:        63263 Neu-Isenburg
+address:        Germany
+phone:          +49 6102 8235353
+nic-hdl:        SE33-RIPE
+remarks:        PGP public key certificate object: PGPKEY-2B682C80
+remarks:        Internic: SE585
+mnt-by:         AS3257-PERS-MNT
+created:        2002-04-29T13:45:28Z
+last-modified:  2018-01-08T11:37:27Z
+source:         RIPE # Filtered
+
+% Information related to 'NET3257-RIPE'
+
+role:           AS3257 Net Admin
+address:        GTT
+address:        Hugenottenallee 167
+address:        63263 Neu-Isenburg
+address:        Germany
+phone:          +49 6102 8235381
+remarks:        Information: http://www.gtt.net
+remarks:        Concerning abuse and spam ... mailto: abuse@gtt.net
+abuse-mailbox:  abuse@gtt.net
+admin-c:        SE33-RIPE
+tech-c:         TK333-RIPE
+nic-hdl:        NET3257-RIPE
+remarks:        hostmaster role account
+mnt-by:         AS3257-PERS-MNT
+created:        2009-07-06T08:22:53Z
+last-modified:  2018-01-08T11:39:38Z
+source:         RIPE # Filtered
+
+person:         Sven Engelhardt
+address:        Hugenottenallee 167
+address:        63263 Neu-Isenburg
+address:        Germany
+phone:          +49 6102 8235353
+nic-hdl:        SE33-RIPE
+remarks:        PGP public key certificate object: PGPKEY-2B682C80
+remarks:        Internic: SE585
+mnt-by:         AS3257-PERS-MNT
+created:        2002-04-29T13:45:28Z
+last-modified:  2018-01-08T11:37:27Z
+source:         RIPE # Filtered
+
+person:         Tobias Kuettner
+address:        GTT
+address:        Hugenottenallee 167
+address:        63263 Neu-Isenburg
+address:        Germany
+phone:          +49 6948007422
+nic-hdl:        TK333-RIPE
+remarks:        PGP public key certificate object: PGPKEY-369DB26A
+remarks:        PGP public key certificate object: PGPKEY-4030ED10
+mnt-by:         AS3257-PERS-MNT
+created:        2002-04-29T13:41:11Z
+last-modified:  2023-01-23T13:14:33Z
+source:         RIPE # Filtered
+
+% Information related to 'ANA83-RIPE'
+
+person:         AS3257 Net Admin
+address:        Hugenottenallee 167
+address:        Neu-Isenburg
+address:        HE
+address:        63263
+address:        DE
+phone:          +49 6102 8235381
+mnt-by:         AS3257-IPAM-MNT
+nic-hdl:        ANA83-RIPE
+created:        2019-07-30T14:14:48Z
+last-modified:  2019-07-30T14:14:48Z
+source:         RIPE # Filtered
+
+% This query was served by the RIPE Database Query Service version 1.108 (DEXTER)
+
+
 
 "#;
