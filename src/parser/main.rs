@@ -56,6 +56,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// email:          rpsl-parser@github.com ◀───── &"email"   ───  &"rpsl-parser@github.com"
 /// nic-hdl:        RPSL1-RIPE ◀───────────────── &"nic-hdl" ───  &"RPSL1-RIPE"
 /// source:         RIPE ◀─────────────────────── &"source"  ───  &"RIPE"
+
 /// ```
 ///
 /// # Errors

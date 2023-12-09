@@ -4,6 +4,9 @@
   <a href="https://github.com/srv6d/rpsl-parser/actions">
     <img src="https://github.com/srv6d/rpsl-parser/workflows/CI/badge.svg" alt="CI status">
   </a>
+  <a href="https://codspeed.io/SRv6d/rpsl-parser">
+    <img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed Badge">
+  </a>
   <a href="https://crates.io/crates/rpsl-parser">
     <img src="https://img.shields.io/crates/v/rpsl-parser.svg" alt="Cargo version">
   </a>
@@ -21,6 +24,8 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 
 > [!WARNING]
 > This project is still in early stages of development and its API is not yet stable.
+
+[**Docs**](https://docs.rs/rpsl-parser/latest/rpsl_parser/) | [**Performance**](https://github.com/SRv6d/rpsl-parser/tree/main/docs/benchmark)
 
 ## Usage
 
