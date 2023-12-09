@@ -161,6 +161,7 @@ impl PartialEq<crate::rpsl::Attribute> for AttributeView<'_> {
     }
 }
 
+#[cfg(test)]
 mod test {
     use super::*;
 

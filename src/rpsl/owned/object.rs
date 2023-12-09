@@ -271,6 +271,7 @@ macro_rules! object {
     };
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 

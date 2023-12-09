@@ -131,6 +131,7 @@ impl<'a> IntoIterator for ObjectView<'a> {
     }
 }
 
+#[cfg(test)]
 mod test {
     use super::*;
 
