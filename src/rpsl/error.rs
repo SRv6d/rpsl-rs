@@ -4,10 +4,21 @@ use thiserror::Error;
 pub enum InvalidNameError {
     #[error("cannot be empty")]
     Empty,
+    #[error("cannot contain non-ASCII characters")]
+    NonAscii,
+    #[error("cannot start with a non-letter ASCII character")]
+    NonAsciiAlphabeticFirstChar,
+    #[error("cannot end with a non-letter or non-digit ASCII character")]
+    NonAsciiAlphanumericLastChar,
 }
 
 #[derive(Error, Debug)]
-pub enum InvalidValueError {}
+pub enum InvalidValueError {
+    #[error("cannot contain non-ASCII characters")]
+    NonAscii,
+    #[error("cannot contain ASCII control characters")]
+    ContainsControlChar,
+}
 
 #[derive(Error, Debug)]
 /// An error that can occur when parsing or trying to create an attribute that is invalid.

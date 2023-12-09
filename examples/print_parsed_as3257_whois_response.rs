@@ -1,4 +1,9 @@
-use rpsl_parser::{parse_whois_response, Object};
+use rpsl_parser::{parse_whois_response, ObjectView};
+
+fn main() {
+    let parsed_objects: Vec<ObjectView> = parse_whois_response(AS3257_WHOIS_RESPONSE).unwrap();
+    println!("{:#?}", parsed_objects);
+}
 
 const AS3257_WHOIS_RESPONSE: &str = r#"
 % Note: this output has been filtered.
@@ -9699,8 +9704,3 @@ source:         RIPE # Filtered
 
 
 "#;
-
-fn main() {
-    let parsed_objects: Vec<Object> = parse_whois_response(AS3257_WHOIS_RESPONSE).unwrap();
-    println!("{:#?}", parsed_objects);
-}
