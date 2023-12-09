@@ -115,7 +115,7 @@ use std::{fmt, ops::Index};
 /// [`Object`]: crate::Object
 /// [`parse_object`]: crate::parse_object
 /// [`parse_whois_response`]: crate::parse_whois_response
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone)]
 #[allow(clippy::len_without_is_empty)]
 pub struct ObjectView<'a> {
     attributes: Vec<AttributeView<'a>>,
@@ -198,6 +198,12 @@ impl<'a> IntoIterator for ObjectView<'a> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.attributes.into_iter()
+    }
+}
+
+impl fmt::Debug for ObjectView<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:#?}", self.attributes)
     }
 }
 
