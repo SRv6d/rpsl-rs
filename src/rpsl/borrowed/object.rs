@@ -1,4 +1,5 @@
 use super::attribute::AttributeView;
+use std::ops::Index;
 
 /// A view into an RPSL object in textual representation somewhere in memory.
 ///
@@ -47,13 +48,13 @@ use super::attribute::AttributeView;
 /// # use rpsl_parser::{parse_object, Attribute};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = parse_object("
-/// #  role:           ACME Company
-/// #  address:        Packet Street
-/// #                  128 Series of Tubes
-/// #                  Internet
-/// #  email:          rpsl-parser@github.com
-/// #  nic-hdl:        RPSL1-RIPE
-/// #  source:         RIPE
+/// # role:           ACME Company
+/// # address:        Packet Street 6
+/// #                 128 Series of Tubes
+/// #                 Internet
+/// # email:          rpsl-parser@github.com
+/// # nic-hdl:        RPSL1-RIPE
+/// # source:         RIPE
 /// #
 /// # ")?;
 /// assert_eq!(role_acme.get("role"), vec!["ACME Company"]);
@@ -80,6 +81,25 @@ impl<'a> ObjectView<'a> {
     pub fn len(&self) -> usize {
         self.0.len()
     }
+    /// Get the value(s) of specific attribute(s).
+    pub fn get(&self, name: &str) -> Vec<&str> {
+        let values_matching_name = self.0.iter().filter(|a| a.name == name).map(|a| &a.value);
+
+        let mut values: Vec<&str> = Vec::new();
+        for value in values_matching_name {
+            match value {
+                super::attribute::ValueView::SingleLine(v) => {
+                    if let Some(v) = v {
+                        values.push(v);
+                    }
+                }
+                super::attribute::ValueView::MultiLine(v) => {
+                    values.extend(v.iter().filter_map(Option::as_ref));
+                }
+            }
+        }
+        values
+    }
 }
 
 impl PartialEq<crate::rpsl::Object> for ObjectView<'_> {
@@ -91,6 +111,14 @@ impl PartialEq<crate::rpsl::Object> for ObjectView<'_> {
             }
         }
         true
+    }
+}
+
+impl<'a> Index<usize> for ObjectView<'a> {
+    type Output = AttributeView<'a>;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
     }
 }
 
