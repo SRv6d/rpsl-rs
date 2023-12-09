@@ -17,7 +17,7 @@ use nom::{
 /// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
 fn object_block(input: &str) -> IResult<&str, ObjectView> {
     let (remaining, attributes) = terminated(many1(component::attribute), newline)(input)?;
-    Ok((remaining, ObjectView::new(attributes)))
+    Ok((remaining, ObjectView::new(attributes, Some(input))))
 }
 
 /// Uses the object block parser but allows for optional padding with server messages or newlines.
@@ -244,10 +244,13 @@ mod tests {
             object_block(object),
             Ok((
                 "",
-                ObjectView::new(vec![
-                    AttributeView::new_single("email", "rpsl-parser@github.com"),
-                    AttributeView::new_single("nic-hdl", "RPSL1-RIPE")
-                ])
+                ObjectView::new(
+                    vec![
+                        AttributeView::new_single("email", "rpsl-parser@github.com"),
+                        AttributeView::new_single("nic-hdl", "RPSL1-RIPE")
+                    ],
+                    Some(object)
+                )
             ))
         );
     }

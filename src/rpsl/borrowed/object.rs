@@ -1,5 +1,5 @@
 use super::attribute::AttributeView;
-use std::ops::Index;
+use std::{fmt, ops::Index};
 
 /// A view into an RPSL object in textual representation somewhere in memory.
 ///
@@ -117,27 +117,43 @@ use std::ops::Index;
 /// [`parse_whois_response`]: crate::parse_whois_response
 #[derive(Debug, PartialEq, Eq, Clone)]
 #[allow(clippy::len_without_is_empty)]
-pub struct ObjectView<'a>(Vec<AttributeView<'a>>);
+pub struct ObjectView<'a> {
+    attributes: Vec<AttributeView<'a>>,
+    /// The original RPSL text that was parsed to create this view.
+    source: Option<&'a str>,
+}
 
 impl<'a> ObjectView<'a> {
-    pub(crate) fn new(attributes: Vec<AttributeView<'a>>) -> Self {
-        Self(attributes)
+    pub(crate) fn new(attributes: Vec<AttributeView<'a>>, source: Option<&'a str>) -> Self {
+        Self {
+            attributes,
+            source: source.map(str::trim),
+        }
     }
 
     /// Turn the view into an owned [`Object`](crate::Object).
     pub fn to_owned(&self) -> crate::rpsl::Object {
-        crate::rpsl::Object::new(self.0.iter().map(AttributeView::to_owned).collect())
+        crate::rpsl::Object::new(
+            self.attributes
+                .iter()
+                .map(AttributeView::to_owned)
+                .collect(),
+        )
     }
 
     /// The number of attributes referenced within the view.
     #[must_use]
     pub fn len(&self) -> usize {
-        self.0.len()
+        self.attributes.len()
     }
 
     /// Get the value(s) of specific attribute(s).
     pub fn get(&self, name: &str) -> Vec<&str> {
-        let values_matching_name = self.0.iter().filter(|a| a.name == name).map(|a| &a.value);
+        let values_matching_name = self
+            .attributes
+            .iter()
+            .filter(|a| a.name == name)
+            .map(|a| &a.value);
 
         let mut values: Vec<&str> = Vec::new();
         for value in values_matching_name {
@@ -172,7 +188,7 @@ impl<'a> Index<usize> for ObjectView<'a> {
     type Output = AttributeView<'a>;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
+        &self.attributes[index]
     }
 }
 
@@ -181,7 +197,21 @@ impl<'a> IntoIterator for ObjectView<'a> {
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
+        self.attributes.into_iter()
+    }
+}
+
+impl fmt::Display for ObjectView<'_> {
+    /// Display the view as RPSL.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(source) = self.source {
+            writeln!(f, "{source}")?;
+            writeln!(f)?;
+        } else {
+            // If the source is not available, fall back to the implementation of the owned type.
+            write!(f, "{}", self.to_owned())?;
+        }
+        Ok(())
     }
 }
 
@@ -191,12 +221,15 @@ mod test {
 
     #[test]
     fn eq_owned_object_is_eq() {
-        let borrowed = ObjectView::new(vec![
-            AttributeView::new_single("role", "ACME Company"),
-            AttributeView::new_single("address", "Packet Street 6"),
-            AttributeView::new_single("address", "128 Series of Tubes"),
-            AttributeView::new_single("address", "Internet"),
-        ]);
+        let borrowed = ObjectView::new(
+            vec![
+                AttributeView::new_single("role", "ACME Company"),
+                AttributeView::new_single("address", "Packet Street 6"),
+                AttributeView::new_single("address", "128 Series of Tubes"),
+                AttributeView::new_single("address", "Internet"),
+            ],
+            None,
+        );
         let owned = crate::rpsl::Object::new(vec![
             crate::rpsl::Attribute::new("role".parse().unwrap(), "ACME Company".parse().unwrap()),
             crate::rpsl::Attribute::new(
@@ -214,12 +247,15 @@ mod test {
 
     #[test]
     fn ne_owned_object_is_ne() {
-        let borrowed = ObjectView::new(vec![
-            AttributeView::new_single("role", "Umbrella Corporation"),
-            AttributeView::new_single("address", "Paraguas Street"),
-            AttributeView::new_single("address", "Racoon City"),
-            AttributeView::new_single("address", "Colorado"),
-        ]);
+        let borrowed = ObjectView::new(
+            vec![
+                AttributeView::new_single("role", "Umbrella Corporation"),
+                AttributeView::new_single("address", "Paraguas Street"),
+                AttributeView::new_single("address", "Racoon City"),
+                AttributeView::new_single("address", "Colorado"),
+            ],
+            None,
+        );
         let owned = crate::rpsl::Object::new(vec![
             crate::rpsl::Attribute::new("role".parse().unwrap(), "ACME Company".parse().unwrap()),
             crate::rpsl::Attribute::new(
