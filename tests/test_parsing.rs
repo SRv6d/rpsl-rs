@@ -27,7 +27,7 @@ mod strategies {
 
     /// A valid attribute value.
     ///
-    /// An attrbute value may consist of any ASCII characters excluding control and
+    /// An attribute value may consist of any ASCII characters excluding control and
     /// must not start with, or consist entirely of whitespace.
     fn attribute_value_content() -> impl Strategy<Value = String> {
         proptest::string::string_regex("[!-~][ -~]*").unwrap()
