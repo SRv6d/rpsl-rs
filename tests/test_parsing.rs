@@ -30,31 +30,7 @@ mod strategies {
     /// An attrbute value may consist of any ASCII characters excluding control and
     /// must not start with, or consist entirely of whitespace.
     fn attribute_value_content() -> impl Strategy<Value = String> {
-        (
-            prop_oneof![
-                proptest::char::ranges(['0'..='9'].as_slice().into()),
-                proptest::char::ranges(['a'..='z', 'A'..='Z'].as_slice().into()),
-                proptest::char::ranges(
-                    ['!'..='/', ':'..='@', '['..='`', '{'..='~']
-                        .as_slice()
-                        .into()
-                )
-            ],
-            proptest::collection::vec(
-                prop_oneof![
-                    Just(' '),
-                    proptest::char::ranges(['0'..='9'].as_slice().into()),
-                    proptest::char::ranges(['a'..='z', 'A'..='Z'].as_slice().into()),
-                    proptest::char::ranges(
-                        ['!'..='/', ':'..='@', '['..='`', '{'..='~']
-                            .as_slice()
-                            .into()
-                    )
-                ],
-                1..250,
-            ),
-        )
-            .prop_map(|(first, rest)| std::iter::once(first).chain(rest).collect())
+        proptest::string::string_regex("[!-~][ -~]*").unwrap()
     }
 
     /// An empty attribute value.
