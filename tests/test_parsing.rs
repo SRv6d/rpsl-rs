@@ -128,7 +128,7 @@ mod strategies {
                 );
                 if let AttributeValue::Multi(values) = &value {
                     for value in &values[1..] {
-                        rpsl.push(char::from_u32(0x2424).unwrap()); // Add a newline
+                        rpsl.push('\n');
                         if value.trim().is_empty() {
                             rpsl.push(char::from_u32(0x002B).unwrap()); // Add a "+", since entirely empty lines are not allowed in multi-line attributes.
                         } else {
@@ -150,9 +150,9 @@ mod strategies {
             for (a, r) in attrs_w_rpsl {
                 attributes.push(a);
                 rpsl.push_str(&r);
-                rpsl.push(char::from_u32(0x2424).unwrap()); // Add a newline
+                rpsl.push('\n');
             }
-            rpsl.push(char::from_u32(0x2424).unwrap()); // Add a newline
+            rpsl.push('\n');
 
             (Just(rpsl_parser::Object::new(attributes)), Just(rpsl))
         })
