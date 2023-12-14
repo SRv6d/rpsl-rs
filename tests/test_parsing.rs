@@ -2,6 +2,7 @@ use proptest::prelude::*;
 use rpsl_parser::parse_object;
 
 proptest! {
+    /// Property based test to ensure any kind of valid RPSL is parsed correctly.
     #[test]
     fn rpsl_parsed_to_object((object, rpsl) in strategies::object_w_rpsl()) {
         let parsed = parse_object(&rpsl)?;
