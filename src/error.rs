@@ -38,3 +38,11 @@ pub enum InvalidRPSLError {
     #[error("Invalid attribute: {0}")]
     InvalidAttribute(#[from] AttributeError),
 }
+
+impl From<nom::error::Error<&str>> for InvalidRPSLError {
+    fn from(err: nom::error::Error<&str>) -> Self {
+        InvalidRPSLError::InvalidAttribute(AttributeError::InvalidValue(
+            InvalidValueError::ContainsControlChar,
+        ))
+    }
+}
