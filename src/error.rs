@@ -30,3 +30,11 @@ pub enum AttributeError {
     #[error("Invalid attribute value: {0}")]
     InvalidValue(#[from] InvalidValueError),
 }
+
+#[derive(Error, Debug)]
+/// An error that occurs if invalid RPSL is parsed.
+pub enum InvalidRPSLError {
+    /// An attribute is invalid.
+    #[error("Invalid attribute: {0}")]
+    InvalidAttribute(#[from] AttributeError),
+}
