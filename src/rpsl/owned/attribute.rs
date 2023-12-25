@@ -1,6 +1,6 @@
-use crate::rpsl::{
-    common::coerce_empty_value,
+use crate::{
     error::{InvalidNameError, InvalidValueError},
+    rpsl::common::coerce_empty_value,
 };
 use std::{fmt, str::FromStr};
 
