@@ -82,7 +82,7 @@ pub struct Attribute {
 }
 
 impl Attribute {
-    /// Create a new attribute from an attribute name and it's value(s).
+    /// Create a new attribute from an attribute name and its value(s).
     ///
     /// # Errors
     /// Returns an error if either the attribute name or value(s) are invalid.
