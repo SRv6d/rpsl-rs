@@ -28,7 +28,7 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 
 ### Parsing RPSL objects
 
-A string containing an object in RPSL notation can be parsed to an [Object] using the [parse_object] function.
+A string containing an object in RPSL notation can be parsed to an [ObjectView] using the [parse_object] function.
 
 ```rust,ignore
 use rpsl_parser::parse_object;
@@ -46,62 +46,89 @@ source:      RIPE
 let parsed = parse_object(role_acme)?;
 ```
 
-This returns an [Object] consisting of multiple [Attribute]s:
+The returned [ObjectView] allows access to the attributes contained within in form of [AttributeView]s, a type that contains references to the data it represents, making the parser very memory efficient and performant, since no allocation is needed during parsing.
+
+```ignore
+role:           ACME Company ◀─────────────── &"role"    ───  &"ACME Company"
+address:        Packet Street 6 ◀──────────── &"address" ───  &"Packet Street 6"
+address:        128 Series of Tubes ◀──────── &"address" ───  &"128 Series of Tubes"
+address:        Internet ◀─────────────────── &"address" ───  &"Internet"
+email:          rpsl-parser@github.com ◀───── &"email"   ───  &"rpsl-parser@github.com"
+nic-hdl:        RPSL1-RIPE ◀───────────────── &"nic-hdl" ───  &"RPSL1-RIPE"
+source:         RIPE ◀─────────────────────── &"source"  ───  &"RIPE"
+```
 
 ```rust,ignore
 println!("{:#?}", parsed);
 
-Object(
-  [
-    Attribute {
-      name: Name("role"),
-      value: SingleLine(Some("ACME Company")),
-    },
-    Attribute {
-      name: Name("address"),
-      value: SingleLine(Some("Packet Street 6")),
-    },
-    Attribute {
-      name: Name("address"),
-      value: SingleLine(Some("128 Series of Tubes")),
-    },
-    Attribute {
-      name: Name("address"),
-      value: SingleLine(Some("Internet")),
-    },
-    Attribute {
-      name: Name("email"),
-      value: SingleLine(Some("rpsl-parser@github.com")),
-    },
-    Attribute {
-      name: Name("nic-hdl"),
-      value: SingleLine(Some("RPSL1-RIPE")),
-    },
-    Attribute {
-      name: Name("source"),
-      value: SingleLine(Some("RIPE")),
-    },
-  ],
+ObjectView(
+    [
+        AttributeView {
+            name: NameView("role",),
+            value: SingleLine(Some("ACME Company")),
+        },
+        AttributeView {
+            name: NameView("address"),
+            value: SingleLine(Some("Packet Street 6")),
+        },
+        AttributeView {
+            name: NameView("address"),
+            value: SingleLine(Some("128 Series of Tubes")),
+        },
+        AttributeView {
+            name: NameView("address"),
+            value: SingleLine(Some("Internet")),
+        },
+        AttributeView {
+            name: NameView("email"),
+            value: SingleLine(Some("rpsl-parser@github.com")),
+        },
+        AttributeView {
+            name: NameView("nic-hdl"),
+            value: SingleLine(Some("RPSL1-RIPE")),
+        },
+        AttributeView {
+            name: NameView("source"),
+            value: SingleLine(Some("RIPE")),
+        },
+    ]
 )
 ```
 
-Each [Attribute] can be accessed by it's index and has a name and optional value(s).
+Each [AttributeView] can be accessed by its index and has a name and optional value(s).
 
 ```rust,ignore
 println!("{:#?}", parsed[1]);
 
-Attribute {
-    name: Name("role"),
-    value: SingleLine(Some("ACME Company")),
+AttributeView {
+    name: NameView("address"),
+    value: SingleLine(Some("Packet Street 6")),
 }
 ```
 
 Since RPSL attribute values can either be single- or multiline, two different types are used to represent them. See [Attribute] and [parse_object] for more details and examples.
 
+[ObjectView]s can be converted to as well as compared directly with their owned counterpart [Object].
+
+```rust,ignore
+let owned = object! {
+    "role":        "ACME Company";
+    "address":     "Packet Street 6";
+    "address":     "128 Series of Tubes";
+    "address":     "Internet";
+    "email":       "rpsl-parser@github.com";
+    "nic-hdl":     "RPSL1-RIPE";
+    "source":      "RIPE";
+};
+
+assert_eq!(role_acme, owned);
+assert_eq!(role_acme.to_owned(), owned);
+```
+
 ### Parsing a WHOIS server response
 
 WHOIS servers often respond to queries by returning multiple related objects.
-An example ARIN query for `AS32934` will return with the requested `ASNumber` object first, followed by it's associated `OrgName`:
+An example ARIN query for `AS32934` will return with the requested `ASNumber` object first, followed by its associated `OrgName`:
 
 ```sh
 $ whois -h whois.arin.net AS32934
@@ -128,10 +155,12 @@ Ref:            https://rdap.arin.net/registry/entity/THEFA-3
 
 ```
 
-To extract each individual object, the [parse_whois_response] function can be used to parse the response into a `Vec` containing all individual [Object]s within the response. Examples can be found in the function documentation.
+To extract each individual object, the [parse_whois_response] function can be used to parse the response into a `Vec` containing all individual [ObjectView]s within the response. Examples can be found in the function documentation.
 
 [RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
 [Object]: https://docs.rs/rpsl-parser/latest/rpsl_parser/struct.Object.html
+[ObjectView]: https://docs.rs/rpsl-parser/latest/rpsl_parser/struct.ObjectView.html
 [Attribute]: https://docs.rs/rpsl-parser/latest/rpsl_parser/struct.Attribute.html
+[AttributeView]: https://docs.rs/rpsl-parser/latest/rpsl_parser/struct.AttributeView.html
 [parse_object]: https://docs.rs/rpsl-parser/latest/rpsl_parser/fn.parse_object.html
-[parse_whois_server_response]: https://docs.rs/rpsl-parser/latest/rpsl_parser/fn.parse_whois_response.html
+[parse_whois_response]: https://docs.rs/rpsl-parser/latest/rpsl_parser/fn.parse_whois_response.html
