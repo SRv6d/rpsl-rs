@@ -50,9 +50,9 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// source:         RIPE
 ///                        ↓
 /// role:           ACME Company ◀─────────────── &"role"    ───  &"ACME Company"
-/// address:        Packet Street 6 ◀──────────── &"address" ─┬─  &"Packet Street 6"
-/// address:        128 Series of Tubes ◀──────── &"address" ─┬─  &"128 Series of Tubes"
-/// address:        Internet ◀─────────────────── &"address" ─┬─  &"Internet"
+/// address:        Packet Street 6 ◀──────────── &"address" ───  &"Packet Street 6"
+/// address:        128 Series of Tubes ◀──────── &"address" ───  &"128 Series of Tubes"
+/// address:        Internet ◀─────────────────── &"address" ───  &"Internet"
 /// email:          rpsl-parser@github.com ◀───── &"email"   ───  &"rpsl-parser@github.com"
 /// nic-hdl:        RPSL1-RIPE ◀───────────────── &"nic-hdl" ───  &"RPSL1-RIPE"
 /// source:         RIPE ◀─────────────────────── &"source"  ───  &"RIPE"
