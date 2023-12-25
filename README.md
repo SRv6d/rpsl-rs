@@ -22,9 +22,6 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 🧠 Low memory footprint by leveraging zero-copy\
 🧪 Robust parsing of any valid input ensured by Property Based Tests
 
-> [!WARNING]
-> This project is still in early stages of development and its API is not yet stable.
-
 [**Docs**](https://docs.rs/rpsl-parser/latest/rpsl_parser/) | [**Performance**](https://github.com/SRv6d/rpsl-parser/tree/main/docs/benchmark)
 
 ## Usage
@@ -132,11 +129,6 @@ Ref:            https://rdap.arin.net/registry/entity/THEFA-3
 ```
 
 To extract each individual object, the [parse_whois_response] function can be used to parse the response into a `Vec` containing all individual [Object]s within the response. Examples can be found in the function documentation.
-
-# 🚧 Work in progress
-
-- ## More descriptive error messages
-  When invalid RPSL is parsed, the current error messages do not properly convey where exactly the error is located in the parsed text.
 
 [RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
 [Object]: https://docs.rs/rpsl-parser/latest/rpsl_parser/struct.Object.html
