@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from irrd.rpsl.rpsl_objects import rpsl_object_from_text
+from irrd.rpsl.parser import RPSLObject
 
 AS3257 = """aut-num:        AS3257
 as-name:        GTT-BACKBONE
@@ -9571,4 +9571,4 @@ last-modified:  2023-07-21T10:03:34Z
 source:         RIPE
 """
 
-rpsl_object_from_text(AS3257)
+RPSLObject()._extract_attributes_values(AS3257)
