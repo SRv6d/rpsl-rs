@@ -7,7 +7,7 @@ fn single_line_objects_display_correctly() {
         "address:        Packet Street 6\n",
         "address:        128 Series of Tubes\n",
         "address:        Internet\n",
-        "email:          rpsl-parser@github.com\n",
+        "email:          rpsl-rs@github.com\n",
         "nic-hdl:        RPSL1-RIPE\n",
         "source:         RIPE\n",
         "\n"
@@ -19,7 +19,7 @@ fn single_line_objects_display_correctly() {
         "address": "Packet Street 6";
         "address": "128 Series of Tubes";
         "address": "Internet";
-        "email": "rpsl-parser@github.com";
+        "email": "rpsl-rs@github.com";
         "nic-hdl": "RPSL1-RIPE";
         "source": "RIPE";
     };
@@ -35,7 +35,7 @@ fn multi_line_objects_display_correctly() {
         "address:        Packet Street 6\n",
         "                128 Series of Tubes\n",
         "                Internet\n",
-        "email:          rpsl-parser@github.com\n",
+        "email:          rpsl-rs@github.com\n",
         "nic-hdl:        RPSL1-RIPE\n",
         "source:         RIPE\n",
         "\n"
@@ -45,7 +45,7 @@ fn multi_line_objects_display_correctly() {
     let owned = object! {
         "role": "ACME Company";
         "address": "Packet Street 6", "128 Series of Tubes", "Internet";
-        "email": "rpsl-parser@github.com";
+        "email": "rpsl-rs@github.com";
         "nic-hdl": "RPSL1-RIPE";
         "source": "RIPE";
     };

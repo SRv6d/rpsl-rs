@@ -3,7 +3,7 @@
   "data": {
     "values": [
       {
-        "parser": "rpsl-parser",
+        "parser": "rpsl-rs",
         "time": 0.44461,
         "timeFormat": "444µs"
       },
@@ -159,7 +159,7 @@
     {
       "transform": [
         {
-          "filter": "datum.parser !== 'rpsl-parser'"
+          "filter": "datum.parser !== 'rpsl-rs'"
         }
       ],
       "mark": {
@@ -178,7 +178,7 @@
     {
       "transform": [
         {
-          "filter": "datum.parser === 'rpsl-parser'"
+          "filter": "datum.parser === 'rpsl-rs'"
         }
       ],
       "mark": {

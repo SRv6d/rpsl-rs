@@ -1,14 +1,14 @@
-<h1 align="center"><code>rpsl-parser</code></h1>
+<h1 align="center"><code>rpsl-rs</code></h1>
 
 <div align="center">
-  <a href="https://github.com/srv6d/rpsl-parser/actions">
-    <img src="https://github.com/srv6d/rpsl-parser/workflows/CI/badge.svg" alt="CI status">
+  <a href="https://github.com/srv6d/rpsl-rs/actions">
+    <img src="https://github.com/srv6d/rpsl-rs/workflows/CI/badge.svg" alt="CI status">
   </a>
-  <a href="https://codspeed.io/SRv6d/rpsl-parser">
+  <a href="https://codspeed.io/SRv6d/rpsl-rs">
     <img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed Badge">
   </a>
-  <a href="https://crates.io/crates/rpsl-parser">
-    <img src="https://img.shields.io/crates/v/rpsl-parser.svg" alt="Cargo version">
+  <a href="https://crates.io/crates/rpsl-rs">
+    <img src="https://img.shields.io/crates/v/rpsl-rs.svg" alt="Cargo version">
   </a>
   
 </div>
@@ -22,7 +22,7 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 🧠 Low memory footprint by leveraging zero-copy\
 🧪 Robust parsing of any valid input ensured by Property Based Tests
 
-[**Docs**](https://docs.rs/rpsl-parser/latest/rpsl/) | [**Performance**](https://github.com/SRv6d/rpsl-parser/tree/main/docs/benchmark)
+[**Docs**](https://docs.rs/rpsl-rs/latest/rpsl/) | [**Performance**](https://github.com/SRv6d/rpsl-rs/tree/main/docs/benchmark)
 
 ## Usage
 
@@ -38,7 +38,7 @@ role:        ACME Company
 address:     Packet Street 6
 address:     128 Series of Tubes
 address:     Internet
-email:       rpsl-parser@github.com
+email:       rpsl-rs@github.com
 nic-hdl:     RPSL1-RIPE
 source:      RIPE
 
@@ -53,7 +53,7 @@ role:           ACME Company ◀─────────────── &"
 address:        Packet Street 6 ◀──────────── &"address" ───  &"Packet Street 6"
 address:        128 Series of Tubes ◀──────── &"address" ───  &"128 Series of Tubes"
 address:        Internet ◀─────────────────── &"address" ───  &"Internet"
-email:          rpsl-parser@github.com ◀───── &"email"   ───  &"rpsl-parser@github.com"
+email:          rpsl-rs@github.com ◀───── &"email"   ───  &"rpsl-rs@github.com"
 nic-hdl:        RPSL1-RIPE ◀───────────────── &"nic-hdl" ───  &"RPSL1-RIPE"
 source:         RIPE ◀─────────────────────── &"source"  ───  &"RIPE"
 ```
@@ -81,7 +81,7 @@ ObjectView(
         },
         AttributeView {
             name: NameView("email"),
-            value: SingleLine(Some("rpsl-parser@github.com")),
+            value: SingleLine(Some("rpsl-rs@github.com")),
         },
         AttributeView {
             name: NameView("nic-hdl"),
@@ -116,7 +116,7 @@ let owned = object! {
     "address":     "Packet Street 6";
     "address":     "128 Series of Tubes";
     "address":     "Internet";
-    "email":       "rpsl-parser@github.com";
+    "email":       "rpsl-rs@github.com";
     "nic-hdl":     "RPSL1-RIPE";
     "source":      "RIPE";
 };
@@ -158,9 +158,9 @@ Ref:            https://rdap.arin.net/registry/entity/THEFA-3
 To extract each individual object, the [parse_whois_response] function can be used to parse the response into a `Vec` containing all individual [ObjectView]s within the response. Examples can be found in the function documentation.
 
 [RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
-[Object]: https://docs.rs/rpsl-parser/latest/rpsl/struct.Object.html
-[ObjectView]: https://docs.rs/rpsl-parser/latest/rpsl/struct.ObjectView.html
-[Attribute]: https://docs.rs/rpsl-parser/latest/rpsl/struct.Attribute.html
-[AttributeView]: https://docs.rs/rpsl-parser/latest/rpsl/struct.AttributeView.html
-[parse_object]: https://docs.rs/rpsl-parser/latest/rpsl/fn.parse_object.html
-[parse_whois_response]: https://docs.rs/rpsl-parser/latest/rpsl/fn.parse_whois_response.html
+[Object]: https://docs.rs/rpsl-rs/latest/rpsl/struct.Object.html
+[ObjectView]: https://docs.rs/rpsl-rs/latest/rpsl/struct.ObjectView.html
+[Attribute]: https://docs.rs/rpsl-rs/latest/rpsl/struct.Attribute.html
+[AttributeView]: https://docs.rs/rpsl-rs/latest/rpsl/struct.AttributeView.html
+[parse_object]: https://docs.rs/rpsl-rs/latest/rpsl/fn.parse_object.html
+[parse_whois_response]: https://docs.rs/rpsl-rs/latest/rpsl/fn.parse_whois_response.html

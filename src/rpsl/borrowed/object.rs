@@ -13,7 +13,7 @@ use std::{fmt, ops::Index};
 /// address:        Packet Street 6 ◀──────────── &"address" ─┬─  &"Packet Street 6"
 ///                 128 Series of Tubes ◀────────             ├─  &"128 Series of Tubes"
 ///                 Internet ◀───────────────────             └─  &"Internet"
-/// email:          rpsl-parser@github.com ◀───── &"email"   ───  &"rpsl-parser@github.com"
+/// email:          rpsl-rs@github.com ◀───── &"email"   ───  &"rpsl-rs@github.com"
 /// nic-hdl:        RPSL1-RIPE ◀───────────────── &"nic-hdl" ───  &"RPSL1-RIPE"
 /// source:         RIPE ◀─────────────────────── &"source"  ───  &"RIPE"
 /// ```
@@ -32,7 +32,7 @@ use std::{fmt, ops::Index};
 /// # address:        Packet Street
 /// #                 128 Series of Tubes
 /// #                 Internet
-/// # email:          rpsl-parser@github.com
+/// # email:          rpsl-rs@github.com
 /// # nic-hdl:        RPSL1-RIPE
 /// # source:         RIPE
 /// #
@@ -52,14 +52,14 @@ use std::{fmt, ops::Index};
 /// # address:        Packet Street 6
 /// #                 128 Series of Tubes
 /// #                 Internet
-/// # email:          rpsl-parser@github.com
+/// # email:          rpsl-rs@github.com
 /// # nic-hdl:        RPSL1-RIPE
 /// # source:         RIPE
 /// #
 /// # ")?;
 /// assert_eq!(role_acme.get("role"), vec!["ACME Company"]);
 /// assert_eq!(role_acme.get("address"), vec!["Packet Street 6", "128 Series of Tubes", "Internet"]);
-/// assert_eq!(role_acme.get("email"), vec!["rpsl-parser@github.com"]);
+/// assert_eq!(role_acme.get("email"), vec!["rpsl-rs@github.com"]);
 /// assert_eq!(role_acme.get("nic-hdl"), vec!["RPSL1-RIPE"]);
 /// assert_eq!(role_acme.get("source"), vec!["RIPE"]);
 /// # Ok(())
@@ -75,7 +75,7 @@ use std::{fmt, ops::Index};
 /// # address:        Packet Street 6
 /// #                 128 Series of Tubes
 /// #                 Internet
-/// # email:          rpsl-parser@github.com
+/// # email:          rpsl-rs@github.com
 /// # nic-hdl:        RPSL1-RIPE
 /// # source:         RIPE
 /// #
@@ -85,7 +85,7 @@ use std::{fmt, ops::Index};
 ///     object! {
 ///         "role": "ACME Company";
 ///         "address": "Packet Street 6", "128 Series of Tubes", "Internet";
-///         "email": "rpsl-parser@github.com";
+///         "email": "rpsl-rs@github.com";
 ///         "nic-hdl": "RPSL1-RIPE";
 ///         "source": "RIPE";
 ///      },
@@ -103,7 +103,7 @@ use std::{fmt, ops::Index};
 /// # address:        Packet Street 6
 /// #                 128 Series of Tubes
 /// #                 Internet
-/// # email:          rpsl-parser@github.com
+/// # email:          rpsl-rs@github.com
 /// # nic-hdl:        RPSL1-RIPE
 /// # source:         RIPE
 /// #

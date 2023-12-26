@@ -45,7 +45,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// address:        Packet Street 6
 /// address:        128 Series of Tubes
 /// address:        Internet
-/// email:          rpsl-parser@github.com
+/// email:          rpsl-rs@github.com
 /// nic-hdl:        RPSL1-RIPE
 /// source:         RIPE
 ///                        ↓
@@ -53,7 +53,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// address:        Packet Street 6 ◀──────────── &"address" ───  &"Packet Street 6"
 /// address:        128 Series of Tubes ◀──────── &"address" ───  &"128 Series of Tubes"
 /// address:        Internet ◀─────────────────── &"address" ───  &"Internet"
-/// email:          rpsl-parser@github.com ◀───── &"email"   ───  &"rpsl-parser@github.com"
+/// email:          rpsl-rs@github.com ◀───── &"email"   ───  &"rpsl-rs@github.com"
 /// nic-hdl:        RPSL1-RIPE ◀───────────────── &"nic-hdl" ───  &"RPSL1-RIPE"
 /// source:         RIPE ◀─────────────────────── &"source"  ───  &"RIPE"
 
@@ -71,7 +71,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// address:     Packet Street 6
 /// address:     128 Series of Tubes
 /// address:     Internet
-/// email:       rpsl-parser@github.com
+/// email:       rpsl-rs@github.com
 /// nic-hdl:     RPSL1-RIPE
 /// source:      RIPE
 ///
@@ -84,7 +84,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 ///         "address": "Packet Street 6";
 ///         "address": "128 Series of Tubes";
 ///         "address": "Internet";
-///         "email": "rpsl-parser@github.com";
+///         "email": "rpsl-rs@github.com";
 ///         "nic-hdl": "RPSL1-RIPE";
 ///         "source": "RIPE";
 ///     }
@@ -237,7 +237,7 @@ mod tests {
     #[test]
     fn object_block_valid() {
         let object = concat!(
-            "email:       rpsl-parser@github.com\n",
+            "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
             "\n"
         );
@@ -247,7 +247,7 @@ mod tests {
                 "",
                 ObjectView::new(
                     vec![
-                        AttributeView::new_single("email", "rpsl-parser@github.com"),
+                        AttributeView::new_single("email", "rpsl-rs@github.com"),
                         AttributeView::new_single("nic-hdl", "RPSL1-RIPE")
                     ],
                     Some(object)
@@ -259,7 +259,7 @@ mod tests {
     #[test]
     fn object_block_without_newline_termination_is_err() {
         let object = concat!(
-            "email:       rpsl-parser@github.com\n",
+            "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
         );
         assert!(object_block(object).is_err());

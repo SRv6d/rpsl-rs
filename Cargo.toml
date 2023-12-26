@@ -1,5 +1,5 @@
 [package]
-name = "rpsl-parser"
+name = "rpsl-rs"
 description = "An RFC 2622 conformant Routing Policy Specification Language (RPSL) parser with a focus on speed and correctness."
 version = "0.1.3"
 keywords = ["rpsl", "parser", "routing", "policy", "whois"]
@@ -7,8 +7,8 @@ categories = ["parsing", "database"]
 edition = "2021"
 authors = ["Marvin Vogt <m@rvinvogt.com>"]
 license = "MIT"
-homepage = "https://github.com/srv6d/rpsl-parser"
-repository = "https://github.com/srv6d/rpsl-parser"
+homepage = "https://github.com/srv6d/rpsl-rs"
+repository = "https://github.com/srv6d/rpsl-rs"
 readme = "README.md"
 exclude = [".devcontainer", ".github", "doc/benchmark/**", "tests/**"]
 
