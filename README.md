@@ -25,7 +25,7 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 🧠 Low memory footprint by leveraging zero-copy\
 🧪 Robust parsing of any valid input ensured by Property Based Tests
 
-![Benchmark Graph](docs/benchmark/graph.svg)
+![Benchmark Graph](https://raw.githubusercontent.com/SRv6d/rpsl-rs/main/docs/benchmark/graph.svg)
 
 [**Docs**](https://docs.rs/rpsl-rs/latest/rpsl/) | [**Performance**](https://github.com/SRv6d/rpsl-rs/tree/main/docs/benchmark)
 
