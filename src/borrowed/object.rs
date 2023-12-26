@@ -13,7 +13,7 @@ use std::{fmt, ops::Index};
 /// address:        Packet Street 6 ◀──────────── &"address" ─┬─  &"Packet Street 6"
 ///                 128 Series of Tubes ◀────────             ├─  &"128 Series of Tubes"
 ///                 Internet ◀───────────────────             └─  &"Internet"
-/// email:          rpsl-rs@github.com ◀───── &"email"   ───  &"rpsl-rs@github.com"
+/// email:          rpsl-rs@github.com ◀───────── &"email"   ───  &"rpsl-rs@github.com"
 /// nic-hdl:        RPSL1-RIPE ◀───────────────── &"nic-hdl" ───  &"RPSL1-RIPE"
 /// source:         RIPE ◀─────────────────────── &"source"  ───  &"RIPE"
 /// ```
