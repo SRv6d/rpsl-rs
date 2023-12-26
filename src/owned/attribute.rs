@@ -1,6 +1,6 @@
 use crate::{
+    common::coerce_empty_value,
     error::{InvalidNameError, InvalidValueError},
-    rpsl::common::coerce_empty_value,
 };
 use std::{fmt, str::FromStr};
 
@@ -10,7 +10,7 @@ pub struct Name(String);
 
 impl Name {
     /// Create a new `Name` from a String without validation.
-    pub(in crate::rpsl) fn new(name: String) -> Self {
+    pub(crate) fn new(name: String) -> Self {
         Self(name)
     }
 }
@@ -71,12 +71,12 @@ impl Value {
     }
 
     /// Create a new `Value` from a String without validation.
-    pub(in crate::rpsl) fn new_single(value: Option<String>) -> Self {
+    pub(crate) fn new_single(value: Option<String>) -> Self {
         Self::SingleLine(value)
     }
 
     /// Create a new `Value` from a vector of strings without validation.
-    pub(in crate::rpsl) fn new_multi(values: Vec<Option<String>>) -> Self {
+    pub(crate) fn new_multi(values: Vec<Option<String>>) -> Self {
         Self::MultiLine(values)
     }
 

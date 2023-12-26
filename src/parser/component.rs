@@ -1,4 +1,4 @@
-use crate::rpsl::AttributeView;
+use crate::AttributeView;
 use nom::{
     bytes::complete::{tag, take_while},
     character::complete::{newline, space0},

@@ -1,5 +1,5 @@
 use super::component;
-use crate::rpsl::ObjectView;
+use crate::ObjectView;
 use nom::{
     branch::alt,
     bytes::complete::tag,
