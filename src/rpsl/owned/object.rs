@@ -21,7 +21,7 @@ use std::{fmt, ops::Index};
 ///
 /// A role object for the ACME corporation.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let role_acme = Object::new(vec![
 ///     Attribute::new("role".parse()?, "ACME Company".parse()?),
@@ -39,7 +39,7 @@ use std::{fmt, ops::Index};
 /// Although creating an [`Object`] from a vector of [`Attribute`]s works, the more idiomatic way
 /// to do it is by using the [`object!`](crate::object) macro.
 /// ```
-/// # use rpsl_parser::{Attribute, Object, object};
+/// # use rpsl::{Attribute, Object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
@@ -68,7 +68,7 @@ use std::{fmt, ops::Index};
 ///
 /// Each attribute can be accessed by index.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
@@ -87,7 +87,7 @@ use std::{fmt, ops::Index};
 ///
 /// While specific attribute values can be accessed by name.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
@@ -109,7 +109,7 @@ use std::{fmt, ops::Index};
 ///
 /// The entire object can also be represented as RPSL.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
@@ -145,7 +145,7 @@ impl Object {
     ///
     /// # Example
     /// ```
-    /// # use rpsl_parser::{Attribute, Object};
+    /// # use rpsl::{Attribute, Object};
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let role_acme = Object::new(vec![
     ///     Attribute::new("role".parse()?, "ACME Company".parse()?),
@@ -222,7 +222,7 @@ impl fmt::Display for Object {
 ///
 /// - Create an [`Object`] containing only single value attributes:
 /// ```
-/// # use rpsl_parser::object;
+/// # use rpsl::object;
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let obj = object! {
 ///     "role": "ACME Company";
@@ -244,7 +244,7 @@ impl fmt::Display for Object {
 ///
 /// - Create an `Object` containing multi value attributes:
 /// ```
-/// # use rpsl_parser::object;
+/// # use rpsl::object;
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let obj = object! {
 ///    "role": "ACME Company";

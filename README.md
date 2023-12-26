@@ -22,7 +22,7 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 🧠 Low memory footprint by leveraging zero-copy\
 🧪 Robust parsing of any valid input ensured by Property Based Tests
 
-[**Docs**](https://docs.rs/rpsl-parser/latest/rpsl_parser/) | [**Performance**](https://github.com/SRv6d/rpsl-parser/tree/main/docs/benchmark)
+[**Docs**](https://docs.rs/rpsl-parser/latest/rpsl/) | [**Performance**](https://github.com/SRv6d/rpsl-parser/tree/main/docs/benchmark)
 
 ## Usage
 
@@ -31,7 +31,7 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 A string containing an object in RPSL notation can be parsed to an [ObjectView] using the [parse_object] function.
 
 ```rust,ignore
-use rpsl_parser::parse_object;
+use rpsl::parse_object;
 
 let role_acme = "
 role:        ACME Company
@@ -158,9 +158,9 @@ Ref:            https://rdap.arin.net/registry/entity/THEFA-3
 To extract each individual object, the [parse_whois_response] function can be used to parse the response into a `Vec` containing all individual [ObjectView]s within the response. Examples can be found in the function documentation.
 
 [RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
-[Object]: https://docs.rs/rpsl-parser/latest/rpsl_parser/struct.Object.html
-[ObjectView]: https://docs.rs/rpsl-parser/latest/rpsl_parser/struct.ObjectView.html
-[Attribute]: https://docs.rs/rpsl-parser/latest/rpsl_parser/struct.Attribute.html
-[AttributeView]: https://docs.rs/rpsl-parser/latest/rpsl_parser/struct.AttributeView.html
-[parse_object]: https://docs.rs/rpsl-parser/latest/rpsl_parser/fn.parse_object.html
-[parse_whois_response]: https://docs.rs/rpsl-parser/latest/rpsl_parser/fn.parse_whois_response.html
+[Object]: https://docs.rs/rpsl-parser/latest/rpsl/struct.Object.html
+[ObjectView]: https://docs.rs/rpsl-parser/latest/rpsl/struct.ObjectView.html
+[Attribute]: https://docs.rs/rpsl-parser/latest/rpsl/struct.Attribute.html
+[AttributeView]: https://docs.rs/rpsl-parser/latest/rpsl/struct.AttributeView.html
+[parse_object]: https://docs.rs/rpsl-parser/latest/rpsl/fn.parse_object.html
+[parse_whois_response]: https://docs.rs/rpsl-parser/latest/rpsl/fn.parse_whois_response.html

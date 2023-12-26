@@ -25,7 +25,7 @@ use std::{fmt, ops::Index};
 ///  
 /// Like an owned [`Object`], its attributes can be accessed by index.
 /// ```
-/// # use rpsl_parser::{parse_object, Attribute};
+/// # use rpsl::{parse_object, Attribute};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = parse_object("
 /// # role:           ACME Company
@@ -45,7 +45,7 @@ use std::{fmt, ops::Index};
 ///
 /// While specific attribute values can be accessed by name.
 /// ```
-/// # use rpsl_parser::{parse_object, Attribute};
+/// # use rpsl::{parse_object, Attribute};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = parse_object("
 /// # role:           ACME Company
@@ -68,7 +68,7 @@ use std::{fmt, ops::Index};
 ///
 /// Views can be compared to their owned equivalents.
 /// ```
-/// # use rpsl_parser::{parse_object, Attribute, object};
+/// # use rpsl::{parse_object, Attribute, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = parse_object("
 /// # role:           ACME Company
@@ -96,7 +96,7 @@ use std::{fmt, ops::Index};
 ///
 /// As well as converted to them if required.
 /// ```
-/// # use rpsl_parser::{parse_object, Attribute};
+/// # use rpsl::{parse_object, Attribute};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = parse_object("
 /// # role:           ACME Company

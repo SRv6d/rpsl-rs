@@ -22,7 +22,7 @@ use crate::rpsl::attribute::{self, Attribute};
 ///
 /// A role object for the ACME corporation.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let role_acme = Object::new(vec![
 ///     Attribute::new("role", "ACME Company")?,
@@ -39,7 +39,7 @@ use crate::rpsl::attribute::{self, Attribute};
 ///
 /// Each attribute can be accessed by index.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role", "ACME Company")?,
@@ -58,7 +58,7 @@ use crate::rpsl::attribute::{self, Attribute};
 ///
 /// While specific attribute values can be accessed by name.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role", "ACME Company")?,
@@ -80,7 +80,7 @@ use crate::rpsl::attribute::{self, Attribute};
 ///
 /// The entire object can also be represented as RPSL.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role", "ACME Company")?,

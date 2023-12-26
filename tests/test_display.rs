@@ -1,4 +1,4 @@
-use rpsl_parser::{object, parse_object};
+use rpsl::{object, parse_object};
 
 #[test]
 fn single_line_objects_display_correctly() {

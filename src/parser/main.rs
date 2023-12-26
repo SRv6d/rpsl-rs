@@ -64,7 +64,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 ///
 /// # Examples
 /// ```
-/// # use rpsl_parser::{parse_object, object};
+/// # use rpsl::{parse_object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let role_acme = "
 /// role:        ACME Company
@@ -95,7 +95,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 ///
 /// Values spread over multiple lines can be parsed too.
 /// ```
-/// # use rpsl_parser::{parse_object, object};
+/// # use rpsl::{parse_object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let multiline_remark = "
 /// remarks:     Value 1
@@ -114,7 +114,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 ///
 /// An attribute that does not have a value is valid.
 /// ```
-/// # use rpsl_parser::{parse_object, object};
+/// # use rpsl::{parse_object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let without_value = "
 /// as-name:     REMARKABLE
@@ -138,7 +138,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// Since whitespace to the left of a value is trimmed, they are equivalent to no value.
 ///
 /// ```
-/// # use rpsl_parser::{parse_object, object};
+/// # use rpsl::{parse_object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let whitespace_value = "
 /// as-name:     REMARKABLE
@@ -170,7 +170,7 @@ pub fn parse_object(rpsl: &str) -> Result<ObjectView, Error<&str>> {
 ///
 /// # Examples
 /// ```
-/// # use rpsl_parser::{parse_whois_response, object};
+/// # use rpsl::{parse_whois_response, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let whois_response = "
 /// ASNumber:       32934
