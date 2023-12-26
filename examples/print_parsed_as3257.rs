@@ -1,4 +1,4 @@
-use rpsl_parser::{parse_object, ObjectView};
+use rpsl::{parse_object, ObjectView};
 
 fn main() {
     let aut_num_gtt: ObjectView = parse_object(AS3257).unwrap();

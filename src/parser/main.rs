@@ -45,7 +45,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// address:        Packet Street 6
 /// address:        128 Series of Tubes
 /// address:        Internet
-/// email:          rpsl-parser@github.com
+/// email:          rpsl-rs@github.com
 /// nic-hdl:        RPSL1-RIPE
 /// source:         RIPE
 ///                        ↓
@@ -53,7 +53,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// address:        Packet Street 6 ◀──────────── &"address" ───  &"Packet Street 6"
 /// address:        128 Series of Tubes ◀──────── &"address" ───  &"128 Series of Tubes"
 /// address:        Internet ◀─────────────────── &"address" ───  &"Internet"
-/// email:          rpsl-parser@github.com ◀───── &"email"   ───  &"rpsl-parser@github.com"
+/// email:          rpsl-rs@github.com ◀───── &"email"   ───  &"rpsl-rs@github.com"
 /// nic-hdl:        RPSL1-RIPE ◀───────────────── &"nic-hdl" ───  &"RPSL1-RIPE"
 /// source:         RIPE ◀─────────────────────── &"source"  ───  &"RIPE"
 
@@ -64,14 +64,14 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 ///
 /// # Examples
 /// ```
-/// # use rpsl_parser::{parse_object, object};
+/// # use rpsl::{parse_object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let role_acme = "
 /// role:        ACME Company
 /// address:     Packet Street 6
 /// address:     128 Series of Tubes
 /// address:     Internet
-/// email:       rpsl-parser@github.com
+/// email:       rpsl-rs@github.com
 /// nic-hdl:     RPSL1-RIPE
 /// source:      RIPE
 ///
@@ -84,7 +84,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 ///         "address": "Packet Street 6";
 ///         "address": "128 Series of Tubes";
 ///         "address": "Internet";
-///         "email": "rpsl-parser@github.com";
+///         "email": "rpsl-rs@github.com";
 ///         "nic-hdl": "RPSL1-RIPE";
 ///         "source": "RIPE";
 ///     }
@@ -95,7 +95,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 ///
 /// Values spread over multiple lines can be parsed too.
 /// ```
-/// # use rpsl_parser::{parse_object, object};
+/// # use rpsl::{parse_object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let multiline_remark = "
 /// remarks:     Value 1
@@ -114,7 +114,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 ///
 /// An attribute that does not have a value is valid.
 /// ```
-/// # use rpsl_parser::{parse_object, object};
+/// # use rpsl::{parse_object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let without_value = "
 /// as-name:     REMARKABLE
@@ -138,7 +138,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// Since whitespace to the left of a value is trimmed, they are equivalent to no value.
 ///
 /// ```
-/// # use rpsl_parser::{parse_object, object};
+/// # use rpsl::{parse_object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let whitespace_value = "
 /// as-name:     REMARKABLE
@@ -170,7 +170,7 @@ pub fn parse_object(rpsl: &str) -> Result<ObjectView, Error<&str>> {
 ///
 /// # Examples
 /// ```
-/// # use rpsl_parser::{parse_whois_response, object};
+/// # use rpsl::{parse_whois_response, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let whois_response = "
 /// ASNumber:       32934
@@ -237,7 +237,7 @@ mod tests {
     #[test]
     fn object_block_valid() {
         let object = concat!(
-            "email:       rpsl-parser@github.com\n",
+            "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
             "\n"
         );
@@ -247,7 +247,7 @@ mod tests {
                 "",
                 ObjectView::new(
                     vec![
-                        AttributeView::new_single("email", "rpsl-parser@github.com"),
+                        AttributeView::new_single("email", "rpsl-rs@github.com"),
                         AttributeView::new_single("nic-hdl", "RPSL1-RIPE")
                     ],
                     Some(object)
@@ -259,7 +259,7 @@ mod tests {
     #[test]
     fn object_block_without_newline_termination_is_err() {
         let object = concat!(
-            "email:       rpsl-parser@github.com\n",
+            "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
         );
         assert!(object_block(object).is_err());

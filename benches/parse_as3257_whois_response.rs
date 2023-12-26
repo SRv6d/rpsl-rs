@@ -2,7 +2,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("parse whois response for AS3257", |b| {
-        b.iter(|| rpsl_parser::parse_whois_response(black_box(AS3257_WHOIS_RESPONSE)))
+        b.iter(|| rpsl::parse_whois_response(black_box(AS3257_WHOIS_RESPONSE)))
     });
 }
 

@@ -8,7 +8,7 @@ Benchmarks comparing performance to other RPSL parsers.
 
 | Parser           | Mean              | Min       | Max       |
 | ---------------- | ----------------- | --------- | --------- |
-| **rpsl-parser**  | **444.61 µs**     | 444.96 µs | 445.38 µs |
+| **rpsl-rs**      | **444.61 µs**     | 444.96 µs | 445.38 µs |
 | [RPSL::Parser]   | 61.8 ms ± 2.5 ms  | 60.1 ms   | 74.7 ms   |
 | [RIPE-NCC/whois] | 114.7 ms ± 6.3 ms | 106.5 ms  | 124.6 ms  |
 | [irrdnet/irrd]   | 114.8 ms ± 0.9 ms | 113.5 ms  | 116.7 ms  |

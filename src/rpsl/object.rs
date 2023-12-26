@@ -12,7 +12,7 @@ use crate::rpsl::attribute::{self, Attribute};
 /// │  [address] ──┬─ Packet Street 6               │
 /// │              ├─ 128 Series of Tubes           │
 /// │              └─ Internet                      │
-/// │  [email]   ───  rpsl-parser@github.com        │
+/// │  [email]   ───  rpsl-rs@github.com        │
 /// │  [nic-hdl] ───  RPSL1-RIPE                    │
 /// │  [source]  ───  RIPE                          │
 /// └───────────────────────────────────────────────┘
@@ -22,14 +22,14 @@ use crate::rpsl::attribute::{self, Attribute};
 ///
 /// A role object for the ACME corporation.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let role_acme = Object::new(vec![
 ///     Attribute::new("role", "ACME Company")?,
 ///     Attribute::new("address", "Packet Street 6")?,
 ///     Attribute::new("address", "128 Series of Tubes")?,
 ///     Attribute::new("address", "Internet")?,
-///     Attribute::new("email", "rpsl-parser@github.com")?,
+///     Attribute::new("email", "rpsl-rs@github.com")?,
 ///     Attribute::new("nic-hdl", "RPSL1-RIPE")?,
 ///     Attribute::new("source", "RIPE")?,
 /// ]);
@@ -39,14 +39,14 @@ use crate::rpsl::attribute::{self, Attribute};
 ///
 /// Each attribute can be accessed by index.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role", "ACME Company")?,
 /// #     Attribute::new("address", "Packet Street 6")?,
 /// #     Attribute::new("address", "128 Series of Tubes")?,
 /// #     Attribute::new("address", "Internet")?,
-/// #     Attribute::new("email", "rpsl-parser@github.com")?,
+/// #     Attribute::new("email", "rpsl-rs@github.com")?,
 /// #     Attribute::new("nic-hdl", "RPSL1-RIPE")?,
 /// #     Attribute::new("source", "RIPE")?,
 /// # ]);
@@ -58,20 +58,20 @@ use crate::rpsl::attribute::{self, Attribute};
 ///
 /// While specific attribute values can be accessed by name.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role", "ACME Company")?,
 /// #     Attribute::new("address", "Packet Street 6")?,
 /// #     Attribute::new("address", "128 Series of Tubes")?,
 /// #     Attribute::new("address", "Internet")?,
-/// #     Attribute::new("email", "rpsl-parser@github.com")?,
+/// #     Attribute::new("email", "rpsl-rs@github.com")?,
 /// #     Attribute::new("nic-hdl", "RPSL1-RIPE")?,
 /// #     Attribute::new("source", "RIPE")?,
 /// # ]);
 /// assert_eq!(role_acme.get("role"), vec!["ACME Company"]);
 /// assert_eq!(role_acme.get("address"), vec!["Packet Street 6", "128 Series of Tubes", "Internet"]);
-/// assert_eq!(role_acme.get("email"), vec!["rpsl-parser@github.com"]);
+/// assert_eq!(role_acme.get("email"), vec!["rpsl-rs@github.com"]);
 /// assert_eq!(role_acme.get("nic-hdl"), vec!["RPSL1-RIPE"]);
 /// assert_eq!(role_acme.get("source"), vec!["RIPE"]);
 /// # Ok(())
@@ -80,14 +80,14 @@ use crate::rpsl::attribute::{self, Attribute};
 ///
 /// The entire object can also be represented as RPSL.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role", "ACME Company")?,
 /// #     Attribute::new("address", "Packet Street 6")?,
 /// #     Attribute::new("address", "128 Series of Tubes")?,
 /// #     Attribute::new("address", "Internet")?,
-/// #     Attribute::new("email", "rpsl-parser@github.com")?,
+/// #     Attribute::new("email", "rpsl-rs@github.com")?,
 /// #     Attribute::new("nic-hdl", "RPSL1-RIPE")?,
 /// #     Attribute::new("source", "RIPE")?,
 /// # ]);
@@ -98,7 +98,7 @@ use crate::rpsl::attribute::{self, Attribute};
 ///        "address:        Packet Street 6\n",
 ///        "address:        128 Series of Tubes\n",
 ///        "address:        Internet\n",
-///        "email:          rpsl-parser@github.com\n",
+///        "email:          rpsl-rs@github.com\n",
 ///        "nic-hdl:        RPSL1-RIPE\n",
 ///        "source:         RIPE\n",
 ///        "\n"

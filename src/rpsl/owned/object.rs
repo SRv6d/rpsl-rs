@@ -11,7 +11,7 @@ use std::{fmt, ops::Index};
 /// │  [address] ──┬─ Packet Street 6               │
 /// │              ├─ 128 Series of Tubes           │
 /// │              └─ Internet                      │
-/// │  [email]   ───  rpsl-parser@github.com        │
+/// │  [email]   ───  rpsl-rs@github.com        │
 /// │  [nic-hdl] ───  RPSL1-RIPE                    │
 /// │  [source]  ───  RIPE                          │
 /// └───────────────────────────────────────────────┘
@@ -21,14 +21,14 @@ use std::{fmt, ops::Index};
 ///
 /// A role object for the ACME corporation.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let role_acme = Object::new(vec![
 ///     Attribute::new("role".parse()?, "ACME Company".parse()?),
 ///     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
 ///     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
 ///     Attribute::new("address".parse()?, "Internet".parse()?),
-///     Attribute::new("email".parse()?, "rpsl-parser@github.com".parse()?),
+///     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
 ///     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
 ///     Attribute::new("source".parse()?, "RIPE".parse()?),
 /// ]);
@@ -39,14 +39,14 @@ use std::{fmt, ops::Index};
 /// Although creating an [`Object`] from a vector of [`Attribute`]s works, the more idiomatic way
 /// to do it is by using the [`object!`](crate::object) macro.
 /// ```
-/// # use rpsl_parser::{Attribute, Object, object};
+/// # use rpsl::{Attribute, Object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
 /// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
 /// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
 /// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-parser@github.com".parse()?),
+/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
 /// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
 /// #     Attribute::new("source".parse()?, "RIPE".parse()?),
 /// # ]);
@@ -57,7 +57,7 @@ use std::{fmt, ops::Index};
 ///         "address": "Packet Street 6";
 ///         "address": "128 Series of Tubes";
 ///         "address": "Internet";
-///         "email": "rpsl-parser@github.com";
+///         "email": "rpsl-rs@github.com";
 ///         "nic-hdl": "RPSL1-RIPE";
 ///         "source": "RIPE";
 ///     },
@@ -68,14 +68,14 @@ use std::{fmt, ops::Index};
 ///
 /// Each attribute can be accessed by index.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
 /// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
 /// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
 /// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-parser@github.com".parse()?),
+/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
 /// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
 /// #     Attribute::new("source".parse()?, "RIPE".parse()?),
 /// # ]);
@@ -87,20 +87,20 @@ use std::{fmt, ops::Index};
 ///
 /// While specific attribute values can be accessed by name.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
 /// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
 /// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
 /// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-parser@github.com".parse()?),
+/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
 /// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
 /// #     Attribute::new("source".parse()?, "RIPE".parse()?),
 /// # ]);
 /// assert_eq!(role_acme.get("role"), vec!["ACME Company"]);
 /// assert_eq!(role_acme.get("address"), vec!["Packet Street 6", "128 Series of Tubes", "Internet"]);
-/// assert_eq!(role_acme.get("email"), vec!["rpsl-parser@github.com"]);
+/// assert_eq!(role_acme.get("email"), vec!["rpsl-rs@github.com"]);
 /// assert_eq!(role_acme.get("nic-hdl"), vec!["RPSL1-RIPE"]);
 /// assert_eq!(role_acme.get("source"), vec!["RIPE"]);
 /// # Ok(())
@@ -109,14 +109,14 @@ use std::{fmt, ops::Index};
 ///
 /// The entire object can also be represented as RPSL.
 /// ```
-/// # use rpsl_parser::{Attribute, Object};
+/// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
 /// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
 /// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
 /// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-parser@github.com".parse()?),
+/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
 /// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
 /// #     Attribute::new("source".parse()?, "RIPE".parse()?),
 /// # ]);
@@ -127,7 +127,7 @@ use std::{fmt, ops::Index};
 ///        "address:        Packet Street 6\n",
 ///        "address:        128 Series of Tubes\n",
 ///        "address:        Internet\n",
-///        "email:          rpsl-parser@github.com\n",
+///        "email:          rpsl-rs@github.com\n",
 ///        "nic-hdl:        RPSL1-RIPE\n",
 ///        "source:         RIPE\n",
 ///        "\n"
@@ -145,14 +145,14 @@ impl Object {
     ///
     /// # Example
     /// ```
-    /// # use rpsl_parser::{Attribute, Object};
+    /// # use rpsl::{Attribute, Object};
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let role_acme = Object::new(vec![
     ///     Attribute::new("role".parse()?, "ACME Company".parse()?),
     ///     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
     ///     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
     ///     Attribute::new("address".parse()?, "Internet".parse()?),
-    ///     Attribute::new("email".parse()?, "rpsl-parser@github.com".parse()?),
+    ///     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
     ///     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
     ///     Attribute::new("source".parse()?, "RIPE".parse()?),
     /// ]);
@@ -222,7 +222,7 @@ impl fmt::Display for Object {
 ///
 /// - Create an [`Object`] containing only single value attributes:
 /// ```
-/// # use rpsl_parser::object;
+/// # use rpsl::object;
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let obj = object! {
 ///     "role": "ACME Company";
@@ -244,7 +244,7 @@ impl fmt::Display for Object {
 ///
 /// - Create an `Object` containing multi value attributes:
 /// ```
-/// # use rpsl_parser::object;
+/// # use rpsl::object;
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let obj = object! {
 ///    "role": "ACME Company";
@@ -280,7 +280,7 @@ mod tests {
         let object = object! {
             "role": "ACME Company";
             "address": "Packet Street 6", "128 Series of Tubes", "Internet";
-            "email": "rpsl-parser@github.com";
+            "email": "rpsl-rs@github.com";
             "nic-hdl": "RPSL1-RIPE";
             "source": "RIPE";
         };
@@ -294,7 +294,7 @@ mod tests {
             ),
             Attribute::new(
                 "email".parse().unwrap(),
-                "rpsl-parser@github.com".parse().unwrap(),
+                "rpsl-rs@github.com".parse().unwrap(),
             ),
             Attribute::new("nic-hdl".parse().unwrap(), "RPSL1-RIPE".parse().unwrap()),
             Attribute::new("source".parse().unwrap(), "RIPE".parse().unwrap()),

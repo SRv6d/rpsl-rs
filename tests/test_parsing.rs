@@ -1,5 +1,5 @@
 use proptest::prelude::*;
-use rpsl_parser::parse_object;
+use rpsl::parse_object;
 
 proptest! {
     /// Property based test to ensure any kind of valid RPSL is parsed correctly.
@@ -71,7 +71,7 @@ mod strategies {
     }
 
     /// An attribute and its corresponding RPSL representation.
-    fn attribute_w_rpsl() -> impl Strategy<Value = (rpsl_parser::Attribute, String)> {
+    fn attribute_w_rpsl() -> impl Strategy<Value = (rpsl::Attribute, String)> {
         (
             attribute_name(),
             space_separator(),
@@ -79,7 +79,7 @@ mod strategies {
             attribute_value(),
         )
             .prop_map(|(name, space, cont_prefix, value)| {
-                let attribute = rpsl_parser::Attribute {
+                let attribute = rpsl::Attribute {
                     name: name.parse().unwrap(),
                     value: {
                         match &value {
@@ -119,9 +119,9 @@ mod strategies {
     }
 
     /// An object and its corresponding RPSL representation.
-    pub fn object_w_rpsl() -> impl Strategy<Value = (rpsl_parser::Object, String)> {
+    pub fn object_w_rpsl() -> impl Strategy<Value = (rpsl::Object, String)> {
         prop::collection::vec(attribute_w_rpsl(), 2..300).prop_flat_map(|attrs_w_rpsl| {
-            let mut attributes: Vec<rpsl_parser::Attribute> = Vec::new();
+            let mut attributes: Vec<rpsl::Attribute> = Vec::new();
             let mut rpsl = String::new();
 
             for (a, r) in attrs_w_rpsl {
@@ -131,7 +131,7 @@ mod strategies {
             }
             rpsl.push('\n');
 
-            (Just(rpsl_parser::Object::new(attributes)), Just(rpsl))
+            (Just(rpsl::Object::new(attributes)), Just(rpsl))
         })
     }
 }

@@ -91,13 +91,13 @@ impl Attribute {
     ///
     /// Create a new `role` attribute with a single value.
     /// ```
-    /// # use rpsl_parser::Attribute;
+    /// # use rpsl::Attribute;
     /// let attribute = Attribute::new("role", "ACME Company");
     /// ```
     ///
     /// Create a new `address` attribute with multiple values describing a complete address.
     /// ```
-    /// # use rpsl_parser::Attribute;
+    /// # use rpsl::Attribute;
     /// let attribute = Attribute::new("address", vec!["Packet Street 6", "128 Series of Tubes", "Internet"]);
     /// ```
     pub fn new(name: &str, value: impl Into<Value>) -> Result<Self, AttributeError> {
@@ -116,7 +116,7 @@ impl Attribute {
     ///
     /// Create an empty `remarks` attribute.
     /// ```
-    /// # use rpsl_parser::Attribute;
+    /// # use rpsl::Attribute;
     /// let attribute = Attribute::without_value("remarks");
     /// ```
     pub fn without_value(name: &str) -> Result<Self, AttributeError> {
