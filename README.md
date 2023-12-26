@@ -164,6 +164,10 @@ To extract each individual object, the [parse_whois_response] function can be us
 Contributions of all sizes that improve `rpsl-rs` in any way, be it DX/UX, documentation, performance or other are highly appreciated.
 To get started, please read the [contribution guidelines](.github/CONTRIBUTING.md). Before starting work on a new feature you would like to contribute that may impact simplicity, reliability or performance, please open an issue first.
 
+## License
+
+The source code of this project is licensed under the MIT License. For more information, see [LICENSE](LICENSE).
+
 [RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
 [Object]: https://docs.rs/rpsl-rs/latest/rpsl/struct.Object.html
 [ObjectView]: https://docs.rs/rpsl-rs/latest/rpsl/struct.ObjectView.html
