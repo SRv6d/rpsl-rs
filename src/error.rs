@@ -1,6 +1,10 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
+/// An error that occurs if invalid RPSL syntax is encountered.
+pub enum SyntaxError {}
+
+#[derive(Error, Debug)]
 pub enum InvalidNameError {
     #[error("cannot be empty")]
     Empty,
