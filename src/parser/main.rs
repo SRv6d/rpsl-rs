@@ -5,7 +5,7 @@ use nom::{
     bytes::complete::tag,
     character::complete::{multispace0, newline},
     combinator::all_consuming,
-    error::Error,
+    error::{Error, ParseError},
     multi::{many0, many1},
     sequence::{delimited, terminated},
     Finish, IResult,
@@ -15,13 +15,15 @@ use nom::{
 ///
 /// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
 /// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
-fn object_block(input: &str) -> IResult<&str, ObjectView> {
+fn object_block<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, ObjectView, E> {
     let (remaining, attributes) = terminated(many1(component::attribute), newline)(input)?;
     Ok((remaining, ObjectView::new(attributes, Some(input))))
 }
 
 /// Uses the object block parser but allows for optional padding with server messages or newlines.
-fn padded_object_block(input: &str) -> IResult<&str, ObjectView> {
+fn padded_object_block<'a, E: ParseError<&'a str>>(
+    input: &'a str,
+) -> IResult<&'a str, ObjectView, E> {
     let (remaining, object) = delimited(
         optional_message_or_newlines,
         object_block,
@@ -31,7 +33,9 @@ fn padded_object_block(input: &str) -> IResult<&str, ObjectView> {
 }
 
 /// Parse an unlimited number of optional server messages or newlines.
-fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
+fn optional_message_or_newlines<'a, E: ParseError<&'a str>>(
+    input: &'a str,
+) -> IResult<&'a str, Vec<&'a str>, E> {
     let (remaining, message_or_newlines) =
         many0(alt((component::server_message, tag("\n"))))(input)?;
     Ok((remaining, message_or_newlines))
@@ -233,6 +237,7 @@ pub fn parse_whois_response(response: &str) -> Result<Vec<ObjectView>, Error<&st
 mod tests {
     use super::*;
     use crate::{AttributeView, ObjectView};
+    use nom::error::Error;
 
     #[test]
     fn object_block_valid() {
@@ -242,7 +247,7 @@ mod tests {
             "\n"
         );
         assert_eq!(
-            object_block(object),
+            object_block::<Error<&str>>(object),
             Ok((
                 "",
                 ObjectView::new(
@@ -262,19 +267,19 @@ mod tests {
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
         );
-        assert!(object_block(object).is_err());
+        assert!(object_block::<Error<&str>>(object).is_err());
     }
 
     #[test]
     fn optional_comment_or_newlines_consumed() {
         assert_eq!(
-            optional_message_or_newlines("% Note: This is a server message\n")
+            optional_message_or_newlines::<Error<&str>>("% Note: This is a server message\n")
                 .unwrap()
                 .0,
             ""
         );
         assert_eq!(
-            optional_message_or_newlines(concat!(
+            optional_message_or_newlines::<Error<&str>>(concat!(
                 "\n",
                 "% Note: This is a server message followed by an empty line\n"
             ))
@@ -283,7 +288,7 @@ mod tests {
             ""
         );
         assert_eq!(
-            optional_message_or_newlines(concat!(
+            optional_message_or_newlines::<Error<&str>>(concat!(
                 "% Note: This is a server message preceding some newlines.\n",
                 "\n",
                 "\n",
@@ -297,7 +302,7 @@ mod tests {
     #[test]
     fn optional_comment_or_newlines_optional() {
         assert_eq!(
-            optional_message_or_newlines(""),
+            optional_message_or_newlines::<Error<&str>>(""),
             Ok(("", Vec::<&str>::new()))
         );
     }
