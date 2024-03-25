@@ -5,7 +5,7 @@ use nom::{
     bytes::complete::tag,
     character::complete::{multispace0, newline},
     combinator::all_consuming,
-    error::{Error, ParseError},
+    error::{ParseError, VerboseError},
     multi::{many0, many1},
     sequence::{delimited, terminated},
     Finish, IResult,
@@ -161,7 +161,7 @@ fn optional_message_or_newlines<'a, E: ParseError<&'a str>>(
 /// # Ok(())
 /// # }
 /// ```
-pub fn parse_object(rpsl: &str) -> Result<ObjectView, Error<&str>> {
+pub fn parse_object(rpsl: &str) -> Result<ObjectView, VerboseError<&str>> {
     let (_, object) =
         all_consuming(delimited(multispace0, object_block, multispace0))(rpsl).finish()?;
     Ok(object)
@@ -227,7 +227,7 @@ pub fn parse_object(rpsl: &str) -> Result<ObjectView, Error<&str>> {
 /// );
 /// # Ok(())
 /// # }
-pub fn parse_whois_response(response: &str) -> Result<Vec<ObjectView>, Error<&str>> {
+pub fn parse_whois_response(response: &str) -> Result<Vec<ObjectView>, VerboseError<&str>> {
     let (_, objects): (&str, Vec<ObjectView>) =
         all_consuming(many1(padded_object_block))(response).finish()?;
     Ok(objects)
