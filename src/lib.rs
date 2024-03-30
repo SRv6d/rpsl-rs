@@ -4,7 +4,7 @@
 #![forbid(clippy::panic)]
 #![doc = include_str!("../README.md")]
 
-pub use error::AttributeError;
+pub use error::SyntaxError;
 pub use parser::{parse_object, parse_whois_response};
 
 pub use self::borrowed::{AttributeView, ObjectView};
