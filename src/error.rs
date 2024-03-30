@@ -9,6 +9,13 @@ pub struct SyntaxError<'a> {
     pub line: usize,
 }
 
+impl SyntaxError<'_> {
+    /// Create a new `SyntaxError`.
+    pub(crate) fn new<'a>(rpsl: &'a str, error: nom::error::VerboseError<&str>) -> SyntaxError<'a> {
+        todo!();
+    }
+}
+
 impl fmt::Display for SyntaxError<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "Syntax error in line {}: {}", self.line, self.loc)

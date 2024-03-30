@@ -1,5 +1,5 @@
 use super::component;
-use crate::ObjectView;
+use crate::{ObjectView, SyntaxError};
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -161,10 +161,18 @@ fn optional_message_or_newlines<'a, E: ParseError<&'a str>>(
 /// # Ok(())
 /// # }
 /// ```
-pub fn parse_object(rpsl: &str) -> Result<ObjectView, VerboseError<&str>> {
-    let (_, object) =
-        all_consuming(delimited(multispace0, object_block, multispace0))(rpsl).finish()?;
-    Ok(object)
+pub fn parse_object(rpsl: &str) -> Result<ObjectView, SyntaxError> {
+    let result = all_consuming(delimited(
+        multispace0,
+        object_block::<VerboseError<&str>>,
+        multispace0,
+    ))(rpsl)
+    .finish();
+
+    match result {
+        Ok((_, object)) => Ok(object),
+        Err(e) => Err(SyntaxError::new(rpsl, e)),
+    }
 }
 
 /// Parse a WHOIS server response into [`ObjectView`]s of the objects contained within.
