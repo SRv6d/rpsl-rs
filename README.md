@@ -162,6 +162,12 @@ Ref:            https://rdap.arin.net/registry/entity/THEFA-3
 
 To extract each individual object, the [parse_whois_response] function can be used to parse the response into a `Vec` containing all individual [ObjectView]s within the response. Examples can be found in the function documentation.
 
+## MSRV Policy
+
+This project requires the minimum supported Rust version to be at least 6 months old.
+As long as this requirement is met, the MSRV may be increased as necessary through a minor version update.
+For the currently configured MSRV, please check [Cargo.toml](Cargo.toml).
+
 ## Contributing
 
 Contributions of all sizes that improve `rpsl-rs` in any way, be it DX/UX, documentation, performance or other are highly appreciated.
