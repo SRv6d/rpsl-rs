@@ -24,7 +24,7 @@ thiserror = "1.0.50"
 
 [dev-dependencies]
 codspeed-criterion-compat = "2.3.3"
-criterion = { version = "0.5.1", features = ["html_reports"] }
+criterion = "0.5.1"
 proptest = "1.4.0"
 
 [[bench]]
