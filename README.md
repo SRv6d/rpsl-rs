@@ -11,7 +11,7 @@
     <img src="https://img.shields.io/crates/v/rpsl-rs.svg?logo=rust" alt="Cargo version">
   </a>
   <a href="https://rust-lang.github.io/rfcs/2495-min-rust-version.html">
-    <img src="https://img.shields.io/badge/rustc-1.70+-blue?logo=rust" alt="Rust version">
+    <img src="https://img.shields.io/badge/rustc-1.74+-blue?logo=rust" alt="Rust version">
   </a>
   
 </div>
