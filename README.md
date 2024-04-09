@@ -11,7 +11,7 @@
     <img src="https://img.shields.io/crates/v/rpsl-rs.svg?logo=rust" alt="Cargo version">
   </a>
   <a href="https://rust-lang.github.io/rfcs/2495-min-rust-version.html">
-    <img src="https://img.shields.io/badge/rustc-1.70+-blue?logo=rust" alt="Rust version">
+    <img src="https://img.shields.io/badge/rustc-1.74+-blue?logo=rust" alt="Rust version">
   </a>
   
 </div>
@@ -161,6 +161,12 @@ Ref:            https://rdap.arin.net/registry/entity/THEFA-3
 ```
 
 To extract each individual object, the [parse_whois_response] function can be used to parse the response into a `Vec` containing all individual [ObjectView]s within the response. Examples can be found in the function documentation.
+
+## MSRV Policy
+
+This project requires the minimum supported Rust version to be at least 6 months old.
+As long as this requirement is met, the MSRV may be increased as necessary through a minor version update.
+For the currently configured MSRV, please check [Cargo.toml](Cargo.toml).
 
 ## Contributing
 
