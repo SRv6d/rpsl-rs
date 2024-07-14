@@ -18,7 +18,7 @@ env:
 
 jobs:
   lint:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -27,8 +27,14 @@ jobs:
         run: cargo clippy --all-targets --all-features
       - name: Format
         run: cargo fmt --all --check
+  spellcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: check for typos
+        uses: crate-ci/typos@v1.22.9
   cargo-test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         rust_version: ["1.74", "stable"]
@@ -40,9 +46,3 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - name: Test
         run: cargo test
-  spellcheck:
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-      - name: check for typos
-        uses: crate-ci/typos@v1.22.9
