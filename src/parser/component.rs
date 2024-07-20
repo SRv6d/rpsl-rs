@@ -55,6 +55,13 @@ pub fn attribute(input: &str) -> IResult<&str, AttributeView> {
     }
 }
 
+// A RPSL attribute consisting of a name and one or more values.
+// The name is followed by a colon and optional spaces.
+// Single value attributes are limited to one line, while multi value attributes span over multiple lines.
+pub fn w_attribute<'s>(input: &mut &'s str) -> PResult<AttributeView<'s>> {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -111,6 +118,22 @@ mod tests {
         );
     }
 
+    #[rstest]
+    #[case(
+        &mut "import:         from AS12 accept AS12\n",
+        AttributeView::new_single("import", "from AS12 accept AS12"),
+        ""
+    )]
+    fn w_attribute_valid_single_value(
+        #[case] given: &mut &str,
+        #[case] expected: AttributeView,
+        #[case] remaining: &str,
+    ) {
+        let parsed = w_attribute(given).unwrap();
+        assert_eq!(parsed, expected);
+        assert_eq!(*given, remaining);
+    }
+
     #[test]
     fn attribute_valid_multi_value() {
         assert_eq!(
@@ -132,6 +155,34 @@ mod tests {
                 )
             ))
         );
+    }
+
+    #[rstest]
+    #[case(
+        &mut concat!(
+            "remarks:        Locations\n",
+            "                LA1 - CoreSite One Wilshire\n",
+            "                NY1 - Equinix New York, Newark\n",
+            "remarks:        Peering Policy\n",
+        ),
+        AttributeView::new_multi(
+            "remarks",
+            vec![
+                "Locations",
+                "LA1 - CoreSite One Wilshire",
+                "NY1 - Equinix New York, Newark",
+            ]
+        ),
+        "remarks:        Peering Policy\n"
+    )]
+    fn w_attribute_valid_multi_value(
+        #[case] given: &mut &str,
+        #[case] expected: AttributeView,
+        #[case] remaining: &str,
+    ) {
+        let parsed = w_attribute(given).unwrap();
+        assert_eq!(parsed, expected);
+        assert_eq!(*given, remaining);
     }
 }
 
