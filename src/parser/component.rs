@@ -162,6 +162,13 @@ mod subcomponent {
         Ok((remaining, char))
     }
 
+    // Match and discard a single multiline continuation character.
+    pub fn w_continuation_char(input: &mut &str) -> PResult<()> {
+        winnow::token::one_of([' ', '\t', '+'])
+            .void()
+            .parse_next(input)
+    }
+
     // Extends an attributes value over multiple lines.
     // Must start with a space, tab or a plus character.
     pub fn continuation_line(input: &str) -> IResult<&str, &str> {
@@ -172,6 +179,17 @@ mod subcomponent {
         )(input)?;
 
         Ok((remaining, value))
+    }
+
+    // Extends an attributes value over multiple lines.
+    // Must start with a space, tab or a plus character.
+    pub fn w_continuation_line<'s>(input: &mut &'s str) -> PResult<&'s str> {
+        winnow::combinator::delimited(
+            w_continuation_char,
+            winnow::combinator::preceded(winnow::ascii::space0, w_attribute_value),
+            winnow::ascii::newline,
+        )
+        .parse_next(input)
     }
 
     #[cfg(test)]
@@ -279,6 +297,20 @@ mod subcomponent {
                 continuation_line("+    continuation value prefixed by a plus\n"),
                 Ok(("", "continuation value prefixed by a plus"))
             );
+        }
+
+        #[rstest]
+        #[case(&mut "    continuation value prefixed by a space\n", "continuation value prefixed by a space", "")]
+        #[case(&mut "\t    continuation value prefixed by a tab\n", "continuation value prefixed by a tab", "")]
+        #[case(&mut "+    continuation value prefixed by a plus\n", "continuation value prefixed by a plus", "")]
+        fn w_continuation_line_valid(
+            #[case] given: &mut &str,
+            #[case] expected: &str,
+            #[case] remaining: &str,
+        ) {
+            let parsed = w_continuation_line(given).unwrap();
+            assert_eq!(parsed, expected);
+            assert_eq!(*given, remaining);
         }
     }
 }
