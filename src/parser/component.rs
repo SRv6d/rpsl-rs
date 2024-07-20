@@ -94,9 +94,21 @@ mod tests {
     }
 
     #[rstest]
-    #[case(&mut "% Note: this output has been filtered.\n", "Note: this output has been filtered.", "")]
-    #[case(&mut "%       To receive output for a database update, use the \"-B\" flag.\n", "To receive output for a database update, use the \"-B\" flag.", "")]
-    #[case(&mut "% This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)\n", "This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)", "")]
+    #[case(
+        &mut "% Note: this output has been filtered.\n",
+        "Note: this output has been filtered.",
+        ""
+    )]
+    #[case(
+        &mut "%       To receive output for a database update, use the \"-B\" flag.\n",
+        "To receive output for a database update, use the \"-B\" flag.",
+        ""
+    )]
+    #[case(
+        &mut "% This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)\n",
+        "This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)",
+        ""
+    )]
     fn w_server_message_valid(
         #[case] given: &mut &str,
         #[case] expected: &str,
@@ -348,10 +360,26 @@ mod subcomponent {
         }
 
         #[rstest]
-        #[case(&mut "This is an example remark\n", "This is an example remark", "\n")]
-        #[case(&mut "Concerning abuse and spam ... mailto: abuse@asn.net\n", "Concerning abuse and spam ... mailto: abuse@asn.net", "\n")]
-        #[case(&mut "+49 176 07071964\n", "+49 176 07071964", "\n")]
-        #[case(&mut "* Equinix FR5, Kleyerstr, Frankfurt am Main\n", "* Equinix FR5, Kleyerstr, Frankfurt am Main", "\n")]
+        #[case(
+            &mut "This is an example remark\n",
+            "This is an example remark",
+            "\n
+        ")]
+        #[case(
+            &mut "Concerning abuse and spam ... mailto: abuse@asn.net\n",
+            "Concerning abuse and spam ... mailto: abuse@asn.net",
+            "\n"
+        )]
+        #[case(
+            &mut "+49 176 07071964\n",
+            "+49 176 07071964",
+            "\n"
+        )]
+        #[case(
+            &mut "* Equinix FR5, Kleyerstr, Frankfurt am Main\n",
+            "* Equinix FR5, Kleyerstr, Frankfurt am Main",
+            "\n"
+        )]
         fn w_attribute_value_valid(
             #[case] given: &mut &str,
             #[case] expected: &str,
@@ -379,9 +407,21 @@ mod subcomponent {
         }
 
         #[rstest]
-        #[case(&mut "    continuation value prefixed by a space\n", "continuation value prefixed by a space", "")]
-        #[case(&mut "\t    continuation value prefixed by a tab\n", "continuation value prefixed by a tab", "")]
-        #[case(&mut "+    continuation value prefixed by a plus\n", "continuation value prefixed by a plus", "")]
+        #[case(
+            &mut "    continuation value prefixed by a space\n",
+            "continuation value prefixed by a space",
+            ""
+        )]
+        #[case(
+            &mut "\t    continuation value prefixed by a tab\n",
+            "continuation value prefixed by a tab",
+            ""
+        )]
+        #[case(
+            &mut "+    continuation value prefixed by a plus\n",
+            "continuation value prefixed by a plus",
+            ""
+        )]
         fn w_continuation_line_valid(
             #[case] given: &mut &str,
             #[case] expected: &str,
