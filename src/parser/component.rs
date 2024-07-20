@@ -115,6 +115,7 @@ mod subcomponent {
         sequence::{delimited, preceded},
         IResult,
     };
+    use winnow::{PResult, Parser};
 
     // An ASCII sequence of letters, digits and the characters "-", "_".
     // The first character must be a letter, while the last character may be a letter or a digit.
@@ -127,6 +128,19 @@ mod subcomponent {
             },
         )(input)?;
         Ok((remaining, name))
+    }
+
+    // An ASCII sequence of letters, digits and the characters "-", "_".
+    // The first character must be a letter, while the last character may be a letter or a digit.
+    pub fn w_attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
+        winnow::token::take_while(2.., |c: char| {
+            c.is_ascii_alphanumeric() || c == '-' || c == '_'
+        })
+        .verify(|s: &str| {
+            s.starts_with(|c: char| c.is_ascii_alphabetic())
+                && s.ends_with(|c: char| c.is_ascii_alphanumeric())
+        })
+        .parse_next(input)
     }
 
     // An ASCII sequence of characters, excluding control.
@@ -157,6 +171,7 @@ mod subcomponent {
     #[cfg(test)]
     mod tests {
         use super::*;
+        use rstest::*;
 
         #[test]
         fn attribute_name_valid() {
@@ -166,6 +181,21 @@ mod subcomponent {
             assert_eq!(attribute_name("route6:"), Ok((":", "route6")));
         }
 
+        #[rstest]
+        #[case(&mut "remarks:", "remarks", ":")]
+        #[case(&mut "aut-num:", "aut-num", ":")]
+        #[case(&mut "ASNumber:", "ASNumber", ":")]
+        #[case(&mut "route6:", "route6", ":")]
+        fn w_attribute_name_valid(
+            #[case] given: &mut &str,
+            #[case] expected: &str,
+            #[case] remaining: &str,
+        ) {
+            let parsed = w_attribute_name(given).unwrap();
+            assert_eq!(parsed, expected);
+            assert_eq!(*given, remaining);
+        }
+
         #[test]
         fn attribute_name_non_letter_first_char_is_error() {
             assert!(attribute_name("1remarks:").is_err());
@@ -173,10 +203,25 @@ mod subcomponent {
             assert!(attribute_name("_remarks:").is_err());
         }
 
+        #[rstest]
+        #[case(&mut "1remarks:")]
+        #[case(&mut "-remarks:")]
+        #[case(&mut "_remarks:")]
+        fn w_attribute_name_non_letter_first_char_is_error(#[case] given: &mut &str) {
+            assert!(w_attribute_name(given).is_err());
+        }
+
         #[test]
         fn attribute_name_non_letter_or_digit_last_char_is_error() {
             assert!(attribute_name("remarks-:").is_err());
             assert!(attribute_name("remarks_:").is_err());
+        }
+
+        #[rstest]
+        #[case(&mut "remarks-:")]
+        #[case(&mut "remarks_:")]
+        fn w_attribute_name_non_letter_or_digit_last_char_is_error(#[case] given: &mut &str) {
+            assert!(w_attribute_name(given).is_err());
         }
 
         #[test]
