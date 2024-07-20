@@ -7,6 +7,7 @@ use nom::{
     sequence::{delimited, separated_pair, terminated, tuple},
     IResult,
 };
+use winnow::{PResult, Parser};
 
 // A response code or message sent by the whois server.
 // Starts with the "%" character and extends until the end of the line.
@@ -19,6 +20,18 @@ pub fn server_message(input: &str) -> IResult<&str, &str> {
     )(input)?;
 
     Ok((remaining, value))
+}
+
+// A response code or message sent by the whois server.
+// Starts with the "%" character and extends until the end of the line.
+// In contrast to RPSL, characters are not limited to ASCII.
+pub fn w_server_message<'s>(input: &mut &'s str) -> PResult<&'s str> {
+    winnow::combinator::delimited(
+        ('%', winnow::ascii::space0),
+        winnow::token::take_while(1.., |c: char| !c.is_control()),
+        winnow::ascii::newline,
+    )
+    .parse_next(input)
 }
 
 // A RPSL attribute consisting of a name and one or more values.
@@ -45,6 +58,7 @@ pub fn attribute(input: &str) -> IResult<&str, AttributeView> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use rstest::*;
 
     #[test]
     fn server_message_valid() {
@@ -70,6 +84,20 @@ mod tests {
                 "This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)"
             ))
         );
+    }
+
+    #[rstest]
+    #[case(&mut "% Note: this output has been filtered.\n", "Note: this output has been filtered.", "")]
+    #[case(&mut "%       To receive output for a database update, use the \"-B\" flag.\n", "To receive output for a database update, use the \"-B\" flag.", "")]
+    #[case(&mut "% This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)\n", "This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)", "")]
+    fn w_server_message_valid(
+        #[case] given: &mut &str,
+        #[case] expected: &str,
+        #[case] remaining: &str,
+    ) {
+        let parsed = w_server_message(given).unwrap();
+        assert_eq!(parsed, expected);
+        assert_eq!(*given, remaining);
     }
 
     #[test]
