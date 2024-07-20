@@ -150,6 +150,12 @@ mod subcomponent {
         Ok((remaining, value))
     }
 
+    // An ASCII sequence of characters, excluding control.
+    pub fn w_attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
+        winnow::token::take_while(1.., |c: char| c.is_ascii() && !c.is_ascii_control())
+            .parse_next(input)
+    }
+
     // A single multiline continuation character.
     pub fn continuation_char(input: &str) -> IResult<&str, char> {
         let (remaining, char) = one_of(" \t+")(input)?;
@@ -242,6 +248,21 @@ mod subcomponent {
                 attribute_value("* Equinix FR5, Kleyerstr, Frankfurt am Main\n"),
                 Ok(("\n", "* Equinix FR5, Kleyerstr, Frankfurt am Main"))
             );
+        }
+
+        #[rstest]
+        #[case(&mut "This is an example remark\n", "This is an example remark", "\n")]
+        #[case(&mut "Concerning abuse and spam ... mailto: abuse@asn.net\n", "Concerning abuse and spam ... mailto: abuse@asn.net", "\n")]
+        #[case(&mut "+49 176 07071964\n", "+49 176 07071964", "\n")]
+        #[case(&mut "* Equinix FR5, Kleyerstr, Frankfurt am Main\n", "* Equinix FR5, Kleyerstr, Frankfurt am Main", "\n")]
+        fn w_attribute_value_valid(
+            #[case] given: &mut &str,
+            #[case] expected: &str,
+            #[case] remaining: &str,
+        ) {
+            let parsed = w_attribute_value(given).unwrap();
+            assert_eq!(parsed, expected);
+            assert_eq!(*given, remaining);
         }
 
         #[test]
