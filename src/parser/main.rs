@@ -1,40 +1,29 @@
 use super::component;
-use crate::Object;
-use nom::{
-    branch::alt,
-    bytes::complete::tag,
-    character::complete::{multispace0, newline},
-    combinator::all_consuming,
-    error::Error,
-    multi::{many0, many1},
-    sequence::{delimited, terminated},
-    Finish, IResult,
+use crate::{Attribute, Object};
+use winnow::{
+    ascii::{multispace0, newline},
+    combinator::{delimited, repeat, terminated, todo},
+    PResult, Parser,
 };
 
 /// Parse an object with at least one attribute terminated by a newline.
 ///
 /// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
 /// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
-fn object_block(input: &str) -> IResult<&str, Object> {
-    let (remaining, attributes) = terminated(many1(component::attribute), newline)(input)?;
-    Ok((remaining, Object::from_parsed(input, attributes)))
+fn object_block<'s>(input: &mut &'s str) -> PResult<Object<'s>> {
+    let attributes: Vec<Attribute> =
+        terminated(repeat(1.., component::attribute), newline).parse_next(input)?;
+    Ok(Object::from_parsed(input, attributes))
 }
 
 /// Uses the object block parser but allows for optional padding with server messages or newlines.
-fn padded_object_block(input: &str) -> IResult<&str, Object> {
-    let (remaining, object) = delimited(
-        optional_message_or_newlines,
-        object_block,
-        optional_message_or_newlines,
-    )(input)?;
-    Ok((remaining, object))
+fn padded_object_block<'s>(input: &mut &'s str) -> PResult<Object<'s>> {
+    todo.parse_next(input)
 }
 
-/// Parse an unlimited number of optional server messages or newlines.
-fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
-    let (remaining, message_or_newlines) =
-        many0(alt((component::server_message, tag("\n"))))(input)?;
-    Ok((remaining, message_or_newlines))
+/// Consume an unlimited number of optional server messages or newlines.
+fn optional_message_or_newlines(input: &mut &str) -> PResult<()> {
+    todo!()
 }
 
 /// Parse RPSL into an [`Object`], borrowing from the source.
@@ -155,9 +144,10 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// # Ok(())
 /// # }
 /// ```
-pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
-    let (_, object) =
-        all_consuming(delimited(multispace0, object_block, multispace0))(rpsl).finish()?;
+pub fn parse_object(rpsl: &str) -> Result<Object, ()> {
+    let object = delimited(multispace0, object_block, multispace0)
+        .parse(rpsl)
+        .unwrap();
     Ok(object)
 }
 
@@ -221,9 +211,8 @@ pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
 /// );
 /// # Ok(())
 /// # }
-pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, Error<&str>> {
-    let (_, objects): (&str, Vec<Object>) =
-        all_consuming(many1(padded_object_block))(response).finish()?;
+pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, ()> {
+    let objects = repeat(1.., padded_object_block).parse(response).unwrap();
     Ok(objects)
 }
 
@@ -231,72 +220,60 @@ pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, Error<&str>> 
 mod tests {
     use super::*;
     use crate::{Attribute, Object};
+    use rstest::*;
 
     #[test]
     fn object_block_valid() {
-        let object = concat!(
+        let object = &mut concat!(
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
             "\n"
         );
         assert_eq!(
             object_block(object),
-            Ok((
-                "",
-                Object::from_parsed(
-                    object,
-                    vec![
-                        Attribute::unchecked_single("email", "rpsl-rs@github.com"),
-                        Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE")
-                    ],
-                )
+            Ok(Object::from_parsed(
+                object,
+                vec![
+                    Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                    Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE")
+                ]
             ))
         );
     }
 
     #[test]
     fn object_block_without_newline_termination_is_err() {
-        let object = concat!(
+        let object = &mut concat!(
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
         );
         assert!(object_block(object).is_err());
     }
 
-    #[test]
-    fn optional_comment_or_newlines_consumed() {
-        assert_eq!(
-            optional_message_or_newlines("% Note: This is a server message\n")
-                .unwrap()
-                .0,
-            ""
-        );
-        assert_eq!(
-            optional_message_or_newlines(concat!(
-                "\n",
-                "% Note: This is a server message followed by an empty line\n"
-            ))
-            .unwrap()
-            .0,
-            ""
-        );
-        assert_eq!(
-            optional_message_or_newlines(concat!(
-                "% Note: This is a server message preceding some newlines.\n",
-                "\n",
-                "\n",
-            ))
-            .unwrap()
-            .0,
-            ""
-        );
+    #[rstest]
+    #[case(
+        &mut "% Note: This is a server message\n"
+    )]
+    #[case(
+        &mut concat!(
+            "\n",
+            "% Note: This is a server message followed by an empty line\n"
+        )
+    )]
+    #[case(
+        &mut concat!(
+            "% Note: This is a server message preceding some newlines.\n",
+            "\n",
+            "\n",
+        )
+    )]
+    fn optional_comment_or_newlines_consumed(#[case] given: &mut &str) {
+        optional_message_or_newlines(given).unwrap();
+        assert_eq!(*given, "");
     }
 
     #[test]
     fn optional_comment_or_newlines_optional() {
-        assert_eq!(
-            optional_message_or_newlines(""),
-            Ok(("", Vec::<&str>::new()))
-        );
+        assert_eq!(optional_message_or_newlines(&mut ""), Ok(()));
     }
 }

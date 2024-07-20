@@ -19,9 +19,8 @@ name = "rpsl"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-nom = "7.1.3"
-thiserror = "1.0.50"
 winnow = "0.6.14"
+thiserror = "1.0.50"
 
 [dev-dependencies]
 codspeed-criterion-compat = "=2.6.0"
