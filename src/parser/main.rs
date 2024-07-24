@@ -176,9 +176,14 @@ fn w_optional_message_or_newlines(input: &mut &str) -> PResult<()> {
 /// # Ok(())
 /// # }
 /// ```
-pub fn parse_object(rpsl: &str) -> Result<ObjectView, Error<&str>> {
-    let (_, object) =
-        all_consuming(delimited(multispace0, object_block, multispace0))(rpsl).finish()?;
+pub fn parse_object(rpsl: &str) -> Result<ObjectView, ()> {
+    let object = winnow::combinator::delimited(
+        winnow::ascii::multispace0,
+        w_object_block,
+        winnow::ascii::multispace0,
+    )
+    .parse(rpsl)
+    .unwrap();
     Ok(object)
 }
 
