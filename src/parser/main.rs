@@ -10,6 +10,7 @@ use nom::{
     sequence::{delimited, terminated},
     Finish, IResult,
 };
+use winnow::PResult;
 
 /// Parse an object with at least one attribute terminated by a newline.
 ///
@@ -35,6 +36,11 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
     let (remaining, message_or_newlines) =
         many0(alt((component::server_message, tag("\n"))))(input)?;
     Ok((remaining, message_or_newlines))
+}
+
+/// Consume an unlimited number of optional server messages or newlines.
+fn w_optional_message_or_newlines(input: &mut &str) -> PResult<()> {
+    todo!()
 }
 
 /// Parse RPSL into an [`ObjectView`], a type that borrows from the RPSL input and provides
@@ -233,6 +239,7 @@ pub fn parse_whois_response(response: &str) -> Result<Vec<ObjectView>, Error<&st
 mod tests {
     use super::*;
     use crate::{AttributeView, ObjectView};
+    use rstest::*;
 
     #[test]
     fn object_block_valid() {
@@ -294,11 +301,38 @@ mod tests {
         );
     }
 
+    #[rstest]
+    #[case(
+        &mut "% Note: This is a server message\n"
+    )]
+    #[case(
+        &mut concat!(
+            "\n",
+            "% Note: This is a server message followed by an empty line\n"
+        )
+    )]
+    #[case(
+        &mut concat!(
+            "% Note: This is a server message preceding some newlines.\n",
+            "\n",
+            "\n",
+        )
+    )]
+    fn w_optional_comment_or_newlines_consumed(#[case] given: &mut &str) {
+        w_optional_message_or_newlines(given).unwrap();
+        assert_eq!(*given, "");
+    }
+
     #[test]
     fn optional_comment_or_newlines_optional() {
         assert_eq!(
             optional_message_or_newlines(""),
             Ok(("", Vec::<&str>::new()))
         );
+    }
+
+    #[test]
+    fn w_optional_comment_or_newlines_optional() {
+        assert_eq!(w_optional_message_or_newlines(&mut ""), Ok(()));
     }
 }
