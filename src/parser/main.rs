@@ -44,6 +44,11 @@ fn padded_object_block(input: &str) -> IResult<&str, ObjectView> {
     Ok((remaining, object))
 }
 
+/// Uses the object block parser but allows for optional padding with server messages or newlines.
+fn w_padded_object_block<'s>(input: &mut &'s str) -> PResult<ObjectView<'s>> {
+    winnow::combinator::todo.parse_next(input)
+}
+
 /// Parse an unlimited number of optional server messages or newlines.
 fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
     let (remaining, message_or_newlines) =
@@ -247,9 +252,10 @@ pub fn parse_object(rpsl: &str) -> Result<ObjectView, ()> {
 /// );
 /// # Ok(())
 /// # }
-pub fn parse_whois_response(response: &str) -> Result<Vec<ObjectView>, Error<&str>> {
-    let (_, objects): (&str, Vec<ObjectView>) =
-        all_consuming(many1(padded_object_block))(response).finish()?;
+pub fn parse_whois_response(response: &str) -> Result<Vec<ObjectView>, Error<()>> {
+    let objects = winnow::combinator::repeat(1.., w_padded_object_block)
+        .parse(response)
+        .unwrap();
     Ok(objects)
 }
 
