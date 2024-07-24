@@ -59,7 +59,14 @@ pub fn attribute(input: &str) -> IResult<&str, AttributeView> {
 // The name is followed by a colon and optional spaces.
 // Single value attributes are limited to one line, while multi value attributes span over multiple lines.
 pub fn w_attribute<'s>(input: &mut &'s str) -> PResult<AttributeView<'s>> {
-    todo!()
+    let (name, first_value) = winnow::combinator::separated_pair(
+        winnow::combinator::terminated(subcomponent::w_attribute_name, ':'),
+        winnow::ascii::space0,
+        winnow::combinator::terminated(subcomponent::w_attribute_value, winnow::ascii::newline),
+    )
+    .parse_next(input)?;
+
+    Ok(AttributeView::new_single(name, first_value))
 }
 
 #[cfg(test)]
