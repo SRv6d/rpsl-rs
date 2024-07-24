@@ -1,5 +1,5 @@
 use super::component;
-use crate::ObjectView;
+use crate::{AttributeView, ObjectView};
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -10,7 +10,7 @@ use nom::{
     sequence::{delimited, terminated},
     Finish, IResult,
 };
-use winnow::PResult;
+use winnow::{PResult, Parser};
 
 /// Parse an object with at least one attribute terminated by a newline.
 ///
@@ -19,6 +19,19 @@ use winnow::PResult;
 fn object_block(input: &str) -> IResult<&str, ObjectView> {
     let (remaining, attributes) = terminated(many1(component::attribute), newline)(input)?;
     Ok((remaining, ObjectView::new(attributes, Some(input))))
+}
+
+/// Parse an object with at least one attribute terminated by a newline.
+///
+/// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
+/// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
+fn w_object_block<'s>(input: &mut &'s str) -> PResult<ObjectView<'s>> {
+    let attributes: Vec<AttributeView> = winnow::combinator::terminated(
+        winnow::combinator::repeat(1.., component::w_attribute),
+        winnow::ascii::newline,
+    )
+    .parse_next(input)?;
+    Ok(ObjectView::new(attributes, Some(input)))
 }
 
 /// Uses the object block parser but allows for optional padding with server messages or newlines.
@@ -264,12 +277,40 @@ mod tests {
     }
 
     #[test]
+    fn w_object_block_valid() {
+        let object = &mut concat!(
+            "email:       rpsl-rs@github.com\n",
+            "nic-hdl:     RPSL1-RIPE\n",
+            "\n"
+        );
+        assert_eq!(
+            w_object_block(object),
+            Ok(ObjectView::new(
+                vec![
+                    AttributeView::new_single("email", "rpsl-rs@github.com"),
+                    AttributeView::new_single("nic-hdl", "RPSL1-RIPE")
+                ],
+                Some(object)
+            ))
+        );
+    }
+
+    #[test]
     fn object_block_without_newline_termination_is_err() {
         let object = concat!(
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
         );
         assert!(object_block(object).is_err());
+    }
+
+    #[test]
+    fn w_object_block_without_newline_termination_is_err() {
+        let object = &mut concat!(
+            "email:       rpsl-rs@github.com\n",
+            "nic-hdl:     RPSL1-RIPE\n",
+        );
+        assert!(w_object_block(object).is_err());
     }
 
     #[test]
