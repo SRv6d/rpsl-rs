@@ -9,7 +9,7 @@ use winnow::{
 // A response code or message sent by the whois server.
 // Starts with the "%" character and extends until the end of the line.
 // In contrast to RPSL, characters are not limited to ASCII.
-pub fn w_server_message<'s>(input: &mut &'s str) -> PResult<&'s str> {
+pub fn server_message<'s>(input: &mut &'s str) -> PResult<&'s str> {
     delimited(
         ('%', space0),
         take_while(1.., |c: char| !c.is_control()),
@@ -21,11 +21,11 @@ pub fn w_server_message<'s>(input: &mut &'s str) -> PResult<&'s str> {
 // A RPSL attribute consisting of a name and one or more values.
 // The name is followed by a colon and optional spaces.
 // Single value attributes are limited to one line, while multi value attributes span over multiple lines.
-pub fn w_attribute<'s>(input: &mut &'s str) -> PResult<AttributeView<'s>> {
+pub fn attribute<'s>(input: &mut &'s str) -> PResult<AttributeView<'s>> {
     let (name, first_value) = separated_pair(
-        terminated(subcomponent::w_attribute_name, ':'),
+        terminated(subcomponent::attribute_name, ':'),
         space0,
-        terminated(subcomponent::w_attribute_value, newline),
+        terminated(subcomponent::attribute_value, newline),
     )
     .parse_next(input)?;
 
@@ -53,12 +53,12 @@ mod tests {
         "This query was served by the RIPE Database Query Service version 1.106.1 (BUSA)",
         ""
     )]
-    fn w_server_message_valid(
+    fn server_message_valid(
         #[case] given: &mut &str,
         #[case] expected: &str,
         #[case] remaining: &str,
     ) {
-        let parsed = w_server_message(given).unwrap();
+        let parsed = server_message(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
@@ -69,12 +69,12 @@ mod tests {
         AttributeView::new_single("import", "from AS12 accept AS12"),
         ""
     )]
-    fn w_attribute_valid_single_value(
+    fn attribute_valid_single_value(
         #[case] given: &mut &str,
         #[case] expected: AttributeView,
         #[case] remaining: &str,
     ) {
-        let parsed = w_attribute(given).unwrap();
+        let parsed = attribute(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
@@ -97,12 +97,12 @@ mod tests {
         ),
         "remarks:        Peering Policy\n"
     )]
-    fn w_attribute_valid_multi_value(
+    fn attribute_valid_multi_value(
         #[case] given: &mut &str,
         #[case] expected: AttributeView,
         #[case] remaining: &str,
     ) {
-        let parsed = w_attribute(given).unwrap();
+        let parsed = attribute(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
@@ -118,7 +118,7 @@ mod subcomponent {
 
     // An ASCII sequence of letters, digits and the characters "-", "_".
     // The first character must be a letter, while the last character may be a letter or a digit.
-    pub fn w_attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
+    pub fn attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
         take_while(2.., |c: char| {
             c.is_ascii_alphanumeric() || c == '-' || c == '_'
         })
@@ -130,21 +130,21 @@ mod subcomponent {
     }
 
     // An ASCII sequence of characters, excluding control.
-    pub fn w_attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
+    pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
         take_while(1.., |c: char| c.is_ascii() && !c.is_ascii_control()).parse_next(input)
     }
 
     // Match and discard a single multiline continuation character.
-    pub fn w_continuation_char(input: &mut &str) -> PResult<()> {
+    pub fn continuation_char(input: &mut &str) -> PResult<()> {
         one_of([' ', '\t', '+']).void().parse_next(input)
     }
 
     // Extends an attributes value over multiple lines.
     // Must start with a space, tab or a plus character.
-    pub fn w_continuation_line<'s>(input: &mut &'s str) -> PResult<&'s str> {
+    pub fn continuation_line<'s>(input: &mut &'s str) -> PResult<&'s str> {
         delimited(
-            w_continuation_char,
-            preceded(space0, w_attribute_value),
+            continuation_char,
+            preceded(space0, attribute_value),
             newline,
         )
         .parse_next(input)
@@ -160,12 +160,12 @@ mod subcomponent {
         #[case(&mut "aut-num:", "aut-num", ":")]
         #[case(&mut "ASNumber:", "ASNumber", ":")]
         #[case(&mut "route6:", "route6", ":")]
-        fn w_attribute_name_valid(
+        fn attribute_name_valid(
             #[case] given: &mut &str,
             #[case] expected: &str,
             #[case] remaining: &str,
         ) {
-            let parsed = w_attribute_name(given).unwrap();
+            let parsed = attribute_name(given).unwrap();
             assert_eq!(parsed, expected);
             assert_eq!(*given, remaining);
         }
@@ -174,15 +174,15 @@ mod subcomponent {
         #[case(&mut "1remarks:")]
         #[case(&mut "-remarks:")]
         #[case(&mut "_remarks:")]
-        fn w_attribute_name_non_letter_first_char_is_error(#[case] given: &mut &str) {
-            assert!(w_attribute_name(given).is_err());
+        fn attribute_name_non_letter_first_char_is_error(#[case] given: &mut &str) {
+            assert!(attribute_name(given).is_err());
         }
 
         #[rstest]
         #[case(&mut "remarks-:")]
         #[case(&mut "remarks_:")]
-        fn w_attribute_name_non_letter_or_digit_last_char_is_error(#[case] given: &mut &str) {
-            assert!(w_attribute_name(given).is_err());
+        fn attribute_name_non_letter_or_digit_last_char_is_error(#[case] given: &mut &str) {
+            assert!(attribute_name(given).is_err());
         }
 
         #[rstest]
@@ -206,12 +206,12 @@ mod subcomponent {
             "* Equinix FR5, Kleyerstr, Frankfurt am Main",
             "\n"
         )]
-        fn w_attribute_value_valid(
+        fn attribute_value_valid(
             #[case] given: &mut &str,
             #[case] expected: &str,
             #[case] remaining: &str,
         ) {
-            let parsed = w_attribute_value(given).unwrap();
+            let parsed = attribute_value(given).unwrap();
             assert_eq!(parsed, expected);
             assert_eq!(*given, remaining);
         }
@@ -232,12 +232,12 @@ mod subcomponent {
             "continuation value prefixed by a plus",
             ""
         )]
-        fn w_continuation_line_valid(
+        fn continuation_line_valid(
             #[case] given: &mut &str,
             #[case] expected: &str,
             #[case] remaining: &str,
         ) {
-            let parsed = w_continuation_line(given).unwrap();
+            let parsed = continuation_line(given).unwrap();
             assert_eq!(parsed, expected);
             assert_eq!(*given, remaining);
         }

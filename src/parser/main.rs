@@ -10,19 +10,19 @@ use winnow::{
 ///
 /// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
 /// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
-fn w_object_block<'s>(input: &mut &'s str) -> PResult<ObjectView<'s>> {
+fn object_block<'s>(input: &mut &'s str) -> PResult<ObjectView<'s>> {
     let attributes: Vec<AttributeView> =
-        terminated(repeat(1.., component::w_attribute), newline).parse_next(input)?;
+        terminated(repeat(1.., component::attribute), newline).parse_next(input)?;
     Ok(ObjectView::new(attributes, Some(input)))
 }
 
 /// Uses the object block parser but allows for optional padding with server messages or newlines.
-fn w_padded_object_block<'s>(input: &mut &'s str) -> PResult<ObjectView<'s>> {
+fn padded_object_block<'s>(input: &mut &'s str) -> PResult<ObjectView<'s>> {
     todo.parse_next(input)
 }
 
 /// Consume an unlimited number of optional server messages or newlines.
-fn w_optional_message_or_newlines(input: &mut &str) -> PResult<()> {
+fn optional_message_or_newlines(input: &mut &str) -> PResult<()> {
     todo!()
 }
 
@@ -147,7 +147,7 @@ fn w_optional_message_or_newlines(input: &mut &str) -> PResult<()> {
 /// # }
 /// ```
 pub fn parse_object(rpsl: &str) -> Result<ObjectView, ()> {
-    let object = delimited(multispace0, w_object_block, multispace0)
+    let object = delimited(multispace0, object_block, multispace0)
         .parse(rpsl)
         .unwrap();
     Ok(object)
@@ -214,7 +214,7 @@ pub fn parse_object(rpsl: &str) -> Result<ObjectView, ()> {
 /// # Ok(())
 /// # }
 pub fn parse_whois_response(response: &str) -> Result<Vec<ObjectView>, ()> {
-    let objects = repeat(1.., w_padded_object_block).parse(response).unwrap();
+    let objects = repeat(1.., padded_object_block).parse(response).unwrap();
     Ok(objects)
 }
 
@@ -225,14 +225,14 @@ mod tests {
     use rstest::*;
 
     #[test]
-    fn w_object_block_valid() {
+    fn object_block_valid() {
         let object = &mut concat!(
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
             "\n"
         );
         assert_eq!(
-            w_object_block(object),
+            object_block(object),
             Ok(ObjectView::new(
                 vec![
                     AttributeView::new_single("email", "rpsl-rs@github.com"),
@@ -244,12 +244,12 @@ mod tests {
     }
 
     #[test]
-    fn w_object_block_without_newline_termination_is_err() {
+    fn object_block_without_newline_termination_is_err() {
         let object = &mut concat!(
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
         );
-        assert!(w_object_block(object).is_err());
+        assert!(object_block(object).is_err());
     }
 
     #[rstest]
@@ -269,13 +269,13 @@ mod tests {
             "\n",
         )
     )]
-    fn w_optional_comment_or_newlines_consumed(#[case] given: &mut &str) {
-        w_optional_message_or_newlines(given).unwrap();
+    fn optional_comment_or_newlines_consumed(#[case] given: &mut &str) {
+        optional_message_or_newlines(given).unwrap();
         assert_eq!(*given, "");
     }
 
     #[test]
-    fn w_optional_comment_or_newlines_optional() {
-        assert_eq!(w_optional_message_or_newlines(&mut ""), Ok(()));
+    fn optional_comment_or_newlines_optional() {
+        assert_eq!(optional_message_or_newlines(&mut ""), Ok(()));
     }
 }
