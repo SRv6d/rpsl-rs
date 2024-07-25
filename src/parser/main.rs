@@ -22,7 +22,7 @@ fn padded_object_block<'s>(input: &mut &'s str) -> PResult<Object<'s>> {
 }
 
 /// Consume an unlimited number of optional server messages or newlines.
-fn optional_message_or_newlines(input: &mut &str) -> PResult<()> {
+fn consume_opt_message_or_newlines(input: &mut &str) -> PResult<()> {
     todo!()
 }
 
@@ -268,12 +268,12 @@ mod tests {
         )
     )]
     fn optional_comment_or_newlines_consumed(#[case] given: &mut &str) {
-        optional_message_or_newlines(given).unwrap();
+        consume_opt_message_or_newlines(given).unwrap();
         assert_eq!(*given, "");
     }
 
     #[test]
     fn optional_comment_or_newlines_optional() {
-        assert_eq!(optional_message_or_newlines(&mut ""), Ok(()));
+        assert_eq!(consume_opt_message_or_newlines(&mut ""), Ok(()));
     }
 }

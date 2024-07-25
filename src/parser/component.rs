@@ -134,8 +134,8 @@ mod subcomponent {
         take_while(1.., |c: char| c.is_ascii() && !c.is_ascii_control()).parse_next(input)
     }
 
-    // Match and discard a single multiline continuation character.
-    pub fn continuation_char(input: &mut &str) -> PResult<()> {
+    // Consume a single multiline continuation character.
+    pub fn consume_continuation_char(input: &mut &str) -> PResult<()> {
         one_of([' ', '\t', '+']).void().parse_next(input)
     }
 
@@ -143,7 +143,7 @@ mod subcomponent {
     // Must start with a space, tab or a plus character.
     pub fn continuation_line<'s>(input: &mut &'s str) -> PResult<&'s str> {
         delimited(
-            continuation_char,
+            consume_continuation_char,
             preceded(space0, attribute_value),
             newline,
         )
