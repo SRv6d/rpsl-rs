@@ -19,7 +19,7 @@ name = "rpsl"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-winnow = "0.6.14"
+winnow = { version = "0.6.14", features = ["simd"] }
 thiserror = "1.0.50"
 
 [dev-dependencies]
