@@ -1,59 +1,24 @@
 use super::component;
 use crate::{AttributeView, ObjectView};
-use nom::{
-    branch::alt,
-    bytes::complete::tag,
-    character::complete::{multispace0, newline},
-    combinator::all_consuming,
-    error::Error,
-    multi::{many0, many1},
-    sequence::{delimited, terminated},
-    Finish, IResult,
+use winnow::{
+    ascii::{multispace0, newline},
+    combinator::{delimited, repeat, terminated, todo},
+    PResult, Parser,
 };
-use winnow::{PResult, Parser};
-
-/// Parse an object with at least one attribute terminated by a newline.
-///
-/// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
-/// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
-fn object_block(input: &str) -> IResult<&str, ObjectView> {
-    let (remaining, attributes) = terminated(many1(component::attribute), newline)(input)?;
-    Ok((remaining, ObjectView::new(attributes, Some(input))))
-}
 
 /// Parse an object with at least one attribute terminated by a newline.
 ///
 /// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
 /// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
 fn w_object_block<'s>(input: &mut &'s str) -> PResult<ObjectView<'s>> {
-    let attributes: Vec<AttributeView> = winnow::combinator::terminated(
-        winnow::combinator::repeat(1.., component::w_attribute),
-        winnow::ascii::newline,
-    )
-    .parse_next(input)?;
+    let attributes: Vec<AttributeView> =
+        terminated(repeat(1.., component::w_attribute), newline).parse_next(input)?;
     Ok(ObjectView::new(attributes, Some(input)))
 }
 
 /// Uses the object block parser but allows for optional padding with server messages or newlines.
-fn padded_object_block(input: &str) -> IResult<&str, ObjectView> {
-    let (remaining, object) = delimited(
-        optional_message_or_newlines,
-        object_block,
-        optional_message_or_newlines,
-    )(input)?;
-    Ok((remaining, object))
-}
-
-/// Uses the object block parser but allows for optional padding with server messages or newlines.
 fn w_padded_object_block<'s>(input: &mut &'s str) -> PResult<ObjectView<'s>> {
-    winnow::combinator::todo.parse_next(input)
-}
-
-/// Parse an unlimited number of optional server messages or newlines.
-fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
-    let (remaining, message_or_newlines) =
-        many0(alt((component::server_message, tag("\n"))))(input)?;
-    Ok((remaining, message_or_newlines))
+    todo.parse_next(input)
 }
 
 /// Consume an unlimited number of optional server messages or newlines.
@@ -182,13 +147,9 @@ fn w_optional_message_or_newlines(input: &mut &str) -> PResult<()> {
 /// # }
 /// ```
 pub fn parse_object(rpsl: &str) -> Result<ObjectView, ()> {
-    let object = winnow::combinator::delimited(
-        winnow::ascii::multispace0,
-        w_object_block,
-        winnow::ascii::multispace0,
-    )
-    .parse(rpsl)
-    .unwrap();
+    let object = delimited(multispace0, w_object_block, multispace0)
+        .parse(rpsl)
+        .unwrap();
     Ok(object)
 }
 
@@ -252,10 +213,8 @@ pub fn parse_object(rpsl: &str) -> Result<ObjectView, ()> {
 /// );
 /// # Ok(())
 /// # }
-pub fn parse_whois_response(response: &str) -> Result<Vec<ObjectView>, Error<()>> {
-    let objects = winnow::combinator::repeat(1.., w_padded_object_block)
-        .parse(response)
-        .unwrap();
+pub fn parse_whois_response(response: &str) -> Result<Vec<ObjectView>, ()> {
+    let objects = repeat(1.., w_padded_object_block).parse(response).unwrap();
     Ok(objects)
 }
 
@@ -264,28 +223,6 @@ mod tests {
     use super::*;
     use crate::{AttributeView, ObjectView};
     use rstest::*;
-
-    #[test]
-    fn object_block_valid() {
-        let object = concat!(
-            "email:       rpsl-rs@github.com\n",
-            "nic-hdl:     RPSL1-RIPE\n",
-            "\n"
-        );
-        assert_eq!(
-            object_block(object),
-            Ok((
-                "",
-                ObjectView::new(
-                    vec![
-                        AttributeView::new_single("email", "rpsl-rs@github.com"),
-                        AttributeView::new_single("nic-hdl", "RPSL1-RIPE")
-                    ],
-                    Some(object)
-                )
-            ))
-        );
-    }
 
     #[test]
     fn w_object_block_valid() {
@@ -307,50 +244,12 @@ mod tests {
     }
 
     #[test]
-    fn object_block_without_newline_termination_is_err() {
-        let object = concat!(
-            "email:       rpsl-rs@github.com\n",
-            "nic-hdl:     RPSL1-RIPE\n",
-        );
-        assert!(object_block(object).is_err());
-    }
-
-    #[test]
     fn w_object_block_without_newline_termination_is_err() {
         let object = &mut concat!(
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
         );
         assert!(w_object_block(object).is_err());
-    }
-
-    #[test]
-    fn optional_comment_or_newlines_consumed() {
-        assert_eq!(
-            optional_message_or_newlines("% Note: This is a server message\n")
-                .unwrap()
-                .0,
-            ""
-        );
-        assert_eq!(
-            optional_message_or_newlines(concat!(
-                "\n",
-                "% Note: This is a server message followed by an empty line\n"
-            ))
-            .unwrap()
-            .0,
-            ""
-        );
-        assert_eq!(
-            optional_message_or_newlines(concat!(
-                "% Note: This is a server message preceding some newlines.\n",
-                "\n",
-                "\n",
-            ))
-            .unwrap()
-            .0,
-            ""
-        );
     }
 
     #[rstest]
@@ -373,14 +272,6 @@ mod tests {
     fn w_optional_comment_or_newlines_consumed(#[case] given: &mut &str) {
         w_optional_message_or_newlines(given).unwrap();
         assert_eq!(*given, "");
-    }
-
-    #[test]
-    fn optional_comment_or_newlines_optional() {
-        assert_eq!(
-            optional_message_or_newlines(""),
-            Ok(("", Vec::<&str>::new()))
-        );
     }
 
     #[test]
