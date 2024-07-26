@@ -1,7 +1,7 @@
 use crate::AttributeView;
 use winnow::{
     ascii::{newline, space0},
-    combinator::{delimited, separated_pair, terminated},
+    combinator::{delimited, peek, separated_pair, terminated},
     token::take_while,
     PResult, Parser,
 };
@@ -29,7 +29,14 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<AttributeView<'s>> {
     )
     .parse_next(input)?;
 
-    Ok(AttributeView::new_single(name, first_value))
+    if peek(subcomponent::consume_continuation_char)
+        .parse_peek(input)
+        .is_err()
+    {
+        Ok(AttributeView::new_single(name, first_value))
+    } else {
+        todo!()
+    }
 }
 
 #[cfg(test)]
