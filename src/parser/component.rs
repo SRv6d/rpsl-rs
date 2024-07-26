@@ -196,8 +196,8 @@ mod subcomponent {
         #[case(
             &mut "This is an example remark\n",
             "This is an example remark",
-            "\n
-        ")]
+            "\n"
+        )]
         #[case(
             &mut "Concerning abuse and spam ... mailto: abuse@asn.net\n",
             "Concerning abuse and spam ... mailto: abuse@asn.net",
