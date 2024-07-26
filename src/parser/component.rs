@@ -1,7 +1,7 @@
-use crate::AttributeView;
+use crate::{parser::component, AttributeView};
 use winnow::{
     ascii::{newline, space0},
-    combinator::{delimited, peek, separated_pair, terminated},
+    combinator::{delimited, peek, repeat, separated_pair, terminated},
     token::take_while,
     PResult, Parser,
 };
@@ -35,7 +35,12 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<AttributeView<'s>> {
     {
         Ok(AttributeView::new_single(name, first_value))
     } else {
-        todo!()
+        let continuation_values: Vec<&str> =
+            repeat(1.., subcomponent::continuation_line).parse_next(input)?;
+        let values: Vec<&str> = std::iter::once(first_value)
+            .chain(continuation_values)
+            .collect();
+        Ok(AttributeView::new_multi(name, values))
     }
 }
 
