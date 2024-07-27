@@ -131,14 +131,12 @@ mod subcomponent {
     // An ASCII sequence of letters, digits and the characters "-", "_".
     // The first character must be a letter, while the last character may be a letter or a digit.
     pub fn attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
-        take_while(2.., |c: char| {
-            c.is_ascii_alphanumeric() || c == '-' || c == '_'
-        })
-        .verify(|s: &str| {
-            s.starts_with(|c: char| c.is_ascii_alphabetic())
-                && s.ends_with(|c: char| c.is_ascii_alphanumeric())
-        })
-        .parse_next(input)
+        take_while(2.., ('A'..='Z', 'a'..='z', '0'..='9', '-', '_'))
+            .verify(|s: &str| {
+                s.starts_with(|c: char| c.is_ascii_alphabetic())
+                    && s.ends_with(|c: char| c.is_ascii_alphanumeric())
+            })
+            .parse_next(input)
     }
 
     // An ASCII sequence of characters, excluding control.
