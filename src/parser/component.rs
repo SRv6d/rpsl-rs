@@ -30,7 +30,7 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
     .parse_next(input)?;
 
     if peek(subcomponent::consume_continuation_char)
-        .parse_peek(input)
+        .parse_next(input)
         .is_err()
     {
         Ok(Attribute::unchecked_single(name, first_value))
