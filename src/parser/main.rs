@@ -2,7 +2,7 @@ use super::component;
 use crate::{AttributeView, ObjectView};
 use winnow::{
     ascii::{multispace0, newline},
-    combinator::{delimited, repeat, terminated, todo},
+    combinator::{alt, delimited, repeat, terminated},
     PResult, Parser,
 };
 
@@ -16,14 +16,19 @@ fn object_block<'s>(input: &mut &'s str) -> PResult<ObjectView<'s>> {
     Ok(ObjectView::new(attributes, Some(input)))
 }
 
-/// Uses the object block parser but allows for optional padding with server messages or newlines.
-fn padded_object_block<'s>(input: &mut &'s str) -> PResult<ObjectView<'s>> {
-    todo.parse_next(input)
+/// Extends the object block parser to consume optional padding server messages or newlines.
+fn object_block_padded<'s>(input: &mut &'s str) -> PResult<ObjectView<'s>> {
+    delimited(
+        consume_opt_message_or_newlines,
+        object_block,
+        consume_opt_message_or_newlines,
+    )
+    .parse_next(input)
 }
 
-/// Consume an unlimited number of optional server messages or newlines.
+/// Consume optional server messages or newlines.
 fn consume_opt_message_or_newlines(input: &mut &str) -> PResult<()> {
-    todo!()
+    repeat(0.., alt((newline.void(), component::server_message.void()))).parse_next(input)
 }
 
 /// Parse RPSL into an [`ObjectView`], a type that borrows from the RPSL input and provides
@@ -214,7 +219,7 @@ pub fn parse_object(rpsl: &str) -> Result<ObjectView, ()> {
 /// # Ok(())
 /// # }
 pub fn parse_whois_response(response: &str) -> Result<Vec<ObjectView>, ()> {
-    let objects = repeat(1.., padded_object_block).parse(response).unwrap();
+    let objects = repeat(1.., object_block_padded).parse(response).unwrap();
     Ok(objects)
 }
 
