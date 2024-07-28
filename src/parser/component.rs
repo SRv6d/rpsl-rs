@@ -1,4 +1,4 @@
-use crate::{parser::component, Attribute};
+use crate::Attribute;
 use winnow::{
     ascii::{newline, space0},
     combinator::{delimited, peek, repeat, separated_pair, terminated},
