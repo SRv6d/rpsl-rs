@@ -12,7 +12,7 @@ use winnow::{
 pub fn server_message<'s>(input: &mut &'s str) -> PResult<&'s str> {
     delimited(
         ('%', space0),
-        take_while(1.., |c: char| !c.is_control()),
+        take_while(0.., |c: char| !c.is_control()),
         newline,
     )
     .parse_next(input)
