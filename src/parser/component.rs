@@ -195,6 +195,11 @@ mod subcomponent {
             assert!(attribute_name(given).is_err());
         }
 
+        #[test]
+        fn attribute_name_single_letter_is_error() {
+            assert!(attribute_name(&mut "a").is_err());
+        }
+
         #[rstest]
         #[case(
             &mut "This is an example remark\n",
