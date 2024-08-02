@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: check for typos
-        uses: crate-ci/typos@v1.22.9
+        uses: crate-ci/typos@v1.23.6
   cargo-deny:
     runs-on: ubuntu-latest
     strategy:
