@@ -120,15 +120,12 @@ use std::{fmt, ops::Index};
 pub struct ObjectView<'a> {
     attributes: Vec<AttributeView<'a>>,
     /// The original RPSL text that was parsed to create this view.
-    source: Option<&'a str>,
+    source: &'a str,
 }
 
 impl<'a> ObjectView<'a> {
-    pub(crate) fn new(attributes: Vec<AttributeView<'a>>, source: Option<&'a str>) -> Self {
-        Self {
-            attributes,
-            source: source.map(str::trim),
-        }
+    pub(crate) fn new(attributes: Vec<AttributeView<'a>>, source: &'a str) -> Self {
+        Self { attributes, source }
     }
 
     /// Turn the view into an owned [`Object`](crate::Object).
@@ -208,16 +205,9 @@ impl fmt::Debug for ObjectView<'_> {
 }
 
 impl fmt::Display for ObjectView<'_> {
-    /// Display the view as RPSL.
+    /// Display the view as it's original RPSL.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(source) = self.source {
-            writeln!(f, "{source}")?;
-            writeln!(f)?;
-        } else {
-            // If the source is not available, fall back to the implementation of the owned type.
-            write!(f, "{}", self.to_owned())?;
-        }
-        Ok(())
+        writeln!(f, "{}", self.source)
     }
 }
 
@@ -234,7 +224,7 @@ mod test {
                 AttributeView::new_single("address", "128 Series of Tubes"),
                 AttributeView::new_single("address", "Internet"),
             ],
-            None,
+            "FAKE TEST VALUE",
         );
         let owned = crate::Object::new(vec![
             crate::Attribute::new("role".parse().unwrap(), "ACME Company".parse().unwrap()),
@@ -260,7 +250,7 @@ mod test {
                 AttributeView::new_single("address", "Raccoon City"),
                 AttributeView::new_single("address", "Colorado"),
             ],
-            None,
+            "FAKE TEST VALUE",
         );
         let owned = crate::Object::new(vec![
             crate::Attribute::new("role".parse().unwrap(), "ACME Company".parse().unwrap()),
