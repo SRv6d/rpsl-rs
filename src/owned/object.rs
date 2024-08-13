@@ -276,6 +276,38 @@ mod tests {
     use super::*;
 
     #[test]
+    /// Objects with equal attributes evaluate as equal.
+    fn eq_objects_are_eq() {
+        let object_1 = object! {
+            "role": "ACME Company";
+            "address": "Packet Street 6";
+            "address": "128 Series of Tubes";
+            "address": "Internet";
+        };
+
+        assert_eq!(object_1, object_1);
+    }
+
+    #[test]
+    /// Objects that have different attributes do not evaluate as equal.
+    fn ne_objects_are_ne() {
+        let object_1 = object! {
+            "role": "Umbrella Corporation";
+            "address": "Paraguas Street";
+            "address": "Raccoon City";
+            "address": "Colorado";
+        };
+        let object_2 = object! {
+            "role": "ACME Company";
+            "address": "Packet Street 6";
+            "address": "128 Series of Tubes";
+            "address": "Internet";
+        };
+
+        assert_ne!(object_1, object_2);
+    }
+
+    #[test]
     fn object_from_macro() {
         let object = object! {
             "role": "ACME Company";
