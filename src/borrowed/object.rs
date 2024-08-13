@@ -216,8 +216,84 @@ mod test {
     use super::*;
 
     #[test]
-    fn eq_owned_object_is_eq() {
-        let borrowed = ObjectView::new(
+    /// Views with equal attributes evaluate as equal, regardless of trailing newline.
+    fn eq_views_are_eq() {
+        let view_1 = ObjectView::new(
+            vec![
+                AttributeView::new_single("role", "ACME Company"),
+                AttributeView::new_single("address", "Packet Street 6"),
+                AttributeView::new_single("address", "128 Series of Tubes"),
+                AttributeView::new_single("address", "Internet"),
+            ],
+            concat!(
+                "role:           ACME Company\n",
+                "address:        Packet Street 6\n",
+                "address:        128 Series of Tubes\n",
+                "address:        Internet\n",
+                "\n" // Correctly terminated by a trailing newline.
+            ),
+        );
+        let view_1_no_trailing_newline = ObjectView::new(
+            vec![
+                AttributeView::new_single("role", "ACME Company"),
+                AttributeView::new_single("address", "Packet Street 6"),
+                AttributeView::new_single("address", "128 Series of Tubes"),
+                AttributeView::new_single("address", "Internet"),
+            ],
+            concat!(
+                "role:           ACME Company\n",
+                "address:        Packet Street 6\n",
+                "address:        128 Series of Tubes\n",
+                "address:        Internet\n",
+                // Missing a trailing newline.
+            ),
+        );
+
+        assert_eq!(view_1, view_1);
+        assert_eq!(view_1, view_1_no_trailing_newline);
+    }
+
+    #[test]
+    /// Views that have different attributes do not evaluate as equal.
+    fn ne_views_are_ne() {
+        let view_1 = ObjectView::new(
+            vec![
+                AttributeView::new_single("role", "Umbrella Corporation"),
+                AttributeView::new_single("address", "Paraguas Street"),
+                AttributeView::new_single("address", "Raccoon City"),
+                AttributeView::new_single("address", "Colorado"),
+            ],
+            concat!(
+                "role:           Umbrella Corporation\n",
+                "address:        Paraguas Street\n",
+                "address:        Raccoon City\n",
+                "address:        Colorado\n",
+                "\n"
+            ),
+        );
+        let view_2 = ObjectView::new(
+            vec![
+                AttributeView::new_single("role", "ACME Company"),
+                AttributeView::new_single("address", "Packet Street 6"),
+                AttributeView::new_single("address", "128 Series of Tubes"),
+                AttributeView::new_single("address", "Internet"),
+            ],
+            concat!(
+                "role:           ACME Company\n",
+                "address:        Packet Street 6\n",
+                "address:        128 Series of Tubes\n",
+                "address:        Internet\n",
+                "\n"
+            ),
+        );
+
+        assert_ne!(view_1, view_2);
+    }
+
+    #[test]
+    /// Views and owned objects with the same attributes evaluate as equal.
+    fn eq_view_and_owned_object_is_eq() {
+        let object_1_borrowed = ObjectView::new(
             vec![
                 AttributeView::new_single("role", "ACME Company"),
                 AttributeView::new_single("address", "Packet Street 6"),
@@ -226,7 +302,7 @@ mod test {
             ],
             "FAKE TEST VALUE",
         );
-        let owned = crate::Object::new(vec![
+        let object_1_owned = crate::Object::new(vec![
             crate::Attribute::new("role".parse().unwrap(), "ACME Company".parse().unwrap()),
             crate::Attribute::new(
                 "address".parse().unwrap(),
@@ -238,12 +314,13 @@ mod test {
             ),
             crate::Attribute::new("address".parse().unwrap(), "Internet".parse().unwrap()),
         ]);
-        assert_eq!(borrowed, owned);
+        assert_eq!(object_1_borrowed, object_1_owned);
     }
 
     #[test]
-    fn ne_owned_object_is_ne() {
-        let borrowed = ObjectView::new(
+    /// Views and owned objects that have different attributes do not evaluate as equal.
+    fn ne_view_and_owned_object_is_ne() {
+        let object_1_borrowed = ObjectView::new(
             vec![
                 AttributeView::new_single("role", "Umbrella Corporation"),
                 AttributeView::new_single("address", "Paraguas Street"),
@@ -252,7 +329,7 @@ mod test {
             ],
             "FAKE TEST VALUE",
         );
-        let owned = crate::Object::new(vec![
+        let object_2_owned = crate::Object::new(vec![
             crate::Attribute::new("role".parse().unwrap(), "ACME Company".parse().unwrap()),
             crate::Attribute::new(
                 "address".parse().unwrap(),
@@ -264,6 +341,6 @@ mod test {
             ),
             crate::Attribute::new("address".parse().unwrap(), "Internet".parse().unwrap()),
         ]);
-        assert_ne!(borrowed, owned);
+        assert_ne!(object_1_borrowed, object_2_owned);
     }
 }
