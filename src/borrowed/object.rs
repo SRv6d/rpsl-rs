@@ -207,7 +207,7 @@ impl fmt::Debug for ObjectView<'_> {
 impl fmt::Display for ObjectView<'_> {
     /// Display the view as it's original RPSL.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "{}", self.source)
+        write!(f, "{}", self.source)
     }
 }
 
