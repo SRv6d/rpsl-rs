@@ -1,5 +1,8 @@
 use super::attribute::AttributeView;
-use std::{fmt, ops::Index};
+use std::{
+    fmt,
+    ops::{Deref, Index},
+};
 
 /// A view into an RPSL object in textual representation somewhere in memory.
 ///
@@ -192,6 +195,14 @@ impl<'a> Index<usize> for ObjectView<'a> {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.attributes[index]
+    }
+}
+
+impl<'a> Deref for ObjectView<'a> {
+    type Target = Vec<AttributeView<'a>>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.attributes
     }
 }
 

@@ -1,5 +1,8 @@
 use super::Attribute;
-use std::{fmt, ops::Index};
+use std::{
+    fmt,
+    ops::{Deref, Index},
+};
 
 /// A RPSL object.
 ///
@@ -196,6 +199,14 @@ impl Index<usize> for Object {
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.0[index]
+    }
+}
+
+impl Deref for Object {
+    type Target = Vec<Attribute>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
     }
 }
 
