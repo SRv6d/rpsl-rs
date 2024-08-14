@@ -115,7 +115,7 @@ use std::{fmt, ops::Index};
 /// [`Object`]: crate::Object
 /// [`parse_object`]: crate::parse_object
 /// [`parse_whois_response`]: crate::parse_whois_response
-#[derive(PartialEq, Eq, Clone)]
+#[derive(Clone)]
 #[allow(clippy::len_without_is_empty)]
 pub struct ObjectView<'a> {
     attributes: Vec<AttributeView<'a>>,
@@ -166,6 +166,12 @@ impl<'a> ObjectView<'a> {
             }
         }
         values
+    }
+}
+
+impl PartialEq for ObjectView<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self.attributes == other.attributes
     }
 }
 
