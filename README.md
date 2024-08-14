@@ -69,7 +69,7 @@ println!("{:#?}", parsed);
 ObjectView(
     [
         AttributeView {
-            name: NameView("role",),
+            name: NameView("role"),
             value: SingleLine(Some("ACME Company")),
         },
         AttributeView {
