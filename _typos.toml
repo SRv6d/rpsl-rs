@@ -2,5 +2,6 @@
 extend-exclude = [
     "examples/print_parsed_as3257*",
     "benches/parse_as3257*",
+    "benches/equality.rs",
     "docs/benchmark/*",
 ]
