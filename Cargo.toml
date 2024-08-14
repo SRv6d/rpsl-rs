@@ -35,6 +35,10 @@ harness = false
 name = "parse_as3257_whois_response"
 harness = false
 
+[[bench]]
+name = "equality"
+harness = false
+
 [profile.release]
 lto = true
 strip = true
