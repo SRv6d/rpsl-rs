@@ -1,4 +1,5 @@
 use crate::common::coerce_empty_value;
+use std::fmt;
 
 /// A type containing a string slice pointing to the name of an attribute.
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -21,6 +22,12 @@ impl<'a> NameView<'a> {
 impl PartialEq<&str> for NameView<'_> {
     fn eq(&self, other: &&str) -> bool {
         self.0 == *other
+    }
+}
+
+impl fmt::Display for NameView<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
     }
 }
 
@@ -188,6 +195,11 @@ impl PartialEq<crate::Attribute> for AttributeView<'_> {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn display_name_view() {
+        assert_eq!(NameView::new("address"), "address");
+    }
 
     #[test]
     fn value_len() {
