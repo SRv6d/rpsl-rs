@@ -257,6 +257,11 @@ mod tests {
     use proptest::prelude::*;
 
     #[test]
+    fn display_name() {
+        assert_eq!(Name::new("address".to_string()), "address");
+    }
+
+    #[test]
     fn name_from_str() {
         assert_eq!("role".parse::<Name>().unwrap().0, String::from("role"));
         assert_eq!("person".parse::<Name>().unwrap().0, String::from("person"));
