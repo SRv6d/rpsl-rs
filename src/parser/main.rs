@@ -142,7 +142,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// let whitespace_value = "
 /// as-name:     REMARKABLE
 /// remarks:               
-/// remarks:     ^^^^^^^^^^ nothing but hot air
+/// remarks:     ^^^^^^^^^^ nothing but hot air (whitespace)
 ///
 /// ";
 /// assert_eq!(
@@ -150,7 +150,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 ///     object! {
 ///         "as-name": "REMARKABLE";
 ///         "remarks": "";
-///         "remarks": "^^^^^^^^^^ nothing but hot air";
+///         "remarks": "^^^^^^^^^^ nothing but hot air (whitespace)";
 ///     }
 /// );
 /// # Ok(())
