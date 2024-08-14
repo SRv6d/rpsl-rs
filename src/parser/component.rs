@@ -1,4 +1,5 @@
 use crate::Attribute;
+use std::iter::once;
 use winnow::{
     ascii::{newline, space0},
     combinator::{delimited, peek, repeat, separated_pair, terminated},
@@ -31,17 +32,17 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
 
     if peek(subcomponent::consume_continuation_char)
         .parse_next(input)
-        .is_err()
+        .is_ok()
     {
-        Ok(Attribute::unchecked_single(name, first_value))
-    } else {
         let continuation_values: Vec<&str> =
             repeat(1.., subcomponent::continuation_line).parse_next(input)?;
-        let values: Vec<&str> = std::iter::once(first_value)
-            .chain(continuation_values)
-            .collect();
-        Ok(Attribute::unchecked_multi(name, values))
+        return Ok(Attribute::unchecked_multi(
+            name,
+            once(first_value).chain(continuation_values),
+        ));
     }
+
+    Ok(Attribute::unchecked_single(name, first_value))
 }
 
 #[cfg(test)]
