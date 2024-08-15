@@ -149,26 +149,11 @@ impl<'a> ObjectView<'a> {
 
     /// Get the value(s) of specific attribute(s).
     pub fn get(&self, name: &str) -> Vec<&str> {
-        let values_matching_name = self
-            .attributes
+        self.attributes
             .iter()
             .filter(|a| a.name == name)
-            .map(|a| &a.value);
-
-        let mut values: Vec<&str> = Vec::new();
-        for value in values_matching_name {
-            match value {
-                super::attribute::ValueView::SingleLine(v) => {
-                    if let Some(v) = v {
-                        values.push(v);
-                    }
-                }
-                super::attribute::ValueView::MultiLine(v) => {
-                    values.extend(v.iter().filter_map(Option::as_ref));
-                }
-            }
-        }
-        values
+            .flat_map(|a| a.value.with_content())
+            .collect()
     }
 }
 
