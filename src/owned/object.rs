@@ -174,23 +174,12 @@ impl Object {
     }
 
     /// Get the value(s) of specific attribute(s).
-    pub fn get(&self, name: &str) -> Vec<&String> {
-        let values_matching_name = self.0.iter().filter(|a| a.name == name).map(|a| &a.value);
-
-        let mut values: Vec<&String> = Vec::new();
-        for value in values_matching_name {
-            match value {
-                super::attribute::Value::SingleLine(ref v) => {
-                    if let Some(v) = v.as_ref() {
-                        values.push(v);
-                    }
-                }
-                super::attribute::Value::MultiLine(ref v) => {
-                    values.extend(v.iter().filter_map(Option::as_ref));
-                }
-            }
-        }
-        values
+    pub fn get(&self, name: &str) -> Vec<&str> {
+        self.0
+            .iter()
+            .filter(|a| a.name == name)
+            .flat_map(|a| a.value.with_content())
+            .collect()
     }
 }
 
