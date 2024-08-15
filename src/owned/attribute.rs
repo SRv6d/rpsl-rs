@@ -101,6 +101,7 @@ impl Value {
     /// # Ok(())
     /// # }
     /// ```
+    #[inline]
     pub fn with_content(&self) -> Vec<&str> {
         match self {
             Value::SingleLine(v) => {

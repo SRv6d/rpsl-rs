@@ -76,6 +76,7 @@ impl<'a> ValueView<'a> {
     /// # Ok(())
     /// # }
     /// ```
+    #[inline]
     pub fn with_content(&self) -> Vec<&str> {
         match self {
             ValueView::SingleLine(v) => {
