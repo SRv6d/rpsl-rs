@@ -39,6 +39,10 @@ harness = false
 name = "equality"
 harness = false
 
+[[bench]]
+name = "get_values"
+harness = false
+
 [profile.release]
 lto = true
 strip = true
