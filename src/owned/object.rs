@@ -174,6 +174,7 @@ impl Object {
     }
 
     /// Get the value(s) of specific attribute(s).
+    #[must_use]
     pub fn get(&self, name: &str) -> Vec<&str> {
         self.0
             .iter()
