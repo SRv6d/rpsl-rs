@@ -60,6 +60,36 @@ impl<'a> ValueView<'a> {
         }
     }
 
+    /// The values referenced within the view that do not contain empty values.
+    ///
+    /// # Example
+    /// ```
+    /// # use rpsl::parse_object;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let remarks = parse_object("
+    /// remarks:        I have lots
+    ///                 
+    ///                 to say.
+    ///
+    /// ")?;
+    /// assert_eq!(remarks[0].value.with_content(), vec!["I have lots", "to say."]);
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn with_content(&self) -> Vec<&str> {
+        match self {
+            ValueView::SingleLine(v) => {
+                if let Some(v) = v {
+                    vec![v]
+                } else {
+                    vec![]
+                }
+            }
+            ValueView::MultiLine(v) => v.iter().filter_map(|v| *v).collect(),
+        }
+    }
+
     pub fn to_owned(&self) -> crate::Value {
         match self {
             Self::SingleLine(value) => {

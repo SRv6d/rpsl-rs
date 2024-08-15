@@ -87,6 +87,37 @@ impl Value {
             Value::MultiLine(values) => values.len(),
         }
     }
+
+    /// The values that do not contain empty values.
+    ///
+    /// # Example
+    /// ```
+    /// # use rpsl::object;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let remarks = object! {
+    ///     "remarks": "I have lots", "", "to say.";
+    /// };
+    /// assert_eq!(remarks[0].value.with_content(), vec!["I have lots", "to say."]);
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[inline]
+    pub fn with_content(&self) -> Vec<&str> {
+        match self {
+            Value::SingleLine(v) => {
+                if let Some(v) = v {
+                    vec![v]
+                } else {
+                    vec![]
+                }
+            }
+            Value::MultiLine(v) => v
+                .iter()
+                .filter_map(|v| v.as_ref())
+                .map(String::as_str)
+                .collect(),
+        }
+    }
 }
 
 impl FromStr for Value {
