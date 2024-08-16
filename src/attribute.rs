@@ -409,6 +409,36 @@ mod tests {
     }
 
     #[rstest]
+    #[case(
+        Value::SingleLine(None),
+        vec![]
+    )]
+    #[case(
+        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        vec!["single value"]
+    )]
+    #[case(
+        Value::MultiLine(vec![
+            None,
+            Some(Cow::Owned("128 Series of Tubes".to_string())),
+            Some(Cow::Owned("Internet".to_string()))
+        ]),
+        vec!["128 Series of Tubes", "Internet"]
+    )]
+    #[case(
+        Value::MultiLine(vec![
+            Some(Cow::Owned("Packet Street 6".to_string())),
+            Some(Cow::Owned("128 Series of Tubes".to_string())),
+            Some(Cow::Owned("Internet".to_string()))
+        ]),
+        vec!["Packet Street 6", "128 Series of Tubes", "Internet"]
+    )]
+    fn value_with_content(#[case] value: Value, #[case] expected: Vec<&str>) {
+        let content = value.with_content();
+        assert_eq!(content, expected);
+    }
+
+    #[rstest]
     #[case("a value")]
     #[case("single value")]
     /// A value and &str evaluate as equal if the contents match.
