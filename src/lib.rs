@@ -11,6 +11,7 @@ pub use self::borrowed::{AttributeView, ObjectView};
 pub use self::owned::{Attribute, Object};
 pub(crate) use self::owned::{Name, Value};
 
+mod attribute;
 mod borrowed;
 mod common;
 #[allow(clippy::module_name_repetitions)]
