@@ -147,6 +147,7 @@ impl<'a> Value<'a> {
     /// # }
     /// ```
     pub fn with_content(&self) -> Vec<&str> {
+        // TODO: Consider returning iterator instead of Vec.
         match self {
             Self::SingleLine(v) => {
                 if let Some(v) = v {
