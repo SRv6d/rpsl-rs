@@ -269,3 +269,243 @@ impl PartialEq<Vec<Option<&str>>> for Value<'_> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
+    use rstest::*;
+
+    #[rstest]
+    #[case(
+        Attribute::new("ASNumber".parse().unwrap(), "32934".parse().unwrap()),
+        "ASNumber:       32934\n"
+    )]
+    #[case(
+        Attribute::new("ASName".parse().unwrap(), "FACEBOOK".parse().unwrap()),
+        "ASName:         FACEBOOK\n"
+    )]
+    #[case(
+        Attribute::new("RegDate".parse().unwrap(), "2004-08-24".parse().unwrap()),
+        "RegDate:        2004-08-24\n"
+    )]
+    #[case(
+        Attribute::new(
+            "Ref".parse().unwrap(),
+            "https://rdap.arin.net/registry/autnum/32934".parse().unwrap()
+        ),
+        "Ref:            https://rdap.arin.net/registry/autnum/32934\n"
+    )]
+    fn attribute_display_single_line(#[case] attribute: Attribute, #[case] expected: &str) {
+        assert_eq!(attribute.to_string(), expected);
+    }
+
+    #[rstest]
+    #[case(
+        Attribute::new(
+            "remarks".parse().unwrap(),
+            vec![
+                "AS1299 is matching RPKI validation state and reject",
+                "invalid prefixes from peers and customers."
+            ]
+            .try_into()
+            .unwrap()
+        ),
+        concat!(
+            "remarks:        AS1299 is matching RPKI validation state and reject\n",
+            "                invalid prefixes from peers and customers.\n",
+        )
+    )]
+    fn attribute_display_multi_line(#[case] attribute: Attribute, #[case] expected: &str) {
+        assert_eq!(attribute.to_string(), expected);
+    }
+
+    #[test]
+    fn name_display() {
+        let name_display = Name::from_str("address").unwrap().to_string();
+        assert_eq!(name_display, "address");
+    }
+
+    #[rstest]
+    #[case("role")]
+    #[case("person")]
+    fn name_from_str(#[case] s: &str) {
+        assert_eq!(Name::from_str(s).unwrap(), Name(Cow::Owned(s.to_string())));
+    }
+
+    proptest! {
+        #[test]
+        fn name_from_str_space_only_is_err(n in r"\s") {
+            assert!(Name::from_str(&n).is_err());
+        }
+
+        #[test]
+        fn name_from_str_non_ascii_is_err(n in r"[^[[:ascii:]]]") {
+            assert!(Name::from_str(&n).is_err());
+        }
+
+        #[test]
+        fn name_from_str_non_letter_first_char_is_err(n in r"[^a-zA-Z][[:ascii:]]*") {
+            assert!(Name::from_str(&n).is_err());
+        }
+
+        #[test]
+        fn name_from_str_non_letter_or_digit_last_char_is_err(n in r"[[:ascii:]]*[^a-zA-Z0-9]") {
+            assert!(Name::from_str(&n).is_err());
+        }
+    }
+
+    #[rstest]
+    #[case("This is a valid attribute value", Value::SingleLine(Some(Cow::Owned("This is a valid attribute value".to_string()))))]
+    #[case("   ", Value::SingleLine(None))]
+    fn value_from_str(#[case] s: &str, #[case] expected: Value) {
+        assert_eq!(Value::from_str(s).unwrap(), expected);
+    }
+
+    #[rstest]
+    fn value_from_empty_str(#[values("", "   ")] s: &str) {
+        assert_eq!(Value::from_str(s).unwrap(), Value::SingleLine(None));
+    }
+
+    #[rstest]
+    #[case(
+        vec!["Packet Street 6", "128 Series of Tubes", "Internet"],
+        Value::MultiLine(vec![
+            Some(Cow::Owned("Packet Street 6".to_string())),
+            Some(Cow::Owned("128 Series of Tubes".to_string())),
+            Some(Cow::Owned("Internet".to_string()))
+        ])
+    )]
+    #[case(
+        vec!["", "128 Series of Tubes", "Internet"],
+        Value::MultiLine(vec![
+            None,
+            Some(Cow::Owned("128 Series of Tubes".to_string())),
+            Some(Cow::Owned("Internet".to_string()))
+        ])
+    )]
+    #[case(
+        vec!["", " ", "   "],
+        Value::MultiLine(vec![None, None, None])
+    )]
+    fn value_from_vec_of_str(#[case] v: Vec<&str>, #[case] expected: Value) {
+        let value = Value::try_from(v).unwrap();
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn value_from_vec_w_1_value_is_single_line() {
+        assert_eq!(
+            Value::try_from(vec!["Packet Street 6"]).unwrap(),
+            Value::SingleLine(Some(Cow::Owned("Packet Street 6".to_string())))
+        );
+    }
+
+    #[rstest]
+    #[case("single value", 1)]
+    #[case(vec!["multi", "value", "attribute"].try_into().unwrap(), 3)]
+    fn value_len(#[case] value: Value, #[case] expected: usize) {
+        assert_eq!(value.len(), expected);
+    }
+
+    #[rstest]
+    #[case("a value")]
+    #[case("single value")]
+    /// A value and &str evaluate as equal if the contents match.
+    fn value_partialeq_str_eq_is_eq(#[case] s: &str) {
+        let value = Value::SingleLine(Some(Cow::Owned(s.to_string())));
+        assert_eq!(value, s);
+    }
+
+    #[rstest]
+    #[case(
+        Value::SingleLine(Some(Cow::Owned("a value".to_string()))),
+        "a different value"
+    )]
+    #[case(
+        Value::MultiLine(vec![
+            Some(Cow::Owned("multi".to_string())),
+            Some(Cow::Owned("value".to_string()))
+        ]),
+       "single value"
+    )]
+    /// A value and &str do not evaluate as equal if the contents differ.
+    fn value_partialeq_str_ne_is_ne(#[case] value: Value, #[case] s: &str) {
+        assert_ne!(value, s);
+    }
+
+    #[rstest]
+    #[case(vec!["multi", "value", "attribute"])]
+    /// A value and a Vec<&str> evaluate as equal if the contents match.
+    fn value_partialeq_vec_str_eq_is_eq(#[case] v: Vec<&str>) {
+        let value = Value::MultiLine(
+            v.clone()
+                .into_iter()
+                .map(|v| Some(Cow::Owned(v.to_string())))
+                .collect(),
+        );
+        assert_eq!(value, v);
+    }
+
+    #[rstest]
+    #[case(
+        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        vec!["multi", "value"]
+    )]
+    #[case(
+        Value::MultiLine(vec![
+            Some(Cow::Owned("multi".to_string())),
+            Some(Cow::Owned("value".to_string())),
+            Some(Cow::Owned("attribute".to_string()))
+        ]),
+        vec!["different", "multi", "value", "attribute"]
+    )]
+    /// A value and a Vec<&str> do not evaluate as equal if the contents differ.
+    fn value_partialeq_vec_str_ne_is_ne(#[case] value: Value, #[case] v: Vec<&str>) {
+        assert_ne!(value, v);
+    }
+
+    #[rstest]
+    #[case(vec![Some("multi"), Some("value"), Some("attribute")])]
+    #[case(vec![Some("multi"), None, Some("attribute")])]
+    /// A value and a Vec<Option<&str>> evaluate as equal if the contents match.
+    fn value_partialeq_vec_option_str_eq_is_eq(#[case] v: Vec<Option<&str>>) {
+        let value = Value::MultiLine(
+            v.clone()
+                .iter()
+                .map(|v| v.and_then(|v| Some(Cow::Owned(v.to_string()))))
+                .collect(),
+        );
+        assert_eq!(value, v);
+    }
+
+    #[rstest]
+    #[case(
+        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        vec![Some("multi"), Some("value")]
+    )]
+    #[case(
+        Value::MultiLine(vec![
+            Some(Cow::Owned("multi".to_string())),
+            Some(Cow::Owned("value".to_string())),
+            Some(Cow::Owned("attribute".to_string()))
+        ]),
+        vec![Some("different"), Some("multi"), Some("value"), Some("attribute")]
+    )]
+    /// A value and a Vec<Option<&str>> do not evaluate as equal if the contents differ.
+    fn value_partialeq_vec_option_str_ne_is_ne(#[case] value: Value, #[case] v: Vec<Option<&str>>) {
+        assert_ne!(value, v);
+    }
+
+    proptest! {
+        #[test]
+        fn value_from_str_non_ascii_is_err(v in r"[^[[:ascii:]]]") {
+            assert!(Name::from_str(&v).is_err());
+        }
+
+        #[test]
+        fn value_from_str_ascii_control_is_err(v in r"[[:cntrl:]]") {
+            assert!(Name::from_str(&v).is_err());
+        }
+    }
+}
