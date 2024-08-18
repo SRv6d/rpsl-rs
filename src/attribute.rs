@@ -19,6 +19,21 @@ impl<'a> Attribute<'a> {
     pub fn new(name: Name<'a>, value: Value<'a>) -> Self {
         Self { name, value }
     }
+
+    pub(crate) fn unchecked_single(name: &'a str, value: &'a str) -> Self {
+        let name = Name::unchecked(name);
+        let value = Value::unchecked_single(value);
+        Self { name, value }
+    }
+
+    pub(crate) fn unchecked_multi(
+        name: &'a str,
+        values: impl IntoIterator<Item = &'a str>,
+    ) -> Self {
+        let name = Name::unchecked(name);
+        let value = Value::unchecked_multi(values);
+        Self { name, value }
+    }
 }
 
 impl fmt::Display for Attribute<'_> {
@@ -58,6 +73,12 @@ impl fmt::Display for Attribute<'_> {
 /// The name of an attribute.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Name<'a>(Cow<'a, str>);
+
+impl<'a> Name<'a> {
+    fn unchecked(name: &'a str) -> Self {
+        Self(Cow::Borrowed(name))
+    }
+}
 
 impl FromStr for Name<'_> {
     type Err = InvalidNameError;
@@ -112,6 +133,14 @@ pub enum Value<'a> {
 }
 
 impl<'a> Value<'a> {
+    fn unchecked_single(value: &'a str) -> Self {
+        Self::SingleLine(Some(Cow::Borrowed(value)))
+    }
+
+    fn unchecked_multi(values: impl IntoIterator<Item = &'a str>) -> Self {
+        Self::MultiLine(values.into_iter().map(|v| Some(Cow::Borrowed(v))).collect())
+    }
+
     fn validate(value: &str) -> Result<(), InvalidValueError> {
         if !value.is_ascii() {
             return Err(InvalidValueError::NonAscii);
