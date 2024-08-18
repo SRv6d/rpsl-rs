@@ -16,5 +16,6 @@ mod borrowed;
 mod common;
 #[allow(clippy::module_name_repetitions)]
 mod error;
+mod object;
 mod owned;
 mod parser;
