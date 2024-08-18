@@ -1,7 +1,7 @@
-use rpsl::{parse_object, ObjectView};
+use rpsl::{parse_object, Object};
 
 fn main() {
-    let aut_num_gtt: ObjectView = parse_object(AS3257).unwrap();
+    let aut_num_gtt: Object = parse_object(AS3257).unwrap();
     println!("{:#?}", aut_num_gtt);
 }
 

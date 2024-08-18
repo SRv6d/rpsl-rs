@@ -1,4 +1,4 @@
-use crate::AttributeView;
+use crate::Attribute;
 use nom::{
     bytes::complete::{tag, take_while},
     character::complete::{newline, space0},
@@ -24,7 +24,7 @@ pub fn server_message(input: &str) -> IResult<&str, &str> {
 // A RPSL attribute consisting of a name and one or more values.
 // The name is followed by a colon and optional spaces.
 // Single value attributes are limited to one line, while multi value attributes span over multiple lines.
-pub fn attribute(input: &str) -> IResult<&str, AttributeView> {
+pub fn attribute(input: &str) -> IResult<&str, Attribute> {
     let (remaining, (name, first_value)) = separated_pair(
         terminated(subcomponent::attribute_name, tag(":")),
         space0,
@@ -32,13 +32,11 @@ pub fn attribute(input: &str) -> IResult<&str, AttributeView> {
     )(input)?;
 
     if peek(subcomponent::continuation_char)(remaining).is_err() {
-        Ok((remaining, AttributeView::new_single(name, first_value)))
+        Ok((remaining, Attribute::unchecked_single(name, first_value)))
     } else {
         let (remaining, continuation_values) = many0(subcomponent::continuation_line)(remaining)?;
-        let values = std::iter::once(first_value)
-            .chain(continuation_values)
-            .collect();
-        Ok((remaining, AttributeView::new_multi(name, values)))
+        let values = std::iter::once(first_value).chain(continuation_values);
+        Ok((remaining, Attribute::unchecked_multi(name, values)))
     }
 }
 
@@ -78,7 +76,7 @@ mod tests {
             attribute("import:         from AS12 accept AS12\n"),
             Ok((
                 "",
-                AttributeView::new_single("import", "from AS12 accept AS12")
+                Attribute::unchecked_single("import", "from AS12 accept AS12")
             ))
         );
     }
@@ -94,9 +92,9 @@ mod tests {
             )),
             Ok((
                 "remarks:        Peering Policy\n",
-                AttributeView::new_multi(
+                Attribute::unchecked_multi(
                     "remarks",
-                    vec![
+                    [
                         "Locations",
                         "LA1 - CoreSite One Wilshire",
                         "NY1 - Equinix New York, Newark",

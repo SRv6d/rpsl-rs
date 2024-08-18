@@ -1,5 +1,5 @@
 use super::component;
-use crate::ObjectView;
+use crate::Object;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -15,13 +15,13 @@ use nom::{
 ///
 /// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
 /// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
-fn object_block(input: &str) -> IResult<&str, ObjectView> {
+fn object_block(input: &str) -> IResult<&str, Object> {
     let (remaining, attributes) = terminated(many1(component::attribute), newline)(input)?;
-    Ok((remaining, ObjectView::new(attributes, input)))
+    Ok((remaining, Object::from_parsed(attributes, input)))
 }
 
 /// Uses the object block parser but allows for optional padding with server messages or newlines.
-fn padded_object_block(input: &str) -> IResult<&str, ObjectView> {
+fn padded_object_block(input: &str) -> IResult<&str, Object> {
     let (remaining, object) = delimited(
         optional_message_or_newlines,
         object_block,
@@ -156,7 +156,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// # Ok(())
 /// # }
 /// ```
-pub fn parse_object(rpsl: &str) -> Result<ObjectView, Error<&str>> {
+pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
     let (_, object) =
         all_consuming(delimited(multispace0, object_block, multispace0))(rpsl).finish()?;
     Ok(object)
@@ -222,8 +222,8 @@ pub fn parse_object(rpsl: &str) -> Result<ObjectView, Error<&str>> {
 /// );
 /// # Ok(())
 /// # }
-pub fn parse_whois_response(response: &str) -> Result<Vec<ObjectView>, Error<&str>> {
-    let (_, objects): (&str, Vec<ObjectView>) =
+pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, Error<&str>> {
+    let (_, objects): (&str, Vec<Object>) =
         all_consuming(many1(padded_object_block))(response).finish()?;
     Ok(objects)
 }
@@ -231,7 +231,7 @@ pub fn parse_whois_response(response: &str) -> Result<Vec<ObjectView>, Error<&st
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{AttributeView, ObjectView};
+    use crate::{Attribute, Object};
 
     #[test]
     fn object_block_valid() {
@@ -244,10 +244,10 @@ mod tests {
             object_block(object),
             Ok((
                 "",
-                ObjectView::new(
+                Object::from_parsed(
                     vec![
-                        AttributeView::new_single("email", "rpsl-rs@github.com"),
-                        AttributeView::new_single("nic-hdl", "RPSL1-RIPE")
+                        Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                        Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE")
                     ],
                     object
                 )
