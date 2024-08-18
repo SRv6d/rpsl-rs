@@ -156,7 +156,7 @@ impl<'a> Value<'a> {
                     vec![]
                 }
             }
-            Self::MultiLine(v) => todo!(),
+            Self::MultiLine(v) => v.iter().flatten().map(AsRef::as_ref).collect(),
         }
     }
 }
