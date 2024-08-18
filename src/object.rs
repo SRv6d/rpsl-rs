@@ -1,4 +1,4 @@
-use super::attribute::Attribute;
+use super::Attribute;
 use std::{
     fmt,
     ops::{Deref, Index},
