@@ -414,6 +414,15 @@ mod tests {
     }
 
     #[rstest]
+    #[case(Value::unchecked_single(""), Value::unchecked_single(None))]
+    #[case(Value::unchecked_single("   "), Value::unchecked_single(None))]
+    #[case(Value::unchecked_multi(["", " ", "   "]), Value::unchecked_multi([None, None, None]))]
+    /// Creating unchecked values from empty strings results in None values.
+    fn value_unchecked_empty_is_none(#[case] value: Value, #[case] expected: Value) {
+        assert_eq!(value, expected);
+    }
+
+    #[rstest]
     #[case(
         vec!["Packet Street 6", "128 Series of Tubes", "Internet"],
         Value::MultiLine(vec![
