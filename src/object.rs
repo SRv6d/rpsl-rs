@@ -226,10 +226,14 @@ impl<'a> IntoIterator for Object<'a> {
 impl fmt::Display for Object<'_> {
     /// Display the object as RPSL.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for attribute in &self.attributes {
-            write!(f, "{attribute}")?;
+        if let Some(source) = self.source {
+            write!(f, "{source}")
+        } else {
+            for attribute in &self.attributes {
+                write!(f, "{attribute}")?;
+            }
+            writeln!(f)
         }
-        writeln!(f)
     }
 }
 
