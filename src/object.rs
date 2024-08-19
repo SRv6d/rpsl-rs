@@ -389,6 +389,150 @@ mod tests {
 
     #[rstest]
     #[case(
+        Object::from_parsed(
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("address", "Packet Street 6"),
+                Attribute::unchecked_single("address", "128 Series of Tubes"),
+                Attribute::unchecked_single("address", "Internet"),
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ],
+            concat!(
+                "role:           ACME Company\n",
+                "address:        Packet Street 6\n",
+                "address:        128 Series of Tubes\n",
+                "address:        Internet\n",
+                "email:          rpsl-rs@github.com\n",
+                "nic-hdl:        RPSL1-RIPE\n",
+                "source:         RIPE\n",
+                "\n", // Terminated by a trailing newline.
+            )
+        ),
+        concat!(
+            "role:           ACME Company\n",
+            "address:        Packet Street 6\n",
+            "address:        128 Series of Tubes\n",
+            "address:        Internet\n",
+            "email:          rpsl-rs@github.com\n",
+            "nic-hdl:        RPSL1-RIPE\n",
+            "source:         RIPE\n",
+            "\n" // Contains a trailing newline.
+        )
+    )]
+    #[case(
+        Object::from_parsed(
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("address", "Packet Street 6"),
+                Attribute::unchecked_single("address", "128 Series of Tubes"),
+                Attribute::unchecked_single("address", "Internet"),
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ],
+            concat!(
+                "role:           ACME Company\n",
+                "address:        Packet Street 6\n",
+                "address:        128 Series of Tubes\n",
+                "address:        Internet\n",
+                "email:          rpsl-rs@github.com\n",
+                "nic-hdl:        RPSL1-RIPE\n",
+                "source:         RIPE\n",
+                // Not terminated by a trailing newline.
+            )
+        ),
+        concat!(
+            "role:           ACME Company\n",
+            "address:        Packet Street 6\n",
+            "address:        128 Series of Tubes\n",
+            "address:        Internet\n",
+            "email:          rpsl-rs@github.com\n",
+            "nic-hdl:        RPSL1-RIPE\n",
+            "source:         RIPE\n",
+            // Does not contain a trailing newline.
+        )
+    )]
+    #[case(
+        Object::from_parsed(
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_multi(
+                    "address",
+                    ["Packet Street 6", "128 Series of Tubes", "Internet"]
+                ),
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ],
+            concat!(
+                "role:           ACME Company\n",
+                "address:        Packet Street 6\n",
+                // Using space as a continuation char.
+                "                128 Series of Tubes\n",
+                "                Internet\n",
+                "email:          rpsl-rs@github.com\n",
+                "nic-hdl:        RPSL1-RIPE\n",
+                "source:         RIPE\n",
+                "\n"
+            )
+        ),
+        concat!(
+            "role:           ACME Company\n",
+            "address:        Packet Street 6\n",
+            // Using space as a continuation char.
+            "                128 Series of Tubes\n",
+            "                Internet\n",
+            "email:          rpsl-rs@github.com\n",
+            "nic-hdl:        RPSL1-RIPE\n",
+            "source:         RIPE\n",
+            "\n"
+        )
+    )]
+    #[case(
+        Object::from_parsed(
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_multi(
+                    "address",
+                    ["Packet Street 6", "128 Series of Tubes", "Internet"]
+                ),
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ],
+            concat!(
+                "role:           ACME Company\n",
+                "address:        Packet Street 6\n",
+                // Using + as a continuation char.
+                "+               128 Series of Tubes\n",
+                "+               Internet\n",
+                "email:          rpsl-rs@github.com\n",
+                "nic-hdl:        RPSL1-RIPE\n",
+                "source:         RIPE\n",
+                "\n"
+            )
+        ),
+        concat!(
+            "role:           ACME Company\n",
+            "address:        Packet Street 6\n",
+            // Using + as a continuation char.
+            "+               128 Series of Tubes\n",
+            "+               Internet\n",
+            "email:          rpsl-rs@github.com\n",
+            "nic-hdl:        RPSL1-RIPE\n",
+            "source:         RIPE\n",
+            "\n"
+        )
+    )]
+    /// Borrowed objects display as the orignal RPSL they were created from.
+    fn borrowed_objects_display_like_source(#[case] object: Object, #[case] expected: &str) {
+        assert_eq!(object.to_string(), expected);
+    }
+
+    #[rstest]
+    #[case(
         object! {
             "role": "ACME Company";
             "address": "Packet Street 6", "128 Series of Tubes", "Internet";
