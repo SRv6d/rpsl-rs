@@ -139,7 +139,7 @@ use std::{
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 #[allow(clippy::len_without_is_empty)]
 pub struct Object<'a> {
     attributes: Vec<Attribute<'a>>,
@@ -220,6 +220,14 @@ impl<'a> IntoIterator for Object<'a> {
 
     fn into_iter(self) -> Self::IntoIter {
         self.attributes.into_iter()
+    }
+}
+
+impl PartialEq for Object<'_> {
+    /// Compare two objects.
+    /// Since objects that are otherwise equal may display differently, only `PartialEq` is implemented.
+    fn eq(&self, other: &Self) -> bool {
+        self.attributes == other.attributes
     }
 }
 
