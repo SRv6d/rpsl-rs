@@ -141,7 +141,7 @@ impl<'a> Value<'a> {
     where
         V: Into<Option<&'a str>>,
     {
-        Self::SingleLine(value.into().map(Cow::Borrowed))
+        Self::SingleLine(value.into().and_then(coerce_empty_value).map(Cow::Borrowed))
     }
 
     fn unchecked_multi<I, V>(values: I) -> Self
@@ -152,7 +152,7 @@ impl<'a> Value<'a> {
         Self::MultiLine(
             values
                 .into_iter()
-                .map(|v| v.into().map(Cow::Borrowed))
+                .map(|v| v.into().and_then(coerce_empty_value).map(Cow::Borrowed))
                 .collect(),
         )
     }
