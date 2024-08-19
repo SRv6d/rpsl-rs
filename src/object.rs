@@ -285,3 +285,158 @@ macro_rules! object {
         ])
     };
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rstest::*;
+
+    #[rstest]
+    #[case(
+        object! {
+            "role": "ACME Company";
+            "address": "Packet Street 6", "128 Series of Tubes", "Internet";
+            "email": "rpsl-rs@github.com";
+            "nic-hdl": "RPSL1-RIPE";
+            "source": "RIPE";
+        },
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_multi(
+                "address",
+                ["Packet Street 6", "128 Series of Tubes", "Internet"],
+            ),
+            Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+            Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+            Attribute::unchecked_single("source", "RIPE"),
+        ])
+    )]
+    fn object_from_macro(#[case] from_macro: Object, #[case] expected: Object) {
+        assert_eq!(from_macro, expected);
+    }
+
+    #[rstest]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("aut-num", "AS42"),
+            Attribute::unchecked_single(
+                "remarks",
+                "All imported prefixes will be tagged with geographic communities and",
+            ),
+            Attribute::unchecked_single(
+                "remarks",
+                "the type of peering relationship according to the table below, using the default",
+            ),
+            Attribute::unchecked_single(
+                "remarks",
+                "announce rule (x=0).",
+            ),
+            Attribute::unchecked_single("remarks", ""),
+            Attribute::unchecked_single(
+                "remarks",
+                "The following communities can be used by peers and customers",
+            ),
+            Attribute::unchecked_multi(
+                "remarks",
+                [
+                    "x = 0 - Announce (default rule)",
+                    "x = 1 - Prepend x1",
+                    "x = 2 - Prepend x2",
+                    "x = 3 - Prepend x3",
+                    "x = 9 - Do not announce",
+                ],
+            ),
+        ]),
+        vec![
+            ("aut-num", vec!["AS42"]),
+            (
+                "remarks",
+                vec![
+                    "All imported prefixes will be tagged with geographic communities and",
+                    "the type of peering relationship according to the table below, using the default",
+                    "announce rule (x=0).",
+                    "The following communities can be used by peers and customers",
+                    "x = 0 - Announce (default rule)",
+                    "x = 1 - Prepend x1",
+                    "x = 2 - Prepend x2",
+                    "x = 3 - Prepend x3",
+                    "x = 9 - Do not announce",
+                ]
+            )
+        ]
+    )]
+    fn get_values_by_name(#[case] object: Object, #[case] name_expected: Vec<(&str, Vec<&str>)>) {
+        for (name, expected) in name_expected {
+            assert_eq!(object.get(name), expected);
+        }
+    }
+
+    #[rstest]
+    #[case(
+        Object::new(
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("address", "Packet Street 6"),
+                Attribute::unchecked_single("address", "128 Series of Tubes"),
+                Attribute::unchecked_single("address", "Internet"),
+            ]),
+        Object::new(
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("address", "Packet Street 6"),
+                Attribute::unchecked_single("address", "128 Series of Tubes"),
+                Attribute::unchecked_single("address", "Internet"),
+            ]),
+    )]
+    #[case(
+        Object::from_parsed(
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("address", "Packet Street 6"),
+                Attribute::unchecked_single("address", "128 Series of Tubes"),
+                Attribute::unchecked_single("address", "Internet"),
+            ],
+            concat!(
+                "role:           ACME Company\n",
+                "address:        Packet Street 6\n",
+                "address:        128 Series of Tubes\n",
+                "address:        Internet\n",
+                "\n"
+            ),
+        ),
+        Object::new(
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("address", "Packet Street 6"),
+                Attribute::unchecked_single("address", "128 Series of Tubes"),
+                Attribute::unchecked_single("address", "Internet"),
+            ],
+        ),
+    )]
+    /// Objects with equal attributes evaluate as equal, without taking the source field into consideration.
+    fn eq_objects_are_eq(#[case] object_1: Object, #[case] object_2: Object) {
+        assert_eq!(object_1, object_2);
+    }
+
+    #[rstest]
+    #[case(
+        Object::new(
+            vec![
+                Attribute::unchecked_single("role", "Umbrella Corporation"),
+                Attribute::unchecked_single("address", "Paraguas Street"),
+                Attribute::unchecked_single("address", "Raccoon City"),
+                Attribute::unchecked_single("address", "Colorado"),
+            ]),
+        Object::new(
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("address", "Packet Street 6"),
+                Attribute::unchecked_single("address", "128 Series of Tubes"),
+                Attribute::unchecked_single("address", "Internet"),
+            ]),
+    )]
+    /// Objects that have different attributes do not evaluate as equal.
+    fn ne_objects_are_ne(#[case] object_1: Object, #[case] object_2: Object) {
+        assert_ne!(object_1, object_2);
+    }
+}
