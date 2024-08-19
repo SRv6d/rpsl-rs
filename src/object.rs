@@ -293,6 +293,102 @@ mod tests {
 
     #[rstest]
     #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_single("address", "Packet Street 6"),
+            Attribute::unchecked_single("address", "128 Series of Tubes"),
+            Attribute::unchecked_single("address", "Internet"),
+            Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+            Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+            Attribute::unchecked_single("source", "RIPE"),
+        ]),
+        Object::from_parsed(
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("address", "Packet Street 6"),
+                Attribute::unchecked_single("address", "128 Series of Tubes"),
+                Attribute::unchecked_single("address", "Internet"),
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ],
+            concat!(
+                "role:           ACME Company\n",
+                "address:        Packet Street 6\n",
+                "address:        128 Series of Tubes\n",
+                "address:        Internet\n",
+                "email:          rpsl-rs@github.com\n",
+                "nic-hdl:        RPSL1-RIPE\n",
+                "source:         RIPE\n",
+                "\n"
+            )
+        ),
+        concat!(
+            "role:           ACME Company\n",
+            "address:        Packet Street 6\n",
+            "address:        128 Series of Tubes\n",
+            "address:        Internet\n",
+            "email:          rpsl-rs@github.com\n",
+            "nic-hdl:        RPSL1-RIPE\n",
+            "source:         RIPE\n",
+            "\n"
+        )
+    )]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_multi(
+                "address",
+                ["Packet Street 6", "128 Series of Tubes", "Internet"]
+            ),
+            Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+            Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+            Attribute::unchecked_single("source", "RIPE"),
+        ]),
+        Object::from_parsed(
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_multi(
+                    "address",
+                    ["Packet Street 6", "128 Series of Tubes", "Internet"]
+                ),
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ],
+            concat!(
+                "role:           ACME Company\n",
+                "address:        Packet Street 6\n",
+                "                128 Series of Tubes\n",
+                "                Internet\n",
+                "email:          rpsl-rs@github.com\n",
+                "nic-hdl:        RPSL1-RIPE\n",
+                "source:         RIPE\n",
+                "\n"
+            )
+        ),
+        concat!(
+            "role:           ACME Company\n",
+            "address:        Packet Street 6\n",
+            "                128 Series of Tubes\n",
+            "                Internet\n",
+            "email:          rpsl-rs@github.com\n",
+            "nic-hdl:        RPSL1-RIPE\n",
+            "source:         RIPE\n",
+            "\n"
+        )
+    )]
+    fn object_display(
+        #[case] owned: Object<'static>,
+        #[case] borrowed: Object,
+        #[case] expected: &str,
+    ) {
+        assert_eq!(owned.to_string(), expected);
+        assert_eq!(borrowed.to_string(), expected);
+    }
+
+    #[rstest]
+    #[case(
         object! {
             "role": "ACME Company";
             "address": "Packet Street 6", "128 Series of Tubes", "Internet";
