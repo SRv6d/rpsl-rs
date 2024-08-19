@@ -1,7 +1,4 @@
-use crate::{
-    common::coerce_empty_value,
-    error::{InvalidNameError, InvalidValueError},
-};
+use crate::error::{InvalidNameError, InvalidValueError};
 use std::{borrow::Cow, fmt, ops::Deref, str::FromStr};
 
 /// An attribute of an [`Object`](crate::Object).
@@ -313,6 +310,18 @@ impl PartialEq<Vec<Option<&str>>> for Value<'_> {
                 true
             }
         }
+    }
+}
+
+/// Coerce an empty value to `None`.
+fn coerce_empty_value<S>(value: S) -> Option<S>
+where
+    S: AsRef<str>,
+{
+    if value.as_ref().trim().is_empty() {
+        None
+    } else {
+        Some(value)
     }
 }
 

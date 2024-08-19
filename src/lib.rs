@@ -11,7 +11,6 @@ pub use attribute::Attribute;
 pub use object::Object;
 
 mod attribute;
-mod common;
 #[allow(clippy::module_name_repetitions)]
 mod error;
 mod object;
