@@ -20,16 +20,20 @@ impl<'a> Attribute<'a> {
         Self { name, value }
     }
 
-    pub(crate) fn unchecked_single(name: &'a str, value: &'a str) -> Self {
+    pub(crate) fn unchecked_single<V>(name: &'a str, value: V) -> Self
+    where
+        V: Into<Option<&'a str>>,
+    {
         let name = Name::unchecked(name);
         let value = Value::unchecked_single(value);
         Self { name, value }
     }
 
-    pub(crate) fn unchecked_multi(
-        name: &'a str,
-        values: impl IntoIterator<Item = &'a str>,
-    ) -> Self {
+    pub(crate) fn unchecked_multi<I, V>(name: &'a str, values: I) -> Self
+    where
+        I: IntoIterator<Item = V>,
+        V: Into<Option<&'a str>>,
+    {
         let name = Name::unchecked(name);
         let value = Value::unchecked_multi(values);
         Self { name, value }
@@ -133,12 +137,24 @@ pub enum Value<'a> {
 }
 
 impl<'a> Value<'a> {
-    fn unchecked_single(value: &'a str) -> Self {
-        Self::SingleLine(Some(Cow::Borrowed(value)))
+    fn unchecked_single<V>(value: V) -> Self
+    where
+        V: Into<Option<&'a str>>,
+    {
+        Self::SingleLine(value.into().map(Cow::Borrowed))
     }
 
-    fn unchecked_multi(values: impl IntoIterator<Item = &'a str>) -> Self {
-        Self::MultiLine(values.into_iter().map(|v| Some(Cow::Borrowed(v))).collect())
+    fn unchecked_multi<I, V>(values: I) -> Self
+    where
+        I: IntoIterator<Item = V>,
+        V: Into<Option<&'a str>>,
+    {
+        Self::MultiLine(
+            values
+                .into_iter()
+                .map(|v| v.into().map(Cow::Borrowed))
+                .collect(),
+        )
     }
 
     fn validate(value: &str) -> Result<(), InvalidValueError> {
