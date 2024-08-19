@@ -139,7 +139,7 @@ use std::{
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 #[allow(clippy::len_without_is_empty)]
 pub struct Object<'a> {
     attributes: Vec<Attribute<'a>>,
