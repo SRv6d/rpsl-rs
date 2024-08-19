@@ -583,7 +583,7 @@ mod tests {
                 "remarks",
                 "announce rule (x=0).",
             ),
-            Attribute::unchecked_single("remarks", ""),
+            Attribute::unchecked_single("remarks", None),
             Attribute::unchecked_single(
                 "remarks",
                 "The following communities can be used by peers and customers",
