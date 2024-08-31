@@ -35,7 +35,7 @@ An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser wit
 
 A string containing an object in RPSL notation can be parsed to an [Object] using the [parse_object] function.
 
-```rust,ignore
+```rust
 use rpsl::parse_object;
 
 let role_acme = "
@@ -48,7 +48,7 @@ nic-hdl:     RPSL1-RIPE
 source:      RIPE
 
 ";
-let parsed = parse_object(role_acme)?;
+let parsed = parse_object(role_acme).unwrap();
 ```
 
 The returned [Object] allows access to the attributes contained within in form of [Attribute]s.
