@@ -539,7 +539,7 @@ mod tests {
             "\n"
         )
     )]
-    /// Borrowed objects display as the orignal RPSL they were created from.
+    /// Borrowed objects display as the original RPSL they were created from.
     fn borrowed_objects_display_like_source(#[case] object: Object, #[case] expected: &str) {
         assert_eq!(object.to_string(), expected);
     }
