@@ -37,8 +37,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
     Ok((remaining, message_or_newlines))
 }
 
-/// Parse RPSL into an [`ObjectView`], a type that borrows from the RPSL input and provides
-/// a convenient interface to access attributes as references.
+/// Parse RPSL into an [`Object`], borrowing from the source.
 ///
 /// ```text
 /// role:           ACME Company
@@ -162,7 +161,7 @@ pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
     Ok(object)
 }
 
-/// Parse a WHOIS server response into [`ObjectView`]s of the objects contained within.
+/// Parse a WHOIS server response into [`Object`]s contained within.
 ///
 /// # Errors
 /// Returns a Nom error if the input is not valid RPSL.
