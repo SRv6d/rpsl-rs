@@ -17,7 +17,7 @@ use nom::{
 /// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
 fn object_block(input: &str) -> IResult<&str, Object> {
     let (remaining, attributes) = terminated(many1(component::attribute), newline)(input)?;
-    Ok((remaining, Object::from_parsed(attributes, input)))
+    Ok((remaining, Object::from_parsed(input, attributes)))
 }
 
 /// Uses the object block parser but allows for optional padding with server messages or newlines.
@@ -245,11 +245,11 @@ mod tests {
             Ok((
                 "",
                 Object::from_parsed(
+                    object,
                     vec![
                         Attribute::unchecked_single("email", "rpsl-rs@github.com"),
                         Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE")
                     ],
-                    object
                 )
             ))
         );

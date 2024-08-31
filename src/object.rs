@@ -174,7 +174,8 @@ impl Object<'_> {
         }
     }
 
-    pub(crate) fn from_parsed<'a>(attributes: Vec<Attribute<'a>>, source: &'a str) -> Object<'a> {
+    /// Create a new RPSL object from a text source and it's corresponding parsed attributes.
+    pub(crate) fn from_parsed<'a>(source: &'a str, attributes: Vec<Attribute<'a>>) -> Object<'a> {
         Object {
             attributes,
             source: Some(source),
@@ -315,15 +316,6 @@ mod tests {
             Attribute::unchecked_single("source", "RIPE"),
         ]),
         Object::from_parsed(
-            vec![
-                Attribute::unchecked_single("role", "ACME Company"),
-                Attribute::unchecked_single("address", "Packet Street 6"),
-                Attribute::unchecked_single("address", "128 Series of Tubes"),
-                Attribute::unchecked_single("address", "Internet"),
-                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
-                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
-                Attribute::unchecked_single("source", "RIPE"),
-            ],
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -333,7 +325,16 @@ mod tests {
                 "nic-hdl:        RPSL1-RIPE\n",
                 "source:         RIPE\n",
                 "\n"
-            )
+            ),
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("address", "Packet Street 6"),
+                Attribute::unchecked_single("address", "128 Series of Tubes"),
+                Attribute::unchecked_single("address", "Internet"),
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ]
         ),
         concat!(
             "role:           ACME Company\n",
@@ -358,16 +359,6 @@ mod tests {
             Attribute::unchecked_single("source", "RIPE"),
         ]),
         Object::from_parsed(
-            vec![
-                Attribute::unchecked_single("role", "ACME Company"),
-                Attribute::unchecked_multi(
-                    "address",
-                    ["Packet Street 6", "128 Series of Tubes", "Internet"]
-                ),
-                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
-                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
-                Attribute::unchecked_single("source", "RIPE"),
-            ],
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -377,7 +368,17 @@ mod tests {
                 "nic-hdl:        RPSL1-RIPE\n",
                 "source:         RIPE\n",
                 "\n"
-            )
+            ),
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_multi(
+                    "address",
+                    ["Packet Street 6", "128 Series of Tubes", "Internet"]
+                ),
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ]
         ),
         concat!(
             "role:           ACME Company\n",
@@ -402,15 +403,6 @@ mod tests {
     #[rstest]
     #[case(
         Object::from_parsed(
-            vec![
-                Attribute::unchecked_single("role", "ACME Company"),
-                Attribute::unchecked_single("address", "Packet Street 6"),
-                Attribute::unchecked_single("address", "128 Series of Tubes"),
-                Attribute::unchecked_single("address", "Internet"),
-                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
-                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
-                Attribute::unchecked_single("source", "RIPE"),
-            ],
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -420,7 +412,16 @@ mod tests {
                 "nic-hdl:        RPSL1-RIPE\n",
                 "source:         RIPE\n",
                 "\n", // Terminated by a trailing newline.
-            )
+            ),
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("address", "Packet Street 6"),
+                Attribute::unchecked_single("address", "128 Series of Tubes"),
+                Attribute::unchecked_single("address", "Internet"),
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ],
         ),
         concat!(
             "role:           ACME Company\n",
@@ -435,15 +436,6 @@ mod tests {
     )]
     #[case(
         Object::from_parsed(
-            vec![
-                Attribute::unchecked_single("role", "ACME Company"),
-                Attribute::unchecked_single("address", "Packet Street 6"),
-                Attribute::unchecked_single("address", "128 Series of Tubes"),
-                Attribute::unchecked_single("address", "Internet"),
-                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
-                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
-                Attribute::unchecked_single("source", "RIPE"),
-            ],
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -453,7 +445,16 @@ mod tests {
                 "nic-hdl:        RPSL1-RIPE\n",
                 "source:         RIPE\n",
                 // Not terminated by a trailing newline.
-            )
+            ),
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("address", "Packet Street 6"),
+                Attribute::unchecked_single("address", "128 Series of Tubes"),
+                Attribute::unchecked_single("address", "Internet"),
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ],
         ),
         concat!(
             "role:           ACME Company\n",
@@ -468,16 +469,6 @@ mod tests {
     )]
     #[case(
         Object::from_parsed(
-            vec![
-                Attribute::unchecked_single("role", "ACME Company"),
-                Attribute::unchecked_multi(
-                    "address",
-                    ["Packet Street 6", "128 Series of Tubes", "Internet"]
-                ),
-                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
-                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
-                Attribute::unchecked_single("source", "RIPE"),
-            ],
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -488,7 +479,17 @@ mod tests {
                 "nic-hdl:        RPSL1-RIPE\n",
                 "source:         RIPE\n",
                 "\n"
-            )
+            ),
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_multi(
+                    "address",
+                    ["Packet Street 6", "128 Series of Tubes", "Internet"]
+                ),
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ],
         ),
         concat!(
             "role:           ACME Company\n",
@@ -504,16 +505,6 @@ mod tests {
     )]
     #[case(
         Object::from_parsed(
-            vec![
-                Attribute::unchecked_single("role", "ACME Company"),
-                Attribute::unchecked_multi(
-                    "address",
-                    ["Packet Street 6", "128 Series of Tubes", "Internet"]
-                ),
-                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
-                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
-                Attribute::unchecked_single("source", "RIPE"),
-            ],
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -524,7 +515,17 @@ mod tests {
                 "nic-hdl:        RPSL1-RIPE\n",
                 "source:         RIPE\n",
                 "\n"
-            )
+            ),
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_multi(
+                    "address",
+                    ["Packet Street 6", "128 Series of Tubes", "Internet"]
+                ),
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ],
         ),
         concat!(
             "role:           ACME Company\n",
@@ -642,12 +643,6 @@ mod tests {
     )]
     #[case(
         Object::from_parsed(
-            vec![
-                Attribute::unchecked_single("role", "ACME Company"),
-                Attribute::unchecked_single("address", "Packet Street 6"),
-                Attribute::unchecked_single("address", "128 Series of Tubes"),
-                Attribute::unchecked_single("address", "Internet"),
-            ],
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -655,6 +650,12 @@ mod tests {
                 "address:        Internet\n",
                 "\n"
             ),
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("address", "Packet Street 6"),
+                Attribute::unchecked_single("address", "128 Series of Tubes"),
+                Attribute::unchecked_single("address", "Internet"),
+            ],
         ),
         Object::new(
             vec![
