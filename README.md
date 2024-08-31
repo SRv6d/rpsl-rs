@@ -53,7 +53,7 @@ let parsed = parse_object(role_acme)?;
 
 The returned [ObjectView] allows access to the attributes contained within in form of [AttributeView]s, a type that contains references to the data it represents, making the parser very memory efficient and performant, since no allocation is needed during parsing.
 
-```ignore
+```text
 role:           ACME Company ◀─────────────── &"role"    ───  &"ACME Company"
 address:        Packet Street 6 ◀──────────── &"address" ───  &"Packet Street 6"
 address:        128 Series of Tubes ◀──────── &"address" ───  &"128 Series of Tubes"
