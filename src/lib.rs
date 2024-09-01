@@ -7,13 +7,11 @@
 pub use error::AttributeError;
 pub use parser::{parse_object, parse_whois_response};
 
-pub use self::borrowed::{AttributeView, ObjectView};
-pub use self::owned::{Attribute, Object};
-pub(crate) use self::owned::{Name, Value};
+pub use attribute::Attribute;
+pub use object::Object;
 
-mod borrowed;
-mod common;
+mod attribute;
 #[allow(clippy::module_name_repetitions)]
 mod error;
-mod owned;
+mod object;
 mod parser;

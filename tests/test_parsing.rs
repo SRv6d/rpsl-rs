@@ -71,7 +71,7 @@ mod strategies {
     }
 
     /// An attribute and its corresponding RPSL representation.
-    fn attribute_w_rpsl() -> impl Strategy<Value = (rpsl::Attribute, String)> {
+    fn attribute_w_rpsl() -> impl Strategy<Value = (rpsl::Attribute<'static>, String)> {
         (
             attribute_name(),
             space_separator(),
@@ -79,20 +79,18 @@ mod strategies {
             attribute_value(),
         )
             .prop_map(|(name, space, cont_prefix, value)| {
-                let attribute = rpsl::Attribute {
-                    name: name.parse().unwrap(),
-                    value: {
-                        match &value {
-                            AttributeValue::Single(value) => value.parse().unwrap(),
-                            AttributeValue::Multi(values) => values
-                                .iter()
-                                .map(AsRef::as_ref)
-                                .collect::<Vec<&str>>()
-                                .try_into()
-                                .unwrap(),
-                        }
+                let attribute = rpsl::Attribute::new(
+                    name.parse().unwrap(),
+                    match &value {
+                        AttributeValue::Single(value) => value.parse().unwrap(),
+                        AttributeValue::Multi(values) => values
+                            .iter()
+                            .map(AsRef::as_ref)
+                            .collect::<Vec<&str>>()
+                            .try_into()
+                            .unwrap(),
                     },
-                };
+                );
 
                 let mut rpsl = format!(
                     "{name}:{space}{value}",
@@ -119,7 +117,7 @@ mod strategies {
     }
 
     /// An object and its corresponding RPSL representation.
-    pub fn object_w_rpsl() -> impl Strategy<Value = (rpsl::Object, String)> {
+    pub fn object_w_rpsl() -> impl Strategy<Value = (rpsl::Object<'static>, String)> {
         prop::collection::vec(attribute_w_rpsl(), 2..300).prop_flat_map(|attrs_w_rpsl| {
             let mut attributes: Vec<rpsl::Attribute> = Vec::new();
             let mut rpsl = String::new();

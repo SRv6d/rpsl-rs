@@ -1,25 +1,15 @@
 use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let object_borrowed = rpsl::parse_object(AS3257).unwrap();
-    let object_owned = object_borrowed.to_owned();
+    let object = rpsl::parse_object(AS3257).unwrap();
 
     c.bench_function(
-        "get values for single occurence attribute name on borrowed object",
-        |b| b.iter(|| black_box(object_borrowed.get("status"))),
+        "get values for single occurence attribute name on object",
+        |b| b.iter(|| black_box(object.get("status"))),
     );
     c.bench_function(
-        "get values for single occurence attribute name on owned object",
-        |b| b.iter(|| black_box(object_owned.get("status"))),
-    );
-
-    c.bench_function(
-        "get values for multi occurence attribute name on borrowed object",
-        |b| b.iter(|| black_box(object_borrowed.get("mp-export"))),
-    );
-    c.bench_function(
-        "get values for multi occurrence attribute name on owned object",
-        |b| b.iter(|| black_box(object_owned.get("mp-export"))),
+        "get values for multi occurence attribute name on object",
+        |b| b.iter(|| black_box(object.get("mp-export"))),
     );
 }
 

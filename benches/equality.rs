@@ -1,15 +1,11 @@
 use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
 
 pub fn criterion_benchmark(c: &mut Criterion) {
-    let object_1_borrowed = rpsl::parse_object(AS3257).unwrap();
-    let object_1_borrowed_2 = object_1_borrowed.clone();
-    let object_1_owned = object_1_borrowed.to_owned();
+    let object = rpsl::parse_object(AS3257).unwrap();
+    let object_2 = object.clone();
 
-    c.bench_function("evaluate equality of equal views", |b| {
-        b.iter(|| black_box(object_1_borrowed == object_1_borrowed_2))
-    });
-    c.bench_function("evaluate equality of equal view and owned object", |b| {
-        b.iter(|| black_box(object_1_borrowed == object_1_owned))
+    c.bench_function("evaluate equality of equal objects", |b| {
+        b.iter(|| black_box(object == object_2))
     });
 }
 

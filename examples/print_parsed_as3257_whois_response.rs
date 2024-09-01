@@ -1,7 +1,7 @@
-use rpsl::{parse_whois_response, ObjectView};
+use rpsl::{parse_whois_response, Object};
 
 fn main() {
-    let parsed_objects: Vec<ObjectView> = parse_whois_response(AS3257_WHOIS_RESPONSE).unwrap();
+    let parsed_objects: Vec<Object> = parse_whois_response(AS3257_WHOIS_RESPONSE).unwrap();
     println!("{:#?}", parsed_objects);
 }
 
