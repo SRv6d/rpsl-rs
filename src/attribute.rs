@@ -189,7 +189,6 @@ impl<'a> Value<'a> {
     /// # }
     /// ```
     pub fn with_content(&self) -> Vec<&str> {
-        // TODO: Consider returning iterator instead of Vec.
         match self {
             Self::SingleLine(v) => {
                 if let Some(v) = v {
@@ -245,15 +244,6 @@ impl TryFrom<Vec<&str>> for Value<'_> {
         Ok(Self::MultiLine(
             values.into_iter().map(|v| v.map(Cow::Owned)).collect(),
         ))
-    }
-}
-
-impl IntoIterator for Value<'_> {
-    type Item = Option<String>;
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        todo!()
     }
 }
 
