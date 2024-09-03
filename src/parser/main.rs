@@ -247,6 +247,19 @@ mod tests {
     }
 
     #[test]
+    /// When parsing RPSL, the resulting object contains the original source it was created from.
+    fn parsed_object_contains_source() {
+        let rpsl = &mut concat!(
+            "email:       rpsl-rs@github.com\n",
+            "nic-hdl:     RPSL1-RIPE\n",
+            "\n"
+        );
+        let source = *rpsl;
+        let object = object_block(rpsl).unwrap();
+        assert_eq!(object.source().unwrap(), source);
+    }
+
+    #[test]
     fn object_block_without_newline_termination_is_err() {
         let object = &mut concat!(
             "email:       rpsl-rs@github.com\n",

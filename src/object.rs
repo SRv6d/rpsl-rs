@@ -197,6 +197,12 @@ impl Object<'_> {
             .flat_map(|a| a.value.with_content())
             .collect()
     }
+
+    /// Access the source field for use in tests.
+    #[cfg(test)]
+    pub(crate) fn source(&self) -> Option<&str> {
+        self.source
+    }
 }
 
 impl<'a> Index<usize> for Object<'a> {
