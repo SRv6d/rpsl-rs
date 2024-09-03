@@ -1,5 +1,5 @@
 use super::component;
-use crate::{Attribute, Object};
+use crate::Object;
 use winnow::{
     ascii::{multispace0, newline},
     combinator::{alt, delimited, repeat, terminated},
@@ -11,9 +11,10 @@ use winnow::{
 /// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
 /// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
 fn object_block<'s>(input: &mut &'s str) -> PResult<Object<'s>> {
-    let attributes: Vec<Attribute> =
-        terminated(repeat(1.., component::attribute), newline).parse_next(input)?;
-    Ok(Object::from_parsed(input, attributes))
+    let (attributes, source) = terminated(repeat(1.., component::attribute), newline)
+        .with_taken()
+        .parse_next(input)?;
+    Ok(Object::from_parsed(source, attributes))
 }
 
 /// Extends the object block parser to consume optional padding server messages or newlines.
