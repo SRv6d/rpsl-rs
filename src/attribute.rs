@@ -134,6 +134,8 @@ pub enum Value<'a> {
 }
 
 impl<'a> Value<'a> {
+    /// Create a single line value without checking that characters conform to any specification
+    /// while still coercing empty values to `None`.
     fn unchecked_single<V>(value: V) -> Self
     where
         V: Into<Option<&'a str>>,
@@ -141,6 +143,8 @@ impl<'a> Value<'a> {
         Self::SingleLine(value.into().and_then(coerce_empty_value).map(Cow::Borrowed))
     }
 
+    /// Create a multi line value without checking that characters conform to any specification
+    /// while still coercing empty values to `None`.
     fn unchecked_multi<I, V>(values: I) -> Self
     where
         I: IntoIterator<Item = V>,
