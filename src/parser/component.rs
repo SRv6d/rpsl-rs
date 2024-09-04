@@ -142,7 +142,7 @@ mod subcomponent {
 
     // An ASCII sequence of characters, excluding control.
     pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
-        take_while(1.., |c: char| c.is_ascii() && !c.is_ascii_control()).parse_next(input)
+        take_while(0.., |c: char| c.is_ascii() && !c.is_ascii_control()).parse_next(input)
     }
 
     // Consume a single multiline continuation character.
@@ -220,6 +220,11 @@ mod subcomponent {
         #[case(
             &mut "* Equinix FR5, Kleyerstr, Frankfurt am Main\n",
             "* Equinix FR5, Kleyerstr, Frankfurt am Main",
+            "\n"
+        )]
+        #[case(
+            &mut "\n",
+            "",
             "\n"
         )]
         fn attribute_value_valid(
