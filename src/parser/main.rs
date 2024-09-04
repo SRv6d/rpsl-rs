@@ -1,5 +1,5 @@
 use super::component;
-use crate::Object;
+use crate::{Object, ParseError};
 use winnow::{
     ascii::{multispace0, newline},
     combinator::{alt, delimited, repeat, terminated},
@@ -53,7 +53,7 @@ fn consume_opt_message_or_newlines(input: &mut &str) -> PResult<()> {
 /// ```
 ///
 /// # Errors
-/// Returns a Nom error if the input is not valid RPSL.
+/// Returns a `ParseError` if the input is not valid RPSL.
 ///
 /// # Examples
 /// ```
@@ -150,17 +150,15 @@ fn consume_opt_message_or_newlines(input: &mut &str) -> PResult<()> {
 /// # Ok(())
 /// # }
 /// ```
-pub fn parse_object(rpsl: &str) -> Result<Object, ()> {
-    let object = delimited(multispace0, object_block, multispace0)
-        .parse(rpsl)
-        .unwrap();
+pub fn parse_object(rpsl: &str) -> Result<Object, ParseError> {
+    let object = delimited(multispace0, object_block, multispace0).parse(rpsl)?;
     Ok(object)
 }
 
 /// Parse a WHOIS server response into [`Object`]s contained within.
 ///
 /// # Errors
-/// Returns a Nom error if the input is not valid RPSL.
+/// Returns a `ParseError` error if the input is not valid RPSL.
 ///
 /// # Examples
 /// ```
@@ -217,8 +215,8 @@ pub fn parse_object(rpsl: &str) -> Result<Object, ()> {
 /// );
 /// # Ok(())
 /// # }
-pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, ()> {
-    let objects = repeat(1.., object_block_padded).parse(response).unwrap();
+pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, ParseError> {
+    let objects = repeat(1.., object_block_padded).parse(response)?;
     Ok(objects)
 }
 
