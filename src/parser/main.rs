@@ -1,40 +1,35 @@
 use super::component;
-use crate::Object;
-use nom::{
-    branch::alt,
-    bytes::complete::tag,
-    character::complete::{multispace0, newline},
-    combinator::all_consuming,
-    error::Error,
-    multi::{many0, many1},
-    sequence::{delimited, terminated},
-    Finish, IResult,
+use crate::{Object, ParseError};
+use winnow::{
+    ascii::{multispace0, newline},
+    combinator::{alt, delimited, repeat, terminated},
+    PResult, Parser,
 };
 
 /// Parse an object with at least one attribute terminated by a newline.
 ///
 /// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
 /// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
-fn object_block(input: &str) -> IResult<&str, Object> {
-    let (remaining, attributes) = terminated(many1(component::attribute), newline)(input)?;
-    Ok((remaining, Object::from_parsed(input, attributes)))
+fn object_block<'s>(input: &mut &'s str) -> PResult<Object<'s>> {
+    let (attributes, source) = terminated(repeat(1.., component::attribute), newline)
+        .with_taken()
+        .parse_next(input)?;
+    Ok(Object::from_parsed(source, attributes))
 }
 
-/// Uses the object block parser but allows for optional padding with server messages or newlines.
-fn padded_object_block(input: &str) -> IResult<&str, Object> {
-    let (remaining, object) = delimited(
-        optional_message_or_newlines,
+/// Extends the object block parser to consume optional padding server messages or newlines.
+fn object_block_padded<'s>(input: &mut &'s str) -> PResult<Object<'s>> {
+    delimited(
+        consume_opt_message_or_newlines,
         object_block,
-        optional_message_or_newlines,
-    )(input)?;
-    Ok((remaining, object))
+        consume_opt_message_or_newlines,
+    )
+    .parse_next(input)
 }
 
-/// Parse an unlimited number of optional server messages or newlines.
-fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
-    let (remaining, message_or_newlines) =
-        many0(alt((component::server_message, tag("\n"))))(input)?;
-    Ok((remaining, message_or_newlines))
+/// Consume optional server messages or newlines.
+fn consume_opt_message_or_newlines(input: &mut &str) -> PResult<()> {
+    repeat(0.., alt((newline.void(), component::server_message.void()))).parse_next(input)
 }
 
 /// Parse RPSL into an [`Object`], borrowing from the source.
@@ -58,7 +53,7 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// ```
 ///
 /// # Errors
-/// Returns a Nom error if the input is not valid RPSL.
+/// Returns a `ParseError` if the input is not valid RPSL.
 ///
 /// # Examples
 /// ```
@@ -155,16 +150,15 @@ fn optional_message_or_newlines(input: &str) -> IResult<&str, Vec<&str>> {
 /// # Ok(())
 /// # }
 /// ```
-pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
-    let (_, object) =
-        all_consuming(delimited(multispace0, object_block, multispace0))(rpsl).finish()?;
+pub fn parse_object(rpsl: &str) -> Result<Object, ParseError> {
+    let object = delimited(multispace0, object_block, multispace0).parse(rpsl)?;
     Ok(object)
 }
 
 /// Parse a WHOIS server response into [`Object`]s contained within.
 ///
 /// # Errors
-/// Returns a Nom error if the input is not valid RPSL.
+/// Returns a `ParseError` error if the input is not valid RPSL.
 ///
 /// # Examples
 /// ```
@@ -221,9 +215,8 @@ pub fn parse_object(rpsl: &str) -> Result<Object, Error<&str>> {
 /// );
 /// # Ok(())
 /// # }
-pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, Error<&str>> {
-    let (_, objects): (&str, Vec<Object>) =
-        all_consuming(many1(padded_object_block))(response).finish()?;
+pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, ParseError> {
+    let objects = repeat(1.., object_block_padded).parse(response)?;
     Ok(objects)
 }
 
@@ -231,72 +224,73 @@ pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, Error<&str>> 
 mod tests {
     use super::*;
     use crate::{Attribute, Object};
+    use rstest::*;
 
     #[test]
     fn object_block_valid() {
-        let object = concat!(
+        let object = &mut concat!(
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
             "\n"
         );
         assert_eq!(
             object_block(object),
-            Ok((
-                "",
-                Object::from_parsed(
-                    object,
-                    vec![
-                        Attribute::unchecked_single("email", "rpsl-rs@github.com"),
-                        Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE")
-                    ],
-                )
+            Ok(Object::from_parsed(
+                object,
+                vec![
+                    Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                    Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE")
+                ]
             ))
         );
     }
 
     #[test]
+    /// When parsing RPSL, the resulting object contains the original source it was created from.
+    fn parsed_object_contains_source() {
+        let rpsl = &mut concat!(
+            "email:       rpsl-rs@github.com\n",
+            "nic-hdl:     RPSL1-RIPE\n",
+            "\n"
+        );
+        let source = *rpsl;
+        let object = object_block(rpsl).unwrap();
+        assert_eq!(object.source().unwrap(), source);
+    }
+
+    #[test]
     fn object_block_without_newline_termination_is_err() {
-        let object = concat!(
+        let object = &mut concat!(
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
         );
         assert!(object_block(object).is_err());
     }
 
-    #[test]
-    fn optional_comment_or_newlines_consumed() {
-        assert_eq!(
-            optional_message_or_newlines("% Note: This is a server message\n")
-                .unwrap()
-                .0,
-            ""
-        );
-        assert_eq!(
-            optional_message_or_newlines(concat!(
-                "\n",
-                "% Note: This is a server message followed by an empty line\n"
-            ))
-            .unwrap()
-            .0,
-            ""
-        );
-        assert_eq!(
-            optional_message_or_newlines(concat!(
-                "% Note: This is a server message preceding some newlines.\n",
-                "\n",
-                "\n",
-            ))
-            .unwrap()
-            .0,
-            ""
-        );
+    #[rstest]
+    #[case(
+        &mut "% Note: This is a server message\n"
+    )]
+    #[case(
+        &mut concat!(
+            "\n",
+            "% Note: This is a server message followed by an empty line\n"
+        )
+    )]
+    #[case(
+        &mut concat!(
+            "% Note: This is a server message preceding some newlines.\n",
+            "\n",
+            "\n",
+        )
+    )]
+    fn optional_comment_or_newlines_consumed(#[case] given: &mut &str) {
+        consume_opt_message_or_newlines(given).unwrap();
+        assert_eq!(*given, "");
     }
 
     #[test]
     fn optional_comment_or_newlines_optional() {
-        assert_eq!(
-            optional_message_or_newlines(""),
-            Ok(("", Vec::<&str>::new()))
-        );
+        assert_eq!(consume_opt_message_or_newlines(&mut ""), Ok(()));
     }
 }
