@@ -6,5 +6,8 @@ updates:
       interval: monthly
   - package-ecosystem: cargo
     directory: /
+    groups:
+      dev-dependencies:
+        dependency-type: development
     schedule:
       interval: monthly
