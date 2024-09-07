@@ -2,6 +2,8 @@ use std::{borrow::Cow, fmt, ops::Deref, str::FromStr};
 
 use crate::error::{InvalidNameError, InvalidValueError};
 
+use serde::Serialize;
+
 /// An attribute of an [`Object`](crate::Object).
 ///
 /// # Example
@@ -85,7 +87,8 @@ impl fmt::Display for Attribute<'_> {
 }
 
 /// The name of an [`Attribute`].
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
+#[serde(transparent)]
 pub struct Name<'a>(Cow<'a, str>);
 
 impl<'a> Name<'a> {
