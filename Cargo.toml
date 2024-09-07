@@ -28,6 +28,7 @@ codspeed-criterion-compat = "=2.7.1"
 criterion = "=0.5.1"
 proptest = "=1.5.0"
 rstest = "=0.22.0"
+serde_test = "=1.0.177"
 
 [features]
 default = ["simd"]

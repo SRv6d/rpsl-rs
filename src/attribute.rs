@@ -391,6 +391,7 @@ where
 mod tests {
     use proptest::prelude::*;
     use rstest::*;
+    use serde_test::{assert_ser_tokens, Token};
 
     use super::*;
 
@@ -436,6 +437,42 @@ mod tests {
     )]
     fn attribute_display_multi_line(#[case] attribute: Attribute, #[case] expected: &str) {
         assert_eq!(attribute.to_string(), expected);
+    }
+
+    #[rstest]
+    #[case(
+        Attribute::new(Name::unchecked("ASNumber"), Value::unchecked_single("32934")),
+        &[
+            Token::Struct { name: "Attribute", len: 2 },
+            Token::Str("name"),
+            Token::Str("ASNumber"),
+            Token::Str("values"),
+            Token::Seq { len: Some(1) },
+            Token::Str("32934"),
+            Token::SeqEnd,
+            Token::StructEnd,
+        ],
+    )]
+    #[case(
+        Attribute::new(
+            Name::unchecked("address"),
+            Value::unchecked_multi(["Packet Street 6", "128 Series of Tubes", "Internet"])
+        ),
+        &[
+            Token::Struct { name: "Attribute", len: 2 },
+            Token::Str("name"),
+            Token::Str("address"),
+            Token::Str("values"),
+            Token::Seq { len: Some(3) },
+            Token::Str("Packet Street 6"),
+            Token::Str("128 Series of Tubes"),
+            Token::Str("Internet"),
+            Token::SeqEnd,
+            Token::StructEnd,
+        ],
+    )]
+    fn attribute_serialize(#[case] attribute: Attribute, #[case] expected: &[Token]) {
+        assert_ser_tokens(&attribute, expected);
     }
 
     #[test]
