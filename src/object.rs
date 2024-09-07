@@ -309,6 +309,7 @@ macro_rules! object {
 #[cfg(test)]
 mod tests {
     use rstest::*;
+    use serde_json::json;
 
     use super::*;
 
@@ -406,6 +407,57 @@ mod tests {
     ) {
         assert_eq!(owned.to_string(), expected);
         assert_eq!(borrowed.to_string(), expected);
+    }
+
+    #[rstest]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_single("address", "Packet Street 6"),
+            Attribute::unchecked_single("address", "128 Series of Tubes"),
+            Attribute::unchecked_single("address", "Internet"),
+            Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+            Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+            Attribute::unchecked_single("source", "RIPE"),
+        ]),
+        json!({
+            "attributes": [
+                { "name": "role", "values": ["ACME Company"] },
+                { "name": "address", "values": ["Packet Street 6"] },
+                { "name": "address", "values": ["128 Series of Tubes"] },
+                { "name": "address", "values": ["Internet"] },
+                { "name": "email", "values": ["rpsl-rs@github.com"] },
+                { "name": "nic-hdl", "values": ["RPSL1-RIPE"] },
+                { "name": "source", "values": ["RIPE"] }
+            ]
+        })
+    )]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_multi(
+                "address",
+                ["Packet Street 6", "", "128 Series of Tubes", "Internet"]
+            ),
+            Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+            Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+            Attribute::unchecked_single("source", "RIPE"),
+        ]),
+        json!({
+            "attributes": [
+                { "name": "role", "values": ["ACME Company"] },
+                { 
+                    "name": "address",
+                    "values": ["Packet Street 6", null, "128 Series of Tubes", "Internet"] },
+                { "name": "email", "values": ["rpsl-rs@github.com"] },
+                { "name": "nic-hdl", "values": ["RPSL1-RIPE"] },
+                { "name": "source", "values": ["RIPE"] }
+            ]
+        })
+    )]
+    fn object_json_repr(#[case] object: Object, #[case] expected: serde_json::Value) {
+        let json = serde_json::to_value(object).unwrap();
+        assert_eq!(json, expected);
     }
 
     #[rstest]
