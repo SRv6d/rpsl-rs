@@ -511,6 +511,12 @@ mod tests {
     }
 
     #[rstest]
+    #[case(Name::unchecked("ASNumber"), Token::Str("ASNumber"))]
+    fn name_serialize(#[case] name: Name, #[case] expected: Token) {
+        assert_ser_tokens(&name, &[expected]);
+    }
+
+    #[rstest]
     #[case("This is a valid attribute value", Value::SingleLine(Some(Cow::Owned("This is a valid attribute value".to_string()))))]
     #[case("   ", Value::SingleLine(None))]
     fn value_from_str(#[case] s: &str, #[case] expected: Value) {
@@ -520,6 +526,37 @@ mod tests {
     #[rstest]
     fn value_from_empty_str(#[values("", "   ")] s: &str) {
         assert_eq!(Value::from_str(s).unwrap(), Value::SingleLine(None));
+    }
+
+    #[rstest]
+    #[case(
+        Value::unchecked_single("32934"),
+        &[
+            Token::Seq { len: Some(1) },
+            Token::Str("32934"),
+            Token::SeqEnd,
+        ],
+    )]
+    #[case(
+        Value::unchecked_single(""),
+        &[
+            Token::Seq { len: Some(1) },
+            Token::None,
+            Token::SeqEnd,
+        ],
+    )]
+    #[case(
+        Value::unchecked_multi(["Packet Street 6", "128 Series of Tubes", "Internet"]),
+        &[
+            Token::Seq { len: Some(3) },
+            Token::Str("Packet Street 6"),
+            Token::Str("128 Series of Tubes"),
+            Token::Str("Internet"),
+            Token::SeqEnd,
+        ],
+    )]
+    fn value_serialize(#[case] value: Value, #[case] expected: &[Token]) {
+        assert_ser_tokens(&value, expected);
     }
 
     #[rstest]
