@@ -21,7 +21,8 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 winnow = "0.6.14"
 thiserror = "1.0.50"
-serde = { version = "1.0.210", optional = true, features = ["derive"]}
+serde = { version = "1.0.210", optional = true, features = ["derive"] }
+serde_json = { version = "1.0.128", optional = true }
 
 [dev-dependencies]
 codspeed-criterion-compat = "=2.7.1"
@@ -34,6 +35,7 @@ serde_test = "=1.0.177"
 default = ["simd"]
 simd = ["winnow/simd"]
 serde = ["dep:serde"]
+json = ["dep:serde", "dep:serde_json"]
 
 [[bench]]
 name = "parse_as3257"
