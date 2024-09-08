@@ -150,12 +150,14 @@ impl<'a> Value<'a> {
         I: IntoIterator<Item = V>,
         V: Into<Option<&'a str>>,
     {
-        Self::MultiLine(
+        let s = Self::MultiLine(
             values
                 .into_iter()
                 .map(|v| v.into().and_then(coerce_empty_value).map(Cow::Borrowed))
                 .collect(),
-        )
+        );
+        assert!(s.len() > 1, "multi line values need at least two values");
+        s
     }
 
     fn validate(value: &str) -> Result<(), InvalidValueError> {
@@ -423,6 +425,13 @@ mod tests {
     /// Creating unchecked values from empty strings results in None values.
     fn value_unchecked_empty_is_none(#[case] value: Value, #[case] expected: Value) {
         assert_eq!(value, expected);
+    }
+
+    #[test]
+    #[should_panic(expected = "multi line values need at least two values")]
+    /// Unchecked multi line attributes cannot be created with only a single value.
+    fn value_unchecked_multi_with_singe_value_panics() {
+        Value::unchecked_multi(["just one"]);
     }
 
     #[rstest]
