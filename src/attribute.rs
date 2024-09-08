@@ -1,5 +1,6 @@
-use crate::error::{InvalidNameError, InvalidValueError};
 use std::{borrow::Cow, fmt, ops::Deref, str::FromStr};
+
+use crate::error::{InvalidNameError, InvalidValueError};
 
 /// An attribute of an [`Object`](crate::Object).
 ///
@@ -388,9 +389,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use proptest::prelude::*;
     use rstest::*;
+
+    use super::*;
 
     #[rstest]
     #[case(

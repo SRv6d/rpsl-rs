@@ -1,10 +1,11 @@
-use super::component;
-use crate::{Object, ParseError};
 use winnow::{
     ascii::{multispace0, newline},
     combinator::{alt, delimited, repeat, terminated},
     PResult, Parser,
 };
+
+use super::component;
+use crate::{Object, ParseError};
 
 /// Parse an object with at least one attribute terminated by a newline.
 ///
@@ -222,9 +223,10 @@ pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, ParseError> {
 
 #[cfg(test)]
 mod tests {
+    use rstest::*;
+
     use super::*;
     use crate::{Attribute, Object};
-    use rstest::*;
 
     #[test]
     fn object_block_valid() {
