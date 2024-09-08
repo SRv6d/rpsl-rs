@@ -256,7 +256,7 @@ impl<'a> Value<'a> {
 impl FromStr for Value<'_> {
     type Err = InvalidValueError;
 
-    /// Create a new single line `Value` from a string slice.
+    /// Create a new single line value from a string slice.
     ///
     /// A valid value may consist of any ASCII character, excluding control characters.
     ///
@@ -273,12 +273,17 @@ impl FromStr for Value<'_> {
 impl TryFrom<Vec<&str>> for Value<'_> {
     type Error = InvalidValueError;
 
-    /// Create a new `Value` from a vector of string slices.
-    ///
-    /// A valid value may consist of any ASCII character, excluding control characters.
+    /// Create a new value from a vector of string slices, representing the values lines.
     ///
     /// # Errors
     /// Returns an error if a value contains invalid characters.
+    ///
+    /// # Example
+    /// ```
+    /// # use rpsl::Value;
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into().unwrap();
+    /// assert_eq!(value.lines(), 3);
+    /// ```
     fn try_from(values: Vec<&str>) -> Result<Self, Self::Error> {
         if values.len() == 1 {
             let value = values[0].parse()?;
