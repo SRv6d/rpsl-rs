@@ -267,13 +267,17 @@ impl PartialEq<&str> for Value<'_> {
 
 impl PartialEq<Vec<&str>> for Value<'_> {
     fn eq(&self, other: &Vec<&str>) -> bool {
-        match &self {
-            Self::SingleLine(_) => false,
-            Self::MultiLine(values) => {
-                if values.len() != other.len() {
-                    return false;
-                }
+        if self.len() != other.len() {
+            return false;
+        }
 
+        match &self {
+            Self::SingleLine(value) => {
+                let s = value.as_deref();
+                let other_coerced = coerce_empty_value(other[0]);
+                s == other_coerced
+            }
+            Self::MultiLine(values) => {
                 let other_coerced = other.iter().map(|&v| coerce_empty_value(v));
 
                 for (s, o) in values.iter().zip(other_coerced) {
@@ -290,13 +294,17 @@ impl PartialEq<Vec<&str>> for Value<'_> {
 
 impl PartialEq<Vec<Option<&str>>> for Value<'_> {
     fn eq(&self, other: &Vec<Option<&str>>) -> bool {
-        match &self {
-            Self::SingleLine(_) => false,
-            Self::MultiLine(values) => {
-                if values.len() != other.len() {
-                    return false;
-                }
+        if self.len() != other.len() {
+            return false;
+        }
 
+        match &self {
+            Self::SingleLine(value) => {
+                let s = value.as_deref();
+                let other = other[0];
+                s == other
+            }
+            Self::MultiLine(values) => {
                 for (s, o) in values.iter().zip(other.iter()) {
                     if s.as_deref() != *o {
                         return false;
@@ -532,15 +540,32 @@ mod tests {
     }
 
     #[rstest]
-    #[case(vec!["multi", "value", "attribute"])]
+    #[case(
+        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        vec!["single value"]
+    )]
+    #[case(
+        Value::SingleLine(None),
+        vec!["     "]
+    )]
+    #[case(
+        Value::MultiLine(vec![
+            Some(Cow::Owned("multi".to_string())),
+            Some(Cow::Owned("value".to_string())),
+            Some(Cow::Owned("attribute".to_string()))
+        ]),
+        vec!["multi", "value", "attribute"]
+    )]
+    #[case(
+        Value::MultiLine(vec![
+            Some(Cow::Owned("multi".to_string())),
+            None,
+            Some(Cow::Owned("attribute".to_string()))
+        ]),
+        vec!["multi", "     ", "attribute"]
+    )]
     /// A value and a Vec<&str> evaluate as equal if the contents match.
-    fn value_partialeq_vec_str_eq_is_eq(#[case] v: Vec<&str>) {
-        let value = Value::MultiLine(
-            v.clone()
-                .into_iter()
-                .map(|v| Some(Cow::Owned(v.to_string())))
-                .collect(),
-        );
+    fn value_partialeq_vec_str_eq_is_eq(#[case] value: Value, #[case] v: Vec<&str>) {
         assert_eq!(value, v);
     }
 
@@ -548,6 +573,10 @@ mod tests {
     #[case(
         Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
         vec!["multi", "value"]
+    )]
+    #[case(
+        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        vec!["other single value"]
     )]
     #[case(
         Value::MultiLine(vec![
@@ -563,16 +592,24 @@ mod tests {
     }
 
     #[rstest]
-    #[case(vec![Some("multi"), Some("value"), Some("attribute")])]
-    #[case(vec![Some("multi"), None, Some("attribute")])]
+    #[case(
+        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        vec![Some("single value")]
+    )]
+    #[case(
+        Value::MultiLine(vec![
+            Some(Cow::Owned("multi".to_string())),
+            Some(Cow::Owned("value".to_string())),
+            Some(Cow::Owned("attribute".to_string()))
+        ]),
+        vec![Some("multi"), Some("value"), Some("attribute")]
+    )]
+    #[case(
+        Value::MultiLine(vec![Some(Cow::Owned("multi".to_string())), None, Some(Cow::Owned("attribute".to_string()))]),
+        vec![Some("multi"), None, Some("attribute")]
+    )]
     /// A value and a Vec<Option<&str>> evaluate as equal if the contents match.
-    fn value_partialeq_vec_option_str_eq_is_eq(#[case] v: Vec<Option<&str>>) {
-        let value = Value::MultiLine(
-            v.clone()
-                .iter()
-                .map(|v| v.and_then(|v| Some(Cow::Owned(v.to_string()))))
-                .collect(),
-        );
+    fn value_partialeq_vec_option_str_eq_is_eq(#[case] value: Value, #[case] v: Vec<Option<&str>>) {
         assert_eq!(value, v);
     }
 
@@ -580,6 +617,14 @@ mod tests {
     #[case(
         Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
         vec![Some("multi"), Some("value")]
+    )]
+    #[case(
+        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        vec![Some("other single value")]
+    )]
+    #[case(
+        Value::SingleLine(None),
+        vec![Some("     ")]
     )]
     #[case(
         Value::MultiLine(vec![
