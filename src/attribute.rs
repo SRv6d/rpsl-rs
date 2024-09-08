@@ -156,7 +156,7 @@ impl<'a> Value<'a> {
                 .map(|v| v.into().and_then(coerce_empty_value).map(Cow::Borrowed))
                 .collect(),
         );
-        assert!(s.len() > 1, "multi line values need at least two values");
+        assert!(s.lines() > 1, "multi line values need at least two lines");
         s
     }
 
@@ -170,8 +170,25 @@ impl<'a> Value<'a> {
         Ok(())
     }
 
-    /// The number of individual values contained.
-    pub fn len(&self) -> usize {
+    /// The number of lines contained.
+    ///
+    /// # Examples
+    ///
+    /// A value with a single line.
+    /// ```
+    /// # use rpsl::Value;
+    /// let value: Value = "ACME Company".parse().unwrap();
+    /// assert_eq!(value.lines(), 1);
+    /// ```
+    ///
+    /// A value with multiple lines.
+    /// ```
+    /// # use rpsl::Value;
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into().unwrap();
+    /// assert_eq!(value.lines(), 3);
+    /// ```
+    #[must_use]
+    pub fn lines(&self) -> usize {
         match &self {
             Self::SingleLine(_) => 1,
             Self::MultiLine(values) => values.len(),
@@ -267,7 +284,7 @@ impl PartialEq<&str> for Value<'_> {
 
 impl PartialEq<Vec<&str>> for Value<'_> {
     fn eq(&self, other: &Vec<&str>) -> bool {
-        if self.len() != other.len() {
+        if self.lines() != other.len() {
             return false;
         }
 
@@ -288,7 +305,7 @@ impl PartialEq<Vec<&str>> for Value<'_> {
 
 impl PartialEq<Vec<Option<&str>>> for Value<'_> {
     fn eq(&self, other: &Vec<Option<&str>>) -> bool {
-        if self.len() != other.len() {
+        if self.lines() != other.len() {
             return false;
         }
 
@@ -426,7 +443,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "multi line values need at least two values")]
+    #[should_panic(expected = "multi line values need at least two lines")]
     /// Unchecked multi line attributes cannot be created with only a single value.
     fn value_unchecked_multi_with_singe_value_panics() {
         Value::unchecked_multi(["just one"]);
@@ -469,8 +486,8 @@ mod tests {
     #[rstest]
     #[case("single value", 1)]
     #[case(vec!["multi", "value", "attribute"].try_into().unwrap(), 3)]
-    fn value_len(#[case] value: Value, #[case] expected: usize) {
-        assert_eq!(value.len(), expected);
+    fn value_lines(#[case] value: Value, #[case] expected: usize) {
+        assert_eq!(value.lines(), expected);
     }
 
     #[rstest]
