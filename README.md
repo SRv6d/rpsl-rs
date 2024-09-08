@@ -105,7 +105,7 @@ source:         RIPE ◀──────────────────�
 
 This is what makes `rpsl-rs` performant and memory efficient, since no additional allocation is required during parsing.
 
-Each [Attribute] can be accessed by its index and has a name and optional value(s).
+Each [Attribute] can be accessed by its index and has a name and value.
 
 ```rust,ignore
 println!("{:#?}", parsed[1]);

@@ -18,7 +18,7 @@ use std::{borrow::Cow, fmt, ops::Deref, str::FromStr};
 pub struct Attribute<'a> {
     /// The name of the attribute.
     pub name: Name<'a>,
-    /// The value(s) of the attribute.
+    /// The value of the attribute.
     pub value: Value<'a>,
 }
 
