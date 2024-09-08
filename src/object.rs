@@ -1,8 +1,9 @@
-use super::Attribute;
 use std::{
     fmt,
     ops::{Deref, Index},
 };
+
+use super::Attribute;
 
 /// A RPSL object.
 ///
@@ -307,8 +308,9 @@ macro_rules! object {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::*;
+
+    use super::*;
 
     #[rstest]
     #[case(

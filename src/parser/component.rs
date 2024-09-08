@@ -1,11 +1,13 @@
-use crate::Attribute;
 use std::iter::once;
+
 use winnow::{
     ascii::{newline, space0},
     combinator::{delimited, peek, repeat, separated_pair, terminated},
     token::take_while,
     PResult, Parser,
 };
+
+use crate::Attribute;
 
 // A response code or message sent by the whois server.
 // Starts with the "%" character and extends until the end of the line.
@@ -47,8 +49,9 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use rstest::*;
+
+    use super::*;
 
     #[rstest]
     #[case(
@@ -163,8 +166,9 @@ mod subcomponent {
 
     #[cfg(test)]
     mod tests {
-        use super::*;
         use rstest::*;
+
+        use super::*;
 
         #[rstest]
         #[case(&mut "remarks:", "remarks", ":")]
