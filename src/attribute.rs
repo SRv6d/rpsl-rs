@@ -71,7 +71,7 @@ impl fmt::Display for Attribute<'_> {
     }
 }
 
-/// The name of an attribute.
+/// The name of an [`Attribute`].
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Name<'a>(Cow<'a, str>);
 
@@ -126,7 +126,7 @@ impl fmt::Display for Name<'_> {
     }
 }
 
-/// The value of an attribute.
+/// The value of an [`Attribute`].
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Value<'a> {
     SingleLine(Option<Cow<'a, str>>),
