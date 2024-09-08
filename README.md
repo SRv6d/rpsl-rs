@@ -105,7 +105,7 @@ source:         RIPE ◀──────────────────�
 
 This is what makes `rpsl-rs` performant and memory efficient, since no additional allocation is required during parsing.
 
-Each [Attribute] can be accessed by its index and has a name and optional value(s).
+Each [Attribute] can be accessed by its index and has a name and value.
 
 ```rust,ignore
 println!("{:#?}", parsed[1]);
@@ -116,7 +116,7 @@ Attribute {
 }
 ```
 
-Since RPSL attribute values can either be single- or multiline, two different types are used to represent them. See [Attribute] and [parse_object] for more details and examples.
+Since RPSL attribute values can either be single- or multiline, two different variants are used to represent them. See [Attribute] and [parse_object] for more details and examples.
 
 ### Parsing a WHOIS server response
 

@@ -7,7 +7,7 @@
 pub use error::{AttributeError, ParseError};
 pub use parser::{parse_object, parse_whois_response};
 
-pub use attribute::Attribute;
+pub use attribute::{Attribute, Name, Value};
 pub use object::Object;
 
 mod attribute;

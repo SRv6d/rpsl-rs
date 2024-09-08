@@ -2,11 +2,23 @@ use crate::error::{InvalidNameError, InvalidValueError};
 use std::{borrow::Cow, fmt, ops::Deref, str::FromStr};
 
 /// An attribute of an [`Object`](crate::Object).
+///
+/// # Example
+/// ```
+/// # use rpsl::{parse_object, Attribute};
+/// let object = parse_object("
+/// name:           ACME Company
+///
+/// ")?;
+/// let attribute = Attribute::new("name".parse()?, "ACME Company".parse()?);
+/// assert_eq!(object[0], attribute);
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Attribute<'a> {
     /// The name of the attribute.
     pub name: Name<'a>,
-    /// The value(s) of the attribute.
+    /// The value of the attribute.
     pub value: Value<'a>,
 }
 
@@ -71,7 +83,7 @@ impl fmt::Display for Attribute<'_> {
     }
 }
 
-/// The name of an attribute.
+/// The name of an [`Attribute`].
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Name<'a>(Cow<'a, str>);
 
@@ -126,10 +138,40 @@ impl fmt::Display for Name<'_> {
     }
 }
 
-/// The value of an attribute.
+/// The value of an [`Attribute`].
+/// Since only some values contain multiple lines and single line values do not require
+/// additional heap allocation, an Enum is used to represent both variants.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Value<'a> {
+    /// A single line value.
+    ///
+    /// # Example
+    /// ```
+    /// # use rpsl::{parse_object, Value};
+    /// let object = parse_object("
+    /// name:           ACME Company
+    ///
+    /// ")?;
+    /// let value: Value = "ACME Company".parse()?;
+    /// assert_eq!(object[0].value, value);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     SingleLine(Option<Cow<'a, str>>),
+    /// A value spanning over multiple lines.
+    ///
+    /// # Example
+    /// ```
+    /// # use rpsl::{parse_object, Value};
+    /// let object = parse_object("
+    /// remarks:        Packet Street 6
+    ///                 128 Series of Tubes
+    ///                 Internet
+    ///
+    /// ")?;
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?;
+    /// assert_eq!(object[0].value, value);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     MultiLine(Vec<Option<Cow<'a, str>>>),
 }
 
@@ -156,7 +198,7 @@ impl<'a> Value<'a> {
                 .map(|v| v.into().and_then(coerce_empty_value).map(Cow::Borrowed))
                 .collect(),
         );
-        assert!(s.len() > 1, "multi line values need at least two values");
+        assert!(s.lines() > 1, "multi line values need at least two lines");
         s
     }
 
@@ -170,15 +212,34 @@ impl<'a> Value<'a> {
         Ok(())
     }
 
-    /// The number of individual values contained.
-    pub fn len(&self) -> usize {
+    /// The number of lines contained.
+    ///
+    /// # Examples
+    ///
+    /// A value with a single line.
+    /// ```
+    /// # use rpsl::Value;
+    /// let value: Value = "ACME Company".parse()?;
+    /// assert_eq!(value.lines(), 1);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    ///
+    /// A value with multiple lines.
+    /// ```
+    /// # use rpsl::Value;
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?;
+    /// assert_eq!(value.lines(), 3);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    #[must_use]
+    pub fn lines(&self) -> usize {
         match &self {
             Self::SingleLine(_) => 1,
             Self::MultiLine(values) => values.len(),
         }
     }
 
-    /// The values referenced within the view that do not contain empty values.
+    /// The lines that contain content and are non empty.
     ///
     /// # Example
     /// ```
@@ -211,7 +272,7 @@ impl<'a> Value<'a> {
 impl FromStr for Value<'_> {
     type Err = InvalidValueError;
 
-    /// Create a new single line `Value` from a string slice.
+    /// Create a new single line value from a string slice.
     ///
     /// A valid value may consist of any ASCII character, excluding control characters.
     ///
@@ -228,12 +289,18 @@ impl FromStr for Value<'_> {
 impl TryFrom<Vec<&str>> for Value<'_> {
     type Error = InvalidValueError;
 
-    /// Create a new `Value` from a vector of string slices.
-    ///
-    /// A valid value may consist of any ASCII character, excluding control characters.
+    /// Create a new value from a vector of string slices, representing the values lines.
     ///
     /// # Errors
     /// Returns an error if a value contains invalid characters.
+    ///
+    /// # Example
+    /// ```
+    /// # use rpsl::Value;
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?;
+    /// assert_eq!(value.lines(), 3);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     fn try_from(values: Vec<&str>) -> Result<Self, Self::Error> {
         if values.len() == 1 {
             let value = values[0].parse()?;
@@ -267,7 +334,7 @@ impl PartialEq<&str> for Value<'_> {
 
 impl PartialEq<Vec<&str>> for Value<'_> {
     fn eq(&self, other: &Vec<&str>) -> bool {
-        if self.len() != other.len() {
+        if self.lines() != other.len() {
             return false;
         }
 
@@ -288,7 +355,7 @@ impl PartialEq<Vec<&str>> for Value<'_> {
 
 impl PartialEq<Vec<Option<&str>>> for Value<'_> {
     fn eq(&self, other: &Vec<Option<&str>>) -> bool {
-        if self.len() != other.len() {
+        if self.lines() != other.len() {
             return false;
         }
 
@@ -426,7 +493,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "multi line values need at least two values")]
+    #[should_panic(expected = "multi line values need at least two lines")]
     /// Unchecked multi line attributes cannot be created with only a single value.
     fn value_unchecked_multi_with_singe_value_panics() {
         Value::unchecked_multi(["just one"]);
@@ -469,8 +536,8 @@ mod tests {
     #[rstest]
     #[case("single value", 1)]
     #[case(vec!["multi", "value", "attribute"].try_into().unwrap(), 3)]
-    fn value_len(#[case] value: Value, #[case] expected: usize) {
-        assert_eq!(value.len(), expected);
+    fn value_lines(#[case] value: Value, #[case] expected: usize) {
+        assert_eq!(value.lines(), expected);
     }
 
     #[rstest]
