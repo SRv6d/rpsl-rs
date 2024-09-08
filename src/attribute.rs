@@ -278,15 +278,9 @@ impl PartialEq<Vec<&str>> for Value<'_> {
                 s == other_coerced
             }
             Self::MultiLine(values) => {
+                let s = values.iter().map(|v| v.as_deref());
                 let other_coerced = other.iter().map(|&v| coerce_empty_value(v));
-
-                for (s, o) in values.iter().zip(other_coerced) {
-                    if s.as_deref() != o {
-                        return false;
-                    }
-                }
-
-                true
+                s.eq(other_coerced)
             }
         }
     }
@@ -305,13 +299,9 @@ impl PartialEq<Vec<Option<&str>>> for Value<'_> {
                 s == other
             }
             Self::MultiLine(values) => {
-                for (s, o) in values.iter().zip(other.iter()) {
-                    if s.as_deref() != *o {
-                        return false;
-                    }
-                }
-
-                true
+                let s = values.iter().map(|v| v.as_deref());
+                let other = other.iter().map(|v| v.as_deref());
+                s.eq(other)
             }
         }
     }
