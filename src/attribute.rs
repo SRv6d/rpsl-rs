@@ -9,9 +9,10 @@ use std::{borrow::Cow, fmt, ops::Deref, str::FromStr};
 /// let object = parse_object("
 /// name:           ACME Company
 ///
-/// ").unwrap();
-/// let attribute = Attribute::new("name".parse().unwrap(), "ACME Company".parse().unwrap());
+/// ")?;
+/// let attribute = Attribute::new("name".parse()?, "ACME Company".parse()?);
 /// assert_eq!(object[0], attribute);
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Attribute<'a> {
@@ -150,9 +151,10 @@ pub enum Value<'a> {
     /// let object = parse_object("
     /// name:           ACME Company
     ///
-    /// ").unwrap();
-    /// let value: Value = "ACME Company".parse().unwrap();
+    /// ")?;
+    /// let value: Value = "ACME Company".parse()?;
     /// assert_eq!(object[0].value, value);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     SingleLine(Option<Cow<'a, str>>),
     /// A value spanning over multiple lines.
@@ -165,9 +167,10 @@ pub enum Value<'a> {
     ///                 128 Series of Tubes
     ///                 Internet
     ///
-    /// ").unwrap();
-    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into().unwrap();
-    /// assert_eq!(object[0].value, value)
+    /// ")?;
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?;
+    /// assert_eq!(object[0].value, value);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     MultiLine(Vec<Option<Cow<'a, str>>>),
 }
@@ -216,15 +219,17 @@ impl<'a> Value<'a> {
     /// A value with a single line.
     /// ```
     /// # use rpsl::Value;
-    /// let value: Value = "ACME Company".parse().unwrap();
+    /// let value: Value = "ACME Company".parse()?;
     /// assert_eq!(value.lines(), 1);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     ///
     /// A value with multiple lines.
     /// ```
     /// # use rpsl::Value;
-    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into().unwrap();
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?;
     /// assert_eq!(value.lines(), 3);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[must_use]
     pub fn lines(&self) -> usize {
@@ -292,8 +297,9 @@ impl TryFrom<Vec<&str>> for Value<'_> {
     /// # Example
     /// ```
     /// # use rpsl::Value;
-    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into().unwrap();
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?;
     /// assert_eq!(value.lines(), 3);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     fn try_from(values: Vec<&str>) -> Result<Self, Self::Error> {
         if values.len() == 1 {
