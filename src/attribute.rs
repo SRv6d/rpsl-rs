@@ -17,11 +17,12 @@ use serde::Serialize;
 /// assert_eq!(object[0], attribute);
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
 pub struct Attribute<'a> {
     /// The name of the attribute.
     pub name: Name<'a>,
     /// The value of the attribute.
+    #[serde(rename = "values")]
     pub value: Value<'a>,
 }
 
@@ -145,7 +146,8 @@ impl fmt::Display for Name<'_> {
 /// The value of an [`Attribute`].
 /// Since only some values contain multiple lines and single line values do not require
 /// additional heap allocation, an Enum is used to represent both variants.
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
+#[serde(into = "Vec<Option<String>>")]
 pub enum Value<'a> {
     /// A single line value.
     ///
