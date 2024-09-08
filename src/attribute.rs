@@ -239,7 +239,7 @@ impl<'a> Value<'a> {
         }
     }
 
-    /// The lines that containin content and are non empty.
+    /// The lines that contain content and are non empty.
     ///
     /// # Example
     /// ```
