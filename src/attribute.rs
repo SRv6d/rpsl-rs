@@ -2,6 +2,17 @@ use crate::error::{InvalidNameError, InvalidValueError};
 use std::{borrow::Cow, fmt, ops::Deref, str::FromStr};
 
 /// An attribute of an [`Object`](crate::Object).
+///
+/// # Example
+/// ```
+/// # use rpsl::{parse_object, Attribute};
+/// let object = parse_object("
+/// name:           ACME Company
+///
+/// ").unwrap();
+/// let attribute = Attribute::new("name".parse().unwrap(), "ACME Company".parse().unwrap());
+/// assert_eq!(object[0], attribute);
+/// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Attribute<'a> {
     /// The name of the attribute.
