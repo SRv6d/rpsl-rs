@@ -1,3 +1,5 @@
+use super::Attribute;
+use serde::Serialize;
 use std::{
     fmt,
     ops::{Deref, Index},
@@ -449,7 +451,7 @@ mod tests {
         json!({
             "attributes": [
                 { "name": "role", "values": ["ACME Company"] },
-                { 
+                {
                     "name": "address",
                     "values": ["Packet Street 6", null, "128 Series of Tubes", "Internet"] },
                 { "name": "email", "values": ["rpsl-rs@github.com"] },
