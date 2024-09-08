@@ -3,6 +3,8 @@ use std::{
     ops::{Deref, Index},
 };
 
+use serde::Serialize;
+
 use super::Attribute;
 
 /// A RPSL object.
@@ -140,11 +142,12 @@ use super::Attribute;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 #[allow(clippy::len_without_is_empty)]
 pub struct Object<'a> {
     attributes: Vec<Attribute<'a>>,
     /// Contains the source if the object was created by parsing RPSL.
+    #[serde(skip)]
     source: Option<&'a str>,
 }
 
