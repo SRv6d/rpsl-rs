@@ -324,6 +324,21 @@ impl TryFrom<Vec<&str>> for Value<'_> {
     }
 }
 
+#[allow(clippy::from_over_into)]
+impl Into<Vec<Option<String>>> for Value<'_> {
+    fn into(self) -> Vec<Option<String>> {
+        match self {
+            Self::SingleLine(value) => {
+                vec![value.map(|v| v.to_string())]
+            }
+            Self::MultiLine(values) => values
+                .into_iter()
+                .map(|v| v.map(|v| v.to_string()))
+                .collect(),
+        }
+    }
+}
+
 impl PartialEq<&str> for Value<'_> {
     fn eq(&self, other: &&str) -> bool {
         match &self {
@@ -773,6 +788,24 @@ mod tests {
     /// A value and a Vec<Option<&str>> do not evaluate as equal if the contents differ.
     fn value_partialeq_vec_option_str_ne_is_ne(#[case] value: Value, #[case] v: Vec<Option<&str>>) {
         assert_ne!(value, v);
+    }
+
+    #[rstest]
+    #[case(
+        Value::unchecked_single("single value"),
+        vec![Some("single value".to_string())]
+    )]
+    #[case(
+        Value::unchecked_multi(["multiple",  "values"]),
+        vec![Some("multiple".to_string()),  Some("values".to_string())]
+    )]
+    #[case(
+        Value::unchecked_multi(["multiple", "", "separated",  "values"]),
+        vec![Some("multiple".to_string()), None, Some("separated".to_string()),  Some("values".to_string())]
+    )]
+    fn value_into_vec_of_option_str(#[case] value: Value, #[case] expected: Vec<Option<String>>) {
+        let vec: Vec<Option<String>> = value.into();
+        assert_eq!(vec, expected);
     }
 
     proptest! {
