@@ -232,7 +232,7 @@ impl<'a> IntoIterator for Object<'a> {
 
 impl PartialEq for Object<'_> {
     /// Compare two objects.
-    /// Since objects that are otherwise equal may display differently, only `PartialEq` is implemented.
+    /// Since objects that are semantically equal may display differently, only `PartialEq` is implemented.
     fn eq(&self, other: &Self) -> bool {
         self.attributes == other.attributes
     }
