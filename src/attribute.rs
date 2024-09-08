@@ -127,9 +127,37 @@ impl fmt::Display for Name<'_> {
 }
 
 /// The value of an [`Attribute`].
+/// Since only some values contain multiple lines and single line values do not require
+/// additional heap allocation, an Enum is used to represent both variants.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Value<'a> {
+    /// A single line value.
+    ///
+    /// # Example
+    /// ```
+    /// # use rpsl::{parse_object, Value};
+    /// let object = parse_object("
+    /// name:           ACME Company
+    ///
+    /// ").unwrap();
+    /// let value: Value = "ACME Company".parse().unwrap();
+    /// assert_eq!(object[0].value, value);
+    /// ```
     SingleLine(Option<Cow<'a, str>>),
+    /// A value spanning over multiple lines.
+    ///
+    /// # Example
+    /// ```
+    /// # use rpsl::{parse_object, Value};
+    /// let object = parse_object("
+    /// remarks:        Packet Street 6
+    ///                 128 Series of Tubes
+    ///                 Internet
+    ///
+    /// ").unwrap();
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into().unwrap();
+    /// assert_eq!(object[0].value, value)
+    /// ```
     MultiLine(Vec<Option<Cow<'a, str>>>),
 }
 
@@ -195,7 +223,7 @@ impl<'a> Value<'a> {
         }
     }
 
-    /// The values referenced within the view that do not contain empty values.
+    /// The lines that containin content and are non empty.
     ///
     /// # Example
     /// ```

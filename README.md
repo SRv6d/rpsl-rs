@@ -116,7 +116,7 @@ Attribute {
 }
 ```
 
-Since RPSL attribute values can either be single- or multiline, two different types are used to represent them. See [Attribute] and [parse_object] for more details and examples.
+Since RPSL attribute values can either be single- or multiline, two different variants are used to represent them. See [Attribute] and [parse_object] for more details and examples.
 
 ### Parsing a WHOIS server response
 
