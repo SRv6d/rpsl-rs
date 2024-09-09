@@ -202,6 +202,14 @@ impl Object<'_> {
             .collect()
     }
 
+    #[cfg(feature = "json")]
+    #[allow(clippy::missing_panics_doc)]
+    #[must_use]
+    /// Serialize the object into a JSON value.
+    pub fn json(&self) -> serde_json::Value {
+        serde_json::to_value(self).unwrap()
+    }
+
     /// Access the source field for use in tests.
     #[cfg(test)]
     pub(crate) fn source(&self) -> Option<&str> {
@@ -312,6 +320,7 @@ macro_rules! object {
 #[cfg(test)]
 mod tests {
     use rstest::*;
+    #[cfg(feature = "json")]
     use serde_json::json;
 
     use super::*;
@@ -458,8 +467,9 @@ mod tests {
             ]
         })
     )]
+    #[cfg(feature = "json")]
     fn object_json_repr(#[case] object: Object, #[case] expected: serde_json::Value) {
-        let json = serde_json::to_value(object).unwrap();
+        let json = object.json();
         assert_eq!(json, expected);
     }
 
