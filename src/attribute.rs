@@ -1,8 +1,8 @@
 use std::{borrow::Cow, fmt, ops::Deref, str::FromStr};
 
-use crate::error::{InvalidNameError, InvalidValueError};
-
 use serde::Serialize;
+
+use crate::error::{InvalidNameError, InvalidValueError};
 
 /// An attribute of an [`Object`](crate::Object).
 ///

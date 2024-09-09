@@ -1,5 +1,3 @@
-use super::Attribute;
-use serde::Serialize;
 use std::{
     fmt,
     ops::{Deref, Index},
