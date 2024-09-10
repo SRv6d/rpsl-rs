@@ -1,5 +1,6 @@
 use std::{borrow::Cow, fmt, ops::Deref, str::FromStr};
 
+#[cfg(feature = "serde")]
 use serde::Serialize;
 
 use crate::error::{InvalidNameError, InvalidValueError};
@@ -17,12 +18,13 @@ use crate::error::{InvalidNameError, InvalidValueError};
 /// assert_eq!(object[0], attribute);
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
-#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct Attribute<'a> {
     /// The name of the attribute.
     pub name: Name<'a>,
     /// The value of the attribute.
-    #[serde(rename = "values")]
+    #[cfg_attr(feature = "serde", serde(rename = "values"))]
     pub value: Value<'a>,
 }
 
@@ -88,8 +90,8 @@ impl fmt::Display for Attribute<'_> {
 }
 
 /// The name of an [`Attribute`].
-#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
-#[serde(transparent)]
+#[derive(Debug, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize), serde(transparent))]
 pub struct Name<'a>(Cow<'a, str>);
 
 impl<'a> Name<'a> {
@@ -146,8 +148,12 @@ impl fmt::Display for Name<'_> {
 /// The value of an [`Attribute`].
 /// Since only some values contain multiple lines and single line values do not require
 /// additional heap allocation, an Enum is used to represent both variants.
-#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
-#[serde(into = "Vec<Option<String>>")]
+#[derive(Debug, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize),
+    serde(into = "Vec<Option<String>>")
+)]
 pub enum Value<'a> {
     /// A single line value.
     ///
@@ -411,6 +417,7 @@ where
 mod tests {
     use proptest::prelude::*;
     use rstest::*;
+    #[cfg(feature = "serde")]
     use serde_test::{assert_ser_tokens, Token};
 
     use super::*;
@@ -495,6 +502,7 @@ mod tests {
             Token::StructEnd,
         ],
     )]
+    #[cfg(feature = "serde")]
     fn attribute_serialize(#[case] attribute: Attribute, #[case] expected: &[Token]) {
         assert_ser_tokens(&attribute, expected);
     }
@@ -536,6 +544,7 @@ mod tests {
 
     #[rstest]
     #[case(Name::unchecked("ASNumber"), Token::Str("ASNumber"))]
+    #[cfg(feature = "serde")]
     fn name_serialize(#[case] name: Name, #[case] expected: Token) {
         assert_ser_tokens(&name, &[expected]);
     }
@@ -583,6 +592,7 @@ mod tests {
             Token::SeqEnd,
         ],
     )]
+    #[cfg(feature = "serde")]
     fn value_serialize(#[case] value: Value, #[case] expected: &[Token]) {
         assert_ser_tokens(&value, expected);
     }

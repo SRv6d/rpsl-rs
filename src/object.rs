@@ -3,6 +3,7 @@ use std::{
     ops::{Deref, Index},
 };
 
+#[cfg(feature = "serde")]
 use serde::Serialize;
 
 use super::Attribute;
@@ -142,12 +143,13 @@ use super::Attribute;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 #[allow(clippy::len_without_is_empty)]
 pub struct Object<'a> {
     attributes: Vec<Attribute<'a>>,
     /// Contains the source if the object was created by parsing RPSL.
-    #[serde(skip)]
+    #[cfg_attr(feature = "serde", serde(skip))]
     source: Option<&'a str>,
 }
 
