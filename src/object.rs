@@ -205,6 +205,7 @@ impl Object<'_> {
     }
 
     #[cfg(feature = "json")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "json")))]
     #[allow(clippy::missing_panics_doc)]
     #[must_use]
     /// Serialize the object into a JSON value.

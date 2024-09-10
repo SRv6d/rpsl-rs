@@ -14,6 +14,10 @@ exclude = [".devcontainer", ".github", "doc/benchmark/**", "tests/**"]
 # Make sure to also adjust in README and CI
 rust-version = "1.74"
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [lib]
 name = "rpsl"
 crate-type = ["cdylib", "rlib"]
