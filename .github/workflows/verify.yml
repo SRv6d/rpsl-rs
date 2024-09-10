@@ -1,20 +1,10 @@
 ---
-name: CI
+name: Verify
 
 on:
   push:
-    branches: [main]
   pull_request:
   workflow_dispatch:
-
-concurrency:
-  group: >-
-    ${{ github.workflow }}-${{ github.ref_name }}-${{ github.event.pull_request.number
-    || github.sha }}
-  cancel-in-progress: true
-
-env:
-  COLUMNS: 120
 
 jobs:
   lint:
@@ -47,16 +37,3 @@ jobs:
       - uses: EmbarkStudios/cargo-deny-action@v2
         with:
           command: check ${{ matrix.checks }}
-  cargo-test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        rust_version: ["1.74", "stable"]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.rust_version }}
-      - uses: Swatinem/rust-cache@v2
-      - name: Test
-        run: cargo test --all-features
