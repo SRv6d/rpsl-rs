@@ -144,7 +144,7 @@ use super::Attribute;
 /// # }
 /// ```
 ///
-/// Or serialized to JSON if the corrseponding feature is enabled.
+/// Or serialized to JSON if the corresponding feature is enabled.
 /// ```
 /// # use rpsl::{Attribute, Object};
 /// # #[cfg(feature = "json")]
