@@ -143,6 +143,39 @@ use super::Attribute;
 /// # Ok(())
 /// # }
 /// ```
+///
+/// Or serialized to JSON if the corrseponding feature is enabled.
+/// ```
+/// # use rpsl::{Attribute, Object};
+/// # #[cfg(feature = "json")]
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # use serde_json::json;
+/// # let role_acme = Object::new(vec![
+/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
+/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
+/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
+/// #     Attribute::new("address".parse()?, "Internet".parse()?),
+/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
+/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
+/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// # ]);
+/// assert_eq!(
+///    role_acme.json(),
+///    json!({
+///        "attributes": [
+///            { "name": "role", "values": ["ACME Company"] },
+///            { "name": "address", "values": ["Packet Street 6"] },
+///            { "name": "address", "values": ["128 Series of Tubes"] },
+///            { "name": "address", "values": ["Internet"] },
+///            { "name": "email", "values": ["rpsl-rs@github.com"] },
+///            { "name": "nic-hdl", "values": ["RPSL1-RIPE"] },
+///            { "name": "source", "values": ["RIPE"] }
+///        ]
+///    })
+/// );
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
 #[allow(clippy::len_without_is_empty)]
