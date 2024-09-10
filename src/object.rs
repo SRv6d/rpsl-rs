@@ -3,6 +3,9 @@ use std::{
     ops::{Deref, Index},
 };
 
+#[cfg(feature = "serde")]
+use serde::Serialize;
+
 use super::Attribute;
 
 /// A RPSL object.
@@ -140,11 +143,46 @@ use super::Attribute;
 /// # Ok(())
 /// # }
 /// ```
+///
+/// Or serialized to JSON if the corresponding feature is enabled.
+/// ```
+/// # use rpsl::{Attribute, Object};
+/// # #[cfg(feature = "json")]
+/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+/// # use serde_json::json;
+/// # let role_acme = Object::new(vec![
+/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
+/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
+/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
+/// #     Attribute::new("address".parse()?, "Internet".parse()?),
+/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
+/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
+/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// # ]);
+/// assert_eq!(
+///    role_acme.json(),
+///    json!({
+///        "attributes": [
+///            { "name": "role", "values": ["ACME Company"] },
+///            { "name": "address", "values": ["Packet Street 6"] },
+///            { "name": "address", "values": ["128 Series of Tubes"] },
+///            { "name": "address", "values": ["Internet"] },
+///            { "name": "email", "values": ["rpsl-rs@github.com"] },
+///            { "name": "nic-hdl", "values": ["RPSL1-RIPE"] },
+///            { "name": "source", "values": ["RIPE"] }
+///        ]
+///    })
+/// );
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Debug, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 #[allow(clippy::len_without_is_empty)]
 pub struct Object<'a> {
     attributes: Vec<Attribute<'a>>,
     /// Contains the source if the object was created by parsing RPSL.
+    #[cfg_attr(feature = "serde", serde(skip))]
     source: Option<&'a str>,
 }
 
@@ -197,6 +235,15 @@ impl Object<'_> {
             .filter(|a| a.name == name)
             .flat_map(|a| a.value.with_content())
             .collect()
+    }
+
+    #[cfg(feature = "json")]
+    #[cfg_attr(docsrs, doc(cfg(feature = "json")))]
+    #[allow(clippy::missing_panics_doc)]
+    #[must_use]
+    /// Serialize the object into a JSON value.
+    pub fn json(&self) -> serde_json::Value {
+        serde_json::to_value(self).unwrap()
     }
 
     /// Access the source field for use in tests.
@@ -309,6 +356,8 @@ macro_rules! object {
 #[cfg(test)]
 mod tests {
     use rstest::*;
+    #[cfg(feature = "json")]
+    use serde_json::json;
 
     use super::*;
 
@@ -406,6 +455,58 @@ mod tests {
     ) {
         assert_eq!(owned.to_string(), expected);
         assert_eq!(borrowed.to_string(), expected);
+    }
+
+    #[rstest]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_single("address", "Packet Street 6"),
+            Attribute::unchecked_single("address", "128 Series of Tubes"),
+            Attribute::unchecked_single("address", "Internet"),
+            Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+            Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+            Attribute::unchecked_single("source", "RIPE"),
+        ]),
+        json!({
+            "attributes": [
+                { "name": "role", "values": ["ACME Company"] },
+                { "name": "address", "values": ["Packet Street 6"] },
+                { "name": "address", "values": ["128 Series of Tubes"] },
+                { "name": "address", "values": ["Internet"] },
+                { "name": "email", "values": ["rpsl-rs@github.com"] },
+                { "name": "nic-hdl", "values": ["RPSL1-RIPE"] },
+                { "name": "source", "values": ["RIPE"] }
+            ]
+        })
+    )]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_multi(
+                "address",
+                ["Packet Street 6", "", "128 Series of Tubes", "Internet"]
+            ),
+            Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+            Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+            Attribute::unchecked_single("source", "RIPE"),
+        ]),
+        json!({
+            "attributes": [
+                { "name": "role", "values": ["ACME Company"] },
+                {
+                    "name": "address",
+                    "values": ["Packet Street 6", null, "128 Series of Tubes", "Internet"] },
+                { "name": "email", "values": ["rpsl-rs@github.com"] },
+                { "name": "nic-hdl", "values": ["RPSL1-RIPE"] },
+                { "name": "source", "values": ["RIPE"] }
+            ]
+        })
+    )]
+    #[cfg(feature = "json")]
+    fn object_json_repr(#[case] object: Object, #[case] expected: serde_json::Value) {
+        let json = object.json();
+        assert_eq!(json, expected);
     }
 
     #[rstest]

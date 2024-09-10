@@ -150,6 +150,14 @@ Ref:            https://rdap.arin.net/registry/entity/THEFA-3
 
 To extract each individual object, the [parse_whois_response] function can be used to parse the response into a `Vec` containing all individual [Object]s within the response. Examples can be found in the function documentation.
 
+## Optional Features
+
+The following cargo features can be used to enable additional functionality.
+
+- **simd** _(enabled by default)_: Enables the [Winnow] simd feature which improves string search performance using simd.
+- **serde**: Enables [Object] serialization using [Serde].
+- **json**: Provides JSON serialization of an [Object] using [Serde JSON].
+
 ## MSRV Policy
 
 This project requires the minimum supported Rust version to be at least 6 months old.
@@ -170,3 +178,6 @@ The source code of this project is licensed under the MIT License. For more info
 [Attribute]: https://docs.rs/rpsl-rs/latest/rpsl/struct.Attribute.html
 [parse_object]: https://docs.rs/rpsl-rs/latest/rpsl/fn.parse_object.html
 [parse_whois_response]: https://docs.rs/rpsl-rs/latest/rpsl/fn.parse_whois_response.html
+[Winnow]: https://github.com/winnow-rs/winnow
+[Serde]: https://github.com/serde-rs/serde
+[Serde JSON]: https://github.com/serde-rs/json

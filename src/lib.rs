@@ -3,6 +3,7 @@
 #![forbid(unsafe_code)]
 #![forbid(clippy::panic)]
 #![doc = include_str!("../README.md")]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub use attribute::{Attribute, Name, Value};
 pub use error::{AttributeError, ParseError};

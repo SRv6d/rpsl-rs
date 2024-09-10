@@ -14,6 +14,10 @@ exclude = [".devcontainer", ".github", "doc/benchmark/**", "tests/**"]
 # Make sure to also adjust in README and CI
 rust-version = "1.74"
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [lib]
 name = "rpsl"
 crate-type = ["cdylib", "rlib"]
@@ -21,16 +25,22 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 winnow = "0.6.14"
 thiserror = "1.0.50"
+serde = { version = "1.0.210", features = ["derive"], optional = true }
+serde_json = { version = "1.0.128", optional = true }
 
 [dev-dependencies]
 codspeed-criterion-compat = "=2.7.1"
 criterion = "=0.5.1"
 proptest = "=1.5.0"
 rstest = "=0.22.0"
+serde_json = "=1.0.128"
+serde_test = "=1.0.177"
 
 [features]
 default = ["simd"]
 simd = ["winnow/simd"]
+serde = ["dep:serde"]
+json = ["serde", "dep:serde_json"]
 
 [[bench]]
 name = "parse_as3257"

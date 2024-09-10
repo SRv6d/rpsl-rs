@@ -1,5 +1,8 @@
 use std::{borrow::Cow, fmt, ops::Deref, str::FromStr};
 
+#[cfg(feature = "serde")]
+use serde::Serialize;
+
 use crate::error::{InvalidNameError, InvalidValueError};
 
 /// An attribute of an [`Object`](crate::Object).
@@ -16,10 +19,12 @@ use crate::error::{InvalidNameError, InvalidValueError};
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize))]
 pub struct Attribute<'a> {
     /// The name of the attribute.
     pub name: Name<'a>,
     /// The value of the attribute.
+    #[cfg_attr(feature = "serde", serde(rename = "values"))]
     pub value: Value<'a>,
 }
 
@@ -86,6 +91,7 @@ impl fmt::Display for Attribute<'_> {
 
 /// The name of an [`Attribute`].
 #[derive(Debug, PartialEq, Eq, Clone)]
+#[cfg_attr(feature = "serde", derive(Serialize), serde(transparent))]
 pub struct Name<'a>(Cow<'a, str>);
 
 impl<'a> Name<'a> {
@@ -143,6 +149,11 @@ impl fmt::Display for Name<'_> {
 /// Since only some values contain multiple lines and single line values do not require
 /// additional heap allocation, an Enum is used to represent both variants.
 #[derive(Debug, PartialEq, Eq, Clone)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize),
+    serde(into = "Vec<Option<String>>")
+)]
 pub enum Value<'a> {
     /// A single line value.
     ///
@@ -321,6 +332,21 @@ impl TryFrom<Vec<&str>> for Value<'_> {
     }
 }
 
+#[allow(clippy::from_over_into)]
+impl Into<Vec<Option<String>>> for Value<'_> {
+    fn into(self) -> Vec<Option<String>> {
+        match self {
+            Self::SingleLine(value) => {
+                vec![value.map(|v| v.to_string())]
+            }
+            Self::MultiLine(values) => values
+                .into_iter()
+                .map(|v| v.map(|v| v.to_string()))
+                .collect(),
+        }
+    }
+}
+
 impl PartialEq<&str> for Value<'_> {
     fn eq(&self, other: &&str) -> bool {
         match &self {
@@ -391,6 +417,8 @@ where
 mod tests {
     use proptest::prelude::*;
     use rstest::*;
+    #[cfg(feature = "serde")]
+    use serde_test::{assert_ser_tokens, Token};
 
     use super::*;
 
@@ -438,6 +466,47 @@ mod tests {
         assert_eq!(attribute.to_string(), expected);
     }
 
+    #[rstest]
+    #[case(
+        Attribute::new(Name::unchecked("ASNumber"), Value::unchecked_single("32934")),
+        &[
+            Token::Struct { name: "Attribute", len: 2 },
+            Token::Str("name"),
+            Token::Str("ASNumber"),
+            Token::Str("values"),
+            Token::Seq { len: Some(1) },
+            Token::Some,
+            Token::Str("32934"),
+            Token::SeqEnd,
+            Token::StructEnd,
+        ],
+    )]
+    #[case(
+        Attribute::new(
+            Name::unchecked("address"),
+            Value::unchecked_multi(["Packet Street 6", "128 Series of Tubes", "Internet"])
+        ),
+        &[
+            Token::Struct { name: "Attribute", len: 2 },
+            Token::Str("name"),
+            Token::Str("address"),
+            Token::Str("values"),
+            Token::Seq { len: Some(3) },
+            Token::Some,
+            Token::Str("Packet Street 6"),
+            Token::Some,
+            Token::Str("128 Series of Tubes"),
+            Token::Some,
+            Token::Str("Internet"),
+            Token::SeqEnd,
+            Token::StructEnd,
+        ],
+    )]
+    #[cfg(feature = "serde")]
+    fn attribute_serialize(#[case] attribute: Attribute, #[case] expected: &[Token]) {
+        assert_ser_tokens(&attribute, expected);
+    }
+
     #[test]
     fn name_display() {
         let name_display = Name::from_str("address").unwrap().to_string();
@@ -474,6 +543,13 @@ mod tests {
     }
 
     #[rstest]
+    #[case(Name::unchecked("ASNumber"), Token::Str("ASNumber"))]
+    #[cfg(feature = "serde")]
+    fn name_serialize(#[case] name: Name, #[case] expected: Token) {
+        assert_ser_tokens(&name, &[expected]);
+    }
+
+    #[rstest]
     #[case("This is a valid attribute value", Value::SingleLine(Some(Cow::Owned("This is a valid attribute value".to_string()))))]
     #[case("   ", Value::SingleLine(None))]
     fn value_from_str(#[case] s: &str, #[case] expected: Value) {
@@ -483,6 +559,42 @@ mod tests {
     #[rstest]
     fn value_from_empty_str(#[values("", "   ")] s: &str) {
         assert_eq!(Value::from_str(s).unwrap(), Value::SingleLine(None));
+    }
+
+    #[rstest]
+    #[case(
+        Value::unchecked_single("32934"),
+        &[
+            Token::Seq { len: Some(1) },
+            Token::Some,
+            Token::Str("32934"),
+            Token::SeqEnd,
+        ],
+    )]
+    #[case(
+        Value::unchecked_single(""),
+        &[
+            Token::Seq { len: Some(1) },
+            Token::None,
+            Token::SeqEnd,
+        ],
+    )]
+    #[case(
+        Value::unchecked_multi(["Packet Street 6", "128 Series of Tubes", "Internet"]),
+        &[
+            Token::Seq { len: Some(3) },
+            Token::Some,
+            Token::Str("Packet Street 6"),
+            Token::Some,
+            Token::Str("128 Series of Tubes"),
+            Token::Some,
+            Token::Str("Internet"),
+            Token::SeqEnd,
+        ],
+    )]
+    #[cfg(feature = "serde")]
+    fn value_serialize(#[case] value: Value, #[case] expected: &[Token]) {
+        assert_ser_tokens(&value, expected);
     }
 
     #[rstest]
@@ -696,6 +808,24 @@ mod tests {
     /// A value and a Vec<Option<&str>> do not evaluate as equal if the contents differ.
     fn value_partialeq_vec_option_str_ne_is_ne(#[case] value: Value, #[case] v: Vec<Option<&str>>) {
         assert_ne!(value, v);
+    }
+
+    #[rstest]
+    #[case(
+        Value::unchecked_single("single value"),
+        vec![Some("single value".to_string())]
+    )]
+    #[case(
+        Value::unchecked_multi(["multiple",  "values"]),
+        vec![Some("multiple".to_string()),  Some("values".to_string())]
+    )]
+    #[case(
+        Value::unchecked_multi(["multiple", "", "separated",  "values"]),
+        vec![Some("multiple".to_string()), None, Some("separated".to_string()),  Some("values".to_string())]
+    )]
+    fn value_into_vec_of_option_str(#[case] value: Value, #[case] expected: Vec<Option<String>>) {
+        let vec: Vec<Option<String>> = value.into();
+        assert_eq!(vec, expected);
     }
 
     proptest! {
