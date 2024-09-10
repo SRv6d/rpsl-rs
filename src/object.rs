@@ -148,7 +148,6 @@ use super::Attribute;
 /// ```
 /// # use rpsl::{Attribute, Object};
 /// # #[cfg(feature = "json")]
-/// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # use serde_json::json;
 /// # let role_acme = Object::new(vec![
 /// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
@@ -159,6 +158,7 @@ use super::Attribute;
 /// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
 /// #     Attribute::new("source".parse()?, "RIPE".parse()?),
 /// # ]);
+/// # #[cfg(feature = "json")]
 /// assert_eq!(
 ///    role_acme.json(),
 ///    json!({
@@ -173,8 +173,7 @@ use super::Attribute;
 ///        ]
 ///    })
 /// );
-/// # Ok(())
-/// # }
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize))]
