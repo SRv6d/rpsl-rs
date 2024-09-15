@@ -1,4 +1,4 @@
-default: lint
+default: lint test
 
 # Lint code and check formatting
 lint: lint-justfile
@@ -7,3 +7,7 @@ lint: lint-justfile
 
 lint-justfile:
     just --check --fmt --unstable
+
+# Run tests
+test:
+    cargo test --all-features
