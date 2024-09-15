@@ -12,10 +12,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - name: Clippy
-        run: cargo clippy --all-targets --all-features
-      - name: Format
-        run: cargo fmt --all --check
+      - uses: extractions/setup-just@v2
+
+      - run: just lint
   spellcheck:
     runs-on: ubuntu-latest
     steps:
