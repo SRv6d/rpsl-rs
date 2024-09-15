@@ -25,23 +25,28 @@ For users of IDEs with support for devcontainers, it's usage is recommended.
 
 ### Other
 
-Ensure a recent version of rustup is available, otherwise [install it](https://www.rust-lang.org/tools/install).
+Ensure a [recent version of rustup](https://www.rust-lang.org/tools/install) is available and optionally install [`just`].
 
 ## Coding Standards
 
-`rpsl-rs` uses [`rustfmt`](https://github.com/rust-lang/rustfmt) for uniform fomatting and [`clippy`](https://github.com/rust-lang/rust-clippy) for basic linting and enforcement of best practices. Please run both before submitting a PR to avoid being reprimanded by CI.
+`rpsl-rs` uses [`rustfmt`](https://github.com/rust-lang/rustfmt) for uniform fomatting and [`clippy`](https://github.com/rust-lang/rust-clippy) for basic linting and enforcement of best practices. The [`just`] `lint` recipe can be used to run both.
 
 ```sh
-$ cargo fmt --all --check
-$ cargo clippy --all-targets --all-features
+$ just lint
+cargo clippy --all-targets --all-features
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.34s
+cargo fmt --all --check
+...
 ```
 
 In addition to basic formatting and linting, a high code coverage should be maintained. Property based tests are used to ensure the parser can deal with any kind of RPSL input. All tests need to pass before a PR can be merged.
 
 ```sh
-$ cargo test
+$ just test
 ```
 
 ## Performance
 
 To ensure that the parser stays performant, benchmarks are run on every PR. To execute them locally, run `cargo bench`.
+
+[`just`]: https://github.com/casey/just
