@@ -1,0 +1,21 @@
+as-set:         AS-DACOTEC
+descr:          Data Communication Technologie GmbH 
+descr:          Network Operation Center
+descr:          Bahnhofsplatz 1
+descr:          D-37073 Göttingen
+descr:          Germany
+members:        AS5430
+tech-c:         DUMY-RIPE
+admin-c:        DUMY-RIPE
+notify:         noc@dacotec.net
+mnt-by:         DAC-NOC
+created:        1970-01-01T00:00:00Z
+last-modified:  2001-09-21T21:49:53Z
+source:         RIPE
+remarks:        ****************************
+remarks:        * THIS OBJECT IS MODIFIED
+remarks:        * Please note that all data that is generally regarded as personal
+remarks:        * data has been removed from this object.
+remarks:        * To view the original object, please query the RIPE Database at:
+remarks:        * http://www.ripe.net/whois
+remarks:        ****************************

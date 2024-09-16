@@ -1,5 +1,7 @@
 use proptest::prelude::*;
 use rpsl::parse_object;
+use rstest::*;
+use std::{fs, path::PathBuf};
 
 proptest! {
     /// Property based test to ensure any kind of valid RPSL is parsed correctly.
@@ -8,6 +10,13 @@ proptest! {
         let parsed = parse_object(&rpsl).unwrap();
         prop_assert_eq!(parsed, object);
     }
+}
+
+/// Real world RPSL objects can be parsed without error.
+#[rstest]
+fn parse_real_rpsl_object(#[files("tests/assets/object/*.txt")] path: PathBuf) {
+    let rpsl = fs::read_to_string(path).unwrap();
+    parse_object(&rpsl).unwrap();
 }
 
 mod strategies {
