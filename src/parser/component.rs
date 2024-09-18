@@ -128,6 +128,8 @@ mod subcomponent {
     use winnow::{
         ascii::{newline, space0},
         combinator::{delimited, preceded},
+        error::ParserError,
+        stream::{ContainsToken, Stream, StreamIsPartial},
         token::{one_of, take_while},
         PResult, Parser,
     };
@@ -145,7 +147,17 @@ mod subcomponent {
 
     // An ASCII sequence of characters, excluding control.
     pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
-        take_while(0.., |c: char| c.is_ascii() && !c.is_ascii_control()).parse_next(input)
+        gen_attribute_value(|c: char| c.is_ascii() && !c.is_ascii_control()).parse_next(input)
+    }
+
+    /// Generate an attribute value parser from a set of valid tokens.
+    pub fn gen_attribute_value<S, I, E>(set: S) -> impl Parser<I, <I as Stream>::Slice, E>
+    where
+        S: ContainsToken<<I as Stream>::Token>,
+        I: StreamIsPartial + Stream,
+        E: ParserError<I>,
+    {
+        take_while(0.., set)
     }
 
     // Consume a single multiline continuation character.
