@@ -7,6 +7,7 @@ use winnow::{
     PResult, Parser,
 };
 
+use super::spec::ValueSpec;
 use crate::Attribute;
 
 // A response code or message sent by the whois server.
@@ -28,7 +29,7 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
     let (name, first_value) = separated_pair(
         terminated(subcomponent::attribute_name, ':'),
         space0,
-        terminated(subcomponent::attribute_value, newline),
+        terminated(subcomponent::attribute_value(ValueSpec::default()), newline),
     )
     .parse_next(input)?;
 
@@ -134,6 +135,8 @@ mod subcomponent {
         PResult, Parser,
     };
 
+    use crate::parser::spec::ValueSpec;
+
     // An ASCII sequence of letters, digits and the characters "-", "_".
     // The first character must be a letter, while the last character may be a letter or a digit.
     pub fn attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
@@ -145,13 +148,8 @@ mod subcomponent {
             .parse_next(input)
     }
 
-    // An ASCII sequence of characters, excluding control.
-    pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
-        gen_attribute_value(|c: char| c.is_ascii() && !c.is_ascii_control()).parse_next(input)
-    }
-
     /// Generate an attribute value parser from a set of valid tokens.
-    pub fn gen_attribute_value<S, I, E>(set: S) -> impl Parser<I, <I as Stream>::Slice, E>
+    pub fn attribute_value<S, I, E>(set: S) -> impl Parser<I, <I as Stream>::Slice, E>
     where
         S: ContainsToken<<I as Stream>::Token>,
         I: StreamIsPartial + Stream,
@@ -170,7 +168,7 @@ mod subcomponent {
     pub fn continuation_line<'s>(input: &mut &'s str) -> PResult<&'s str> {
         delimited(
             consume_continuation_char,
-            preceded(space0, attribute_value),
+            preceded(space0, attribute_value(ValueSpec::default())),
             newline,
         )
         .parse_next(input)
@@ -179,6 +177,9 @@ mod subcomponent {
     #[cfg(test)]
     mod tests {
         use rstest::*;
+        use winnow::error::ContextError;
+
+        use crate::parser::spec::ValueSpec;
 
         use super::*;
 
@@ -219,36 +220,43 @@ mod subcomponent {
 
         #[rstest]
         #[case(
+            ValueSpec::Rfc2622,
             &mut "This is an example remark\n",
             "This is an example remark",
             "\n"
         )]
         #[case(
+            ValueSpec::Rfc2622,
             &mut "Concerning abuse and spam ... mailto: abuse@asn.net\n",
             "Concerning abuse and spam ... mailto: abuse@asn.net",
             "\n"
         )]
         #[case(
+            ValueSpec::Rfc2622,
             &mut "+49 176 07071964\n",
             "+49 176 07071964",
             "\n"
         )]
         #[case(
+            ValueSpec::Rfc2622,
             &mut "* Equinix FR5, Kleyerstr, Frankfurt am Main\n",
             "* Equinix FR5, Kleyerstr, Frankfurt am Main",
             "\n"
         )]
         #[case(
+            ValueSpec::Rfc2622,
             &mut "\n",
             "",
             "\n"
         )]
         fn attribute_value_valid(
+            #[case] spec: ValueSpec,
             #[case] given: &mut &str,
             #[case] expected: &str,
             #[case] remaining: &str,
         ) {
-            let parsed = attribute_value(given).unwrap();
+            let mut parser = attribute_value::<_, &str, ContextError<&str>>(spec);
+            let parsed = parser.parse_next(given).unwrap();
             assert_eq!(parsed, expected);
             assert_eq!(*given, remaining);
         }
