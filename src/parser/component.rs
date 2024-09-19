@@ -4,7 +4,7 @@ use winnow::{
     ascii::{newline, space0},
     combinator::{delimited, peek, preceded, repeat, separated_pair, terminated},
     error::ParserError,
-    stream::{ContainsToken, Stream, StreamIsPartial},
+    stream::ContainsToken,
     token::{one_of, take_while},
     PResult, Parser,
 };
@@ -57,12 +57,11 @@ fn attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
         .parse_next(input)
 }
 
-/// Generate an attribute value parser from a set of valid tokens.
-fn attribute_value<S, I, E>(set: S) -> impl Parser<I, <I as Stream>::Slice, E>
+/// Generate an attribute value parser given a set of valid chars.
+fn attribute_value<'s, S, E>(set: S) -> impl Parser<&'s str, &'s str, E>
 where
-    S: ContainsToken<<I as Stream>::Token>,
-    I: StreamIsPartial + Stream,
-    E: ParserError<I>,
+    S: ContainsToken<char>,
+    E: ParserError<&'s str>,
 {
     take_while(0.., set)
 }
@@ -232,7 +231,7 @@ mod tests {
     ) {
         use winnow::error::ContextError;
 
-        let mut parser = attribute_value::<_, &str, ContextError<&str>>(spec);
+        let mut parser = attribute_value::<_, ContextError<&str>>(spec);
         let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
