@@ -1,8 +1,27 @@
 use winnow::stream::ContainsToken;
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct Spec {
+    name: NameSpec,
     value: ValueSpec,
+}
+
+pub(crate) struct NameSpec {
+    chars: Box<dyn ContainsToken<char>>,
+}
+
+impl NameSpec {
+    pub fn rfc_2622() -> Self {
+        Self {
+            chars: Box::new(('A'..='Z', 'a'..='z', '0'..='9', '-', '_')),
+        }
+    }
+}
+
+impl Default for NameSpec {
+    fn default() -> Self {
+        Self::rfc_2622()
+    }
 }
 
 #[derive(Debug, Default)]
