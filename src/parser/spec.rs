@@ -18,6 +18,12 @@ impl NameSpec {
     }
 }
 
+impl ContainsToken<char> for NameSpec {
+    fn contains_token(&self, char: char) -> bool {
+        self.chars.contains_token(char)
+    }
+}
+
 impl Default for NameSpec {
     fn default() -> Self {
         Self::rfc_2622()

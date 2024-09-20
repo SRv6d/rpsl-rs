@@ -9,7 +9,7 @@ use winnow::{
     PResult, Parser,
 };
 
-use super::spec::ValueSpec;
+use super::spec::{NameSpec, ValueSpec};
 use crate::Attribute;
 
 // A response code or message sent by the whois server.
@@ -29,10 +29,7 @@ pub fn server_message<'s>(input: &mut &'s str) -> PResult<&'s str> {
 // Single value attributes are limited to one line, while multi value attributes span over multiple lines.
 pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
     let (name, first_value) = separated_pair(
-        terminated(
-            attribute_name(('A'..='Z', 'a'..='z', '0'..='9', '-', '_')),
-            ':',
-        ),
+        terminated(attribute_name(NameSpec::default()), ':'),
         space0,
         terminated(attribute_value(ValueSpec::default()), newline),
     )
@@ -51,12 +48,11 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
 
 /// Generate an attribute name parser give a set of valid chars.
 /// The first character must be a letter, while the last character may be a letter or a digit.
-fn attribute_name<'s, S, E>(set: S) -> impl Parser<&'s str, &'s str, E>
+fn attribute_name<'s, E>(spec: NameSpec) -> impl Parser<&'s str, &'s str, E>
 where
-    S: ContainsToken<char>,
     E: ParserError<&'s str>,
 {
-    take_while(2.., set).verify(|s: &str| {
+    take_while(2.., spec).verify(|s: &str| {
         s.starts_with(|c: char| c.is_ascii_alphabetic())
             && s.ends_with(|c: char| c.is_ascii_alphanumeric())
     })
@@ -164,17 +160,17 @@ mod tests {
     }
 
     #[rstest]
-    #[case(('A'..='Z', 'a'..='z', '0'..='9', '-', '_'), &mut "remarks:", "remarks", ":")]
-    #[case(('A'..='Z', 'a'..='z', '0'..='9', '-', '_'), &mut "aut-num:", "aut-num", ":")]
-    #[case(('A'..='Z', 'a'..='z', '0'..='9', '-', '_'), &mut "ASNumber:", "ASNumber", ":")]
-    #[case(('A'..='Z', 'a'..='z', '0'..='9', '-', '_'), &mut "route6:", "route6", ":")]
+    #[case(NameSpec::rfc_2622(), &mut "remarks:", "remarks", ":")]
+    #[case(NameSpec::rfc_2622(), &mut "aut-num:", "aut-num", ":")]
+    #[case(NameSpec::rfc_2622(), &mut "ASNumber:", "ASNumber", ":")]
+    #[case(NameSpec::rfc_2622(), &mut "route6:", "route6", ":")]
     fn attribute_name_valid(
-        #[case] spec: impl ContainsToken<char>,
+        #[case] spec: NameSpec,
         #[case] given: &mut &str,
         #[case] expected: &str,
         #[case] remaining: &str,
     ) {
-        let mut parser = attribute_name::<_, ContextError<&str>>(spec);
+        let mut parser = attribute_name::<ContextError<&str>>(spec);
         let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
@@ -185,8 +181,7 @@ mod tests {
     #[case(&mut "-remarks:")]
     #[case(&mut "_remarks:")]
     fn attribute_name_non_letter_first_char_is_error(#[case] given: &mut &str) {
-        let mut parser =
-            attribute_name::<_, ContextError<&str>>(('A'..='Z', 'a'..='z', '0'..='9', '-', '_'));
+        let mut parser = attribute_name::<ContextError<&str>>(NameSpec::rfc_2622());
         assert!(parser.parse_next(given).is_err());
     }
 
@@ -194,15 +189,13 @@ mod tests {
     #[case(&mut "remarks-:")]
     #[case(&mut "remarks_:")]
     fn attribute_name_non_letter_or_digit_last_char_is_error(#[case] given: &mut &str) {
-        let mut parser =
-            attribute_name::<_, ContextError<&str>>(('A'..='Z', 'a'..='z', '0'..='9', '-', '_'));
+        let mut parser = attribute_name::<ContextError<&str>>(NameSpec::rfc_2622());
         assert!(parser.parse_next(given).is_err());
     }
 
     #[test]
     fn attribute_name_single_letter_is_error() {
-        let mut parser =
-            attribute_name::<_, ContextError<&str>>(('A'..='Z', 'a'..='z', '0'..='9', '-', '_'));
+        let mut parser = attribute_name::<ContextError<&str>>(NameSpec::rfc_2622());
         assert!(parser.parse_next(&mut "a").is_err());
     }
 
