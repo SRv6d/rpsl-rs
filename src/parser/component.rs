@@ -4,6 +4,7 @@ use winnow::{
     ascii::{newline, space0},
     combinator::{delimited, peek, preceded, repeat, separated_pair, terminated},
     error::{ContextError, ParserError},
+    stream::ContainsToken,
     token::{one_of, take_while},
     PResult, Parser,
 };
@@ -29,7 +30,10 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
     let (name, first_value) = separated_pair(
         terminated(attribute_name, ':'),
         space0,
-        terminated(attribute_value, newline),
+        terminated(
+            attribute_value(|c: char| c.is_ascii() && !c.is_ascii_control()),
+            newline,
+        ),
     )
     .parse_next(input)?;
 
@@ -58,9 +62,13 @@ pub fn attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
         .parse_next(input)
 }
 
-// An ASCII sequence of characters, excluding control.
-pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
-    take_while(0.., |c: char| c.is_ascii() && !c.is_ascii_control()).parse_next(input)
+/// Generate an attribute value parser given a set of valid chars.
+fn attribute_value<'s, S, E>(set: S) -> impl Parser<&'s str, &'s str, E>
+where
+    S: ContainsToken<char>,
+    E: ParserError<&'s str>,
+{
+    take_while(0.., set)
 }
 
 // Extends an attributes value over multiple lines.
@@ -68,7 +76,10 @@ pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
 pub fn continuation_line<'s>(input: &mut &'s str) -> PResult<&'s str> {
     delimited(
         continuation_char(),
-        preceded(space0, attribute_value),
+        preceded(
+            space0,
+            attribute_value(|c: char| c.is_ascii() && !c.is_ascii_control()),
+        ),
         newline,
     )
     .parse_next(input)
@@ -195,36 +206,43 @@ mod tests {
 
     #[rstest]
     #[case(
+            |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "This is an example remark\n",
             "This is an example remark",
             "\n"
         )]
     #[case(
+            |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "Concerning abuse and spam ... mailto: abuse@asn.net\n",
             "Concerning abuse and spam ... mailto: abuse@asn.net",
             "\n"
         )]
     #[case(
+            |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "+49 176 07071964\n",
             "+49 176 07071964",
             "\n"
         )]
     #[case(
+            |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "* Equinix FR5, Kleyerstr, Frankfurt am Main\n",
             "* Equinix FR5, Kleyerstr, Frankfurt am Main",
             "\n"
         )]
     #[case(
+            |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "\n",
             "",
             "\n"
         )]
     fn attribute_value_valid(
+        #[case] set: impl ContainsToken<char>,
         #[case] given: &mut &str,
         #[case] expected: &str,
         #[case] remaining: &str,
     ) {
-        let parsed = attribute_value(given).unwrap();
+        let mut parser = attribute_value::<_, ContextError>(set);
+        let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
