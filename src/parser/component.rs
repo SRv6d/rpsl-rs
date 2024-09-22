@@ -11,6 +11,14 @@ use winnow::{
 
 use crate::Attribute;
 
+const ATTR_NAME_SET: (
+    std::ops::RangeInclusive<char>,
+    std::ops::RangeInclusive<char>,
+    std::ops::RangeInclusive<char>,
+    char,
+    char,
+) = ('A'..='Z', 'a'..='z', '0'..='9', '-', '_');
+
 // A response code or message sent by the whois server.
 // Starts with the "%" character and extends until the end of the line.
 // In contrast to RPSL, characters are not limited to ASCII.
@@ -28,7 +36,7 @@ pub fn server_message<'s>(input: &mut &'s str) -> PResult<&'s str> {
 // Single value attributes are limited to one line, while multi value attributes span over multiple lines.
 pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
     let (name, first_value) = separated_pair(
-        terminated(attribute_name, ':'),
+        terminated(attribute_name(ATTR_NAME_SET), ':'),
         space0,
         terminated(
             attribute_value(|c: char| c.is_ascii() && !c.is_ascii_control()),
@@ -51,15 +59,17 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
     Ok(Attribute::unchecked_single(name, first_value))
 }
 
-// An ASCII sequence of letters, digits and the characters "-", "_".
-// The first character must be a letter, while the last character may be a letter or a digit.
-pub fn attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
-    take_while(2.., ('A'..='Z', 'a'..='z', '0'..='9', '-', '_'))
-        .verify(|s: &str| {
-            s.starts_with(|c: char| c.is_ascii_alphabetic())
-                && s.ends_with(|c: char| c.is_ascii_alphanumeric())
-        })
-        .parse_next(input)
+/// Generate an attribute value parser given a set of valid chars.
+/// The first character must be a letter, while the last character may be a letter or a digit.
+fn attribute_name<'s, S, E>(set: S) -> impl Parser<&'s str, &'s str, E>
+where
+    S: ContainsToken<char>,
+    E: ParserError<&'s str>,
+{
+    take_while(2.., set).verify(|s: &str| {
+        s.starts_with(|c: char| c.is_ascii_alphabetic())
+            && s.ends_with(|c: char| c.is_ascii_alphanumeric())
+    })
 }
 
 /// Generate an attribute value parser given a set of valid chars.
@@ -170,38 +180,49 @@ mod tests {
     }
 
     #[rstest]
-    #[case(&mut "remarks:", "remarks", ":")]
-    #[case(&mut "aut-num:", "aut-num", ":")]
-    #[case(&mut "ASNumber:", "ASNumber", ":")]
-    #[case(&mut "route6:", "route6", ":")]
+    #[case(ATTR_NAME_SET, &mut "remarks:", "remarks", ":")]
+    #[case(ATTR_NAME_SET, &mut "aut-num:", "aut-num", ":")]
+    #[case(ATTR_NAME_SET, &mut "ASNumber:", "ASNumber", ":")]
+    #[case(ATTR_NAME_SET, &mut "route6:", "route6", ":")]
     fn attribute_name_valid(
+        #[case] set: impl ContainsToken<char>,
         #[case] given: &mut &str,
         #[case] expected: &str,
         #[case] remaining: &str,
     ) {
-        let parsed = attribute_name(given).unwrap();
+        let mut parser = attribute_name::<_, ContextError>(set);
+        let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
 
     #[rstest]
-    #[case(&mut "1remarks:")]
-    #[case(&mut "-remarks:")]
-    #[case(&mut "_remarks:")]
-    fn attribute_name_non_letter_first_char_is_error(#[case] given: &mut &str) {
-        assert!(attribute_name(given).is_err());
+    #[case(ATTR_NAME_SET, &mut "1remarks:")]
+    #[case(ATTR_NAME_SET, &mut "-remarks:")]
+    #[case(ATTR_NAME_SET, &mut "_remarks:")]
+    fn attribute_name_non_letter_first_char_is_error(
+        #[case] set: impl ContainsToken<char>,
+        #[case] given: &mut &str,
+    ) {
+        let mut parser = attribute_name::<_, ContextError>(set);
+        assert!(parser.parse_next(given).is_err());
     }
 
     #[rstest]
-    #[case(&mut "remarks-:")]
-    #[case(&mut "remarks_:")]
-    fn attribute_name_non_letter_or_digit_last_char_is_error(#[case] given: &mut &str) {
-        assert!(attribute_name(given).is_err());
+    #[case(ATTR_NAME_SET, &mut "remarks-:")]
+    #[case(ATTR_NAME_SET, &mut "remarks_:")]
+    fn attribute_name_non_letter_or_digit_last_char_is_error(
+        #[case] set: impl ContainsToken<char>,
+        #[case] given: &mut &str,
+    ) {
+        let mut parser = attribute_name::<_, ContextError>(set);
+        assert!(parser.parse_next(given).is_err());
     }
 
     #[test]
     fn attribute_name_single_letter_is_error() {
-        assert!(attribute_name(&mut "a").is_err());
+        let mut parser = attribute_name::<_, ContextError>(ATTR_NAME_SET);
+        assert!(parser.parse_next(&mut "a").is_err());
     }
 
     #[rstest]
