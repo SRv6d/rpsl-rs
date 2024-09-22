@@ -2,8 +2,8 @@ use std::iter::once;
 
 use winnow::{
     ascii::{newline, space0},
-    combinator::{delimited, peek, repeat, separated_pair, terminated},
-    token::take_while,
+    combinator::{delimited, peek, preceded, repeat, separated_pair, terminated},
+    token::{one_of, take_while},
     PResult, Parser,
 };
 
@@ -26,18 +26,14 @@ pub fn server_message<'s>(input: &mut &'s str) -> PResult<&'s str> {
 // Single value attributes are limited to one line, while multi value attributes span over multiple lines.
 pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
     let (name, first_value) = separated_pair(
-        terminated(subcomponent::attribute_name, ':'),
+        terminated(attribute_name, ':'),
         space0,
-        terminated(subcomponent::attribute_value, newline),
+        terminated(attribute_value, newline),
     )
     .parse_next(input)?;
 
-    if peek(subcomponent::consume_continuation_char)
-        .parse_next(input)
-        .is_ok()
-    {
-        let continuation_values: Vec<&str> =
-            repeat(1.., subcomponent::continuation_line).parse_next(input)?;
+    if peek(consume_continuation_char).parse_next(input).is_ok() {
+        let continuation_values: Vec<&str> = repeat(1.., continuation_line).parse_next(input)?;
         return Ok(Attribute::unchecked_multi(
             name,
             once(first_value).chain(continuation_values),
@@ -45,6 +41,38 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
     }
 
     Ok(Attribute::unchecked_single(name, first_value))
+}
+
+// An ASCII sequence of letters, digits and the characters "-", "_".
+// The first character must be a letter, while the last character may be a letter or a digit.
+pub fn attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
+    take_while(2.., ('A'..='Z', 'a'..='z', '0'..='9', '-', '_'))
+        .verify(|s: &str| {
+            s.starts_with(|c: char| c.is_ascii_alphabetic())
+                && s.ends_with(|c: char| c.is_ascii_alphanumeric())
+        })
+        .parse_next(input)
+}
+
+// An ASCII sequence of characters, excluding control.
+pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
+    take_while(0.., |c: char| c.is_ascii() && !c.is_ascii_control()).parse_next(input)
+}
+
+// Extends an attributes value over multiple lines.
+// Must start with a space, tab or a plus character.
+pub fn continuation_line<'s>(input: &mut &'s str) -> PResult<&'s str> {
+    delimited(
+        consume_continuation_char,
+        preceded(space0, attribute_value),
+        newline,
+    )
+    .parse_next(input)
+}
+
+// Consume a single multiline continuation character.
+pub fn consume_continuation_char(input: &mut &str) -> PResult<()> {
+    one_of([' ', '\t', '+']).void().parse_next(input)
 }
 
 #[cfg(test)]
@@ -122,149 +150,101 @@ mod tests {
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
-}
 
-mod subcomponent {
-    use winnow::{
-        ascii::{newline, space0},
-        combinator::{delimited, preceded},
-        token::{one_of, take_while},
-        PResult, Parser,
-    };
-
-    // An ASCII sequence of letters, digits and the characters "-", "_".
-    // The first character must be a letter, while the last character may be a letter or a digit.
-    pub fn attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
-        take_while(2.., ('A'..='Z', 'a'..='z', '0'..='9', '-', '_'))
-            .verify(|s: &str| {
-                s.starts_with(|c: char| c.is_ascii_alphabetic())
-                    && s.ends_with(|c: char| c.is_ascii_alphanumeric())
-            })
-            .parse_next(input)
+    #[rstest]
+    #[case(&mut "remarks:", "remarks", ":")]
+    #[case(&mut "aut-num:", "aut-num", ":")]
+    #[case(&mut "ASNumber:", "ASNumber", ":")]
+    #[case(&mut "route6:", "route6", ":")]
+    fn attribute_name_valid(
+        #[case] given: &mut &str,
+        #[case] expected: &str,
+        #[case] remaining: &str,
+    ) {
+        let parsed = attribute_name(given).unwrap();
+        assert_eq!(parsed, expected);
+        assert_eq!(*given, remaining);
     }
 
-    // An ASCII sequence of characters, excluding control.
-    pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
-        take_while(0.., |c: char| c.is_ascii() && !c.is_ascii_control()).parse_next(input)
+    #[rstest]
+    #[case(&mut "1remarks:")]
+    #[case(&mut "-remarks:")]
+    #[case(&mut "_remarks:")]
+    fn attribute_name_non_letter_first_char_is_error(#[case] given: &mut &str) {
+        assert!(attribute_name(given).is_err());
     }
 
-    // Consume a single multiline continuation character.
-    pub fn consume_continuation_char(input: &mut &str) -> PResult<()> {
-        one_of([' ', '\t', '+']).void().parse_next(input)
+    #[rstest]
+    #[case(&mut "remarks-:")]
+    #[case(&mut "remarks_:")]
+    fn attribute_name_non_letter_or_digit_last_char_is_error(#[case] given: &mut &str) {
+        assert!(attribute_name(given).is_err());
     }
 
-    // Extends an attributes value over multiple lines.
-    // Must start with a space, tab or a plus character.
-    pub fn continuation_line<'s>(input: &mut &'s str) -> PResult<&'s str> {
-        delimited(
-            consume_continuation_char,
-            preceded(space0, attribute_value),
-            newline,
-        )
-        .parse_next(input)
+    #[test]
+    fn attribute_name_single_letter_is_error() {
+        assert!(attribute_name(&mut "a").is_err());
     }
 
-    #[cfg(test)]
-    mod tests {
-        use rstest::*;
-
-        use super::*;
-
-        #[rstest]
-        #[case(&mut "remarks:", "remarks", ":")]
-        #[case(&mut "aut-num:", "aut-num", ":")]
-        #[case(&mut "ASNumber:", "ASNumber", ":")]
-        #[case(&mut "route6:", "route6", ":")]
-        fn attribute_name_valid(
-            #[case] given: &mut &str,
-            #[case] expected: &str,
-            #[case] remaining: &str,
-        ) {
-            let parsed = attribute_name(given).unwrap();
-            assert_eq!(parsed, expected);
-            assert_eq!(*given, remaining);
-        }
-
-        #[rstest]
-        #[case(&mut "1remarks:")]
-        #[case(&mut "-remarks:")]
-        #[case(&mut "_remarks:")]
-        fn attribute_name_non_letter_first_char_is_error(#[case] given: &mut &str) {
-            assert!(attribute_name(given).is_err());
-        }
-
-        #[rstest]
-        #[case(&mut "remarks-:")]
-        #[case(&mut "remarks_:")]
-        fn attribute_name_non_letter_or_digit_last_char_is_error(#[case] given: &mut &str) {
-            assert!(attribute_name(given).is_err());
-        }
-
-        #[test]
-        fn attribute_name_single_letter_is_error() {
-            assert!(attribute_name(&mut "a").is_err());
-        }
-
-        #[rstest]
-        #[case(
+    #[rstest]
+    #[case(
             &mut "This is an example remark\n",
             "This is an example remark",
             "\n"
         )]
-        #[case(
+    #[case(
             &mut "Concerning abuse and spam ... mailto: abuse@asn.net\n",
             "Concerning abuse and spam ... mailto: abuse@asn.net",
             "\n"
         )]
-        #[case(
+    #[case(
             &mut "+49 176 07071964\n",
             "+49 176 07071964",
             "\n"
         )]
-        #[case(
+    #[case(
             &mut "* Equinix FR5, Kleyerstr, Frankfurt am Main\n",
             "* Equinix FR5, Kleyerstr, Frankfurt am Main",
             "\n"
         )]
-        #[case(
+    #[case(
             &mut "\n",
             "",
             "\n"
         )]
-        fn attribute_value_valid(
-            #[case] given: &mut &str,
-            #[case] expected: &str,
-            #[case] remaining: &str,
-        ) {
-            let parsed = attribute_value(given).unwrap();
-            assert_eq!(parsed, expected);
-            assert_eq!(*given, remaining);
-        }
+    fn attribute_value_valid(
+        #[case] given: &mut &str,
+        #[case] expected: &str,
+        #[case] remaining: &str,
+    ) {
+        let parsed = attribute_value(given).unwrap();
+        assert_eq!(parsed, expected);
+        assert_eq!(*given, remaining);
+    }
 
-        #[rstest]
-        #[case(
+    #[rstest]
+    #[case(
             &mut "    continuation value prefixed by a space\n",
             "continuation value prefixed by a space",
             ""
         )]
-        #[case(
+    #[case(
             &mut "\t    continuation value prefixed by a tab\n",
             "continuation value prefixed by a tab",
             ""
         )]
-        #[case(
+    #[case(
             &mut "+    continuation value prefixed by a plus\n",
             "continuation value prefixed by a plus",
             ""
         )]
-        fn continuation_line_valid(
-            #[case] given: &mut &str,
-            #[case] expected: &str,
-            #[case] remaining: &str,
-        ) {
-            let parsed = continuation_line(given).unwrap();
-            assert_eq!(parsed, expected);
-            assert_eq!(*given, remaining);
-        }
+    fn continuation_line_valid(
+        #[case] given: &mut &str,
+        #[case] expected: &str,
+        #[case] remaining: &str,
+    ) {
+        let parsed = continuation_line(given).unwrap();
+        assert_eq!(parsed, expected);
+        assert_eq!(*given, remaining);
     }
 }
