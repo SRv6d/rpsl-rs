@@ -49,7 +49,13 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
         .parse_next(input)
         .is_ok()
     {
-        let continuation_values: Vec<&str> = repeat(1.., continuation_line).parse_next(input)?;
+        let continuation_values: Vec<&str> = repeat(
+            1..,
+            continuation_line(attribute_value(|c: char| {
+                c.is_ascii() && !c.is_ascii_control()
+            })),
+        )
+        .parse_next(input)?;
         return Ok(Attribute::unchecked_multi(
             name,
             once(first_value).chain(continuation_values),
@@ -81,18 +87,14 @@ where
     take_while(0.., set)
 }
 
-// Extends an attributes value over multiple lines.
-// Must start with a space, tab or a plus character.
-pub fn continuation_line<'s>(input: &mut &'s str) -> PResult<&'s str> {
-    delimited(
-        continuation_char(),
-        preceded(
-            space0,
-            attribute_value(|c: char| c.is_ascii() && !c.is_ascii_control()),
-        ),
-        newline,
-    )
-    .parse_next(input)
+/// Generate a parser that extends an attributes value over multiple lines,
+/// where each value is prefixed with a continuation character.
+fn continuation_line<'s, P, E>(value_parser: P) -> impl Parser<&'s str, &'s str, E>
+where
+    P: Parser<&'s str, &'s str, E>,
+    E: ParserError<&'s str>,
+{
+    delimited(continuation_char(), preceded(space0, value_parser), newline)
 }
 
 /// Generate a parser for a single continuation character.
@@ -289,7 +291,10 @@ mod tests {
         #[case] expected: &str,
         #[case] remaining: &str,
     ) {
-        let parsed = continuation_line(given).unwrap();
+        let mut parser = continuation_line::<_, ContextError>(attribute_value(|c: char| {
+            c.is_ascii() && !c.is_ascii_control()
+        }));
+        let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
