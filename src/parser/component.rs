@@ -9,7 +9,7 @@ use winnow::{
     PResult, Parser,
 };
 
-use crate::Attribute;
+use crate::{Attribute, Name, Value};
 
 const ATTR_NAME_SET: (
     std::ops::RangeInclusive<char>,
@@ -56,26 +56,26 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
             })),
         )
         .parse_next(input)?;
-        return Ok(Attribute::unchecked_multi(
-            name,
-            once(first_value).chain(continuation_values),
-        ));
+        let value = Value::unchecked_multi(once(first_value).chain(continuation_values));
+        return Ok(Attribute::new(name, value));
     }
 
-    Ok(Attribute::unchecked_single(name, first_value))
+    Ok(Attribute::new(name, Value::unchecked_single(first_value)))
 }
 
 /// Generate an attribute value parser given a set of valid chars.
 /// The first character must be a letter, while the last character may be a letter or a digit.
-fn attribute_name<'s, S, E>(set: S) -> impl Parser<&'s str, &'s str, E>
+fn attribute_name<'s, S, E>(set: S) -> impl Parser<&'s str, Name<'s>, E>
 where
     S: ContainsToken<char>,
     E: ParserError<&'s str>,
 {
-    take_while(2.., set).verify(|s: &str| {
-        s.starts_with(|c: char| c.is_ascii_alphabetic())
-            && s.ends_with(|c: char| c.is_ascii_alphanumeric())
-    })
+    take_while(2.., set)
+        .verify(|s: &str| {
+            s.starts_with(|c: char| c.is_ascii_alphabetic())
+                && s.ends_with(|c: char| c.is_ascii_alphanumeric())
+        })
+        .map(Name::unchecked)
 }
 
 /// Generate an attribute value parser given a set of valid chars.
