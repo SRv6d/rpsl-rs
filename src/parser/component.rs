@@ -36,8 +36,8 @@ pub fn server_message<'s>(input: &mut &'s str) -> PResult<&'s str> {
 // Single value attributes are limited to one line, while multi value attributes span over multiple lines.
 pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
     let (name, first_value) = separated_pair(
-        terminated(attribute_name(ATTR_NAME_SET), ':'),
-        space0,
+        attribute_name(ATTR_NAME_SET),
+        (':', space0),
         terminated(
             attribute_value(|c: char| c.is_ascii() && !c.is_ascii_control()),
             newline,
