@@ -3,6 +3,7 @@ use std::iter::once;
 use winnow::{
     ascii::{newline, space0},
     combinator::{delimited, peek, preceded, repeat, separated_pair, terminated},
+    error::{ContextError, ParserError},
     token::{one_of, take_while},
     PResult, Parser,
 };
@@ -32,7 +33,10 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
     )
     .parse_next(input)?;
 
-    if peek(consume_continuation_char).parse_next(input).is_ok() {
+    if peek(continuation_char::<ContextError>())
+        .parse_next(input)
+        .is_ok()
+    {
         let continuation_values: Vec<&str> = repeat(1.., continuation_line).parse_next(input)?;
         return Ok(Attribute::unchecked_multi(
             name,
@@ -63,16 +67,19 @@ pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
 // Must start with a space, tab or a plus character.
 pub fn continuation_line<'s>(input: &mut &'s str) -> PResult<&'s str> {
     delimited(
-        consume_continuation_char,
+        continuation_char(),
         preceded(space0, attribute_value),
         newline,
     )
     .parse_next(input)
 }
 
-// Consume a single multiline continuation character.
-pub fn consume_continuation_char(input: &mut &str) -> PResult<()> {
-    one_of([' ', '\t', '+']).void().parse_next(input)
+/// Generate a parser for a single continuation character.
+fn continuation_char<'s, E>() -> impl Parser<&'s str, char, E>
+where
+    E: ParserError<&'s str>,
+{
+    one_of([' ', '\t', '+'])
 }
 
 #[cfg(test)]
