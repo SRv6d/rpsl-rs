@@ -29,7 +29,7 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
     let (name, first_value) = separated_pair(
         terminated(attribute_name, ':'),
         space0,
-        terminated(attribute_value, newline),
+        terminated(attribute_value(), newline),
     )
     .parse_next(input)?;
 
@@ -58,9 +58,12 @@ pub fn attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
         .parse_next(input)
 }
 
-// An extended ASCII sequence of characters, excluding control.
-pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
-    take_while(0.., |c| Value::validate_char(c).is_ok()).parse_next(input)
+/// Generate an attribute value parser.
+fn attribute_value<'s, E>() -> impl Parser<&'s str, &'s str, E>
+where
+    E: ParserError<&'s str>,
+{
+    take_while(0.., |c| Value::validate_char(c).is_ok())
 }
 
 // Extends an attributes value over multiple lines.
@@ -68,7 +71,7 @@ pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
 pub fn continuation_line<'s>(input: &mut &'s str) -> PResult<&'s str> {
     delimited(
         continuation_char(),
-        preceded(space0, attribute_value),
+        preceded(space0, attribute_value()),
         newline,
     )
     .parse_next(input)
@@ -225,7 +228,8 @@ mod tests {
         #[case] expected: &str,
         #[case] remaining: &str,
     ) {
-        let parsed = attribute_value(given).unwrap();
+        let mut parser = attribute_value::<ContextError>();
+        let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
@@ -234,7 +238,8 @@ mod tests {
         /// Any non extended ASCII is not returned by the value parser.
         #[test]
         fn attribute_value_non_extended_ascii_not_parsed(s in r"[^\x00-\xFF]+") {
-            let parsed = attribute_value(&mut s.as_str()).unwrap();
+            let mut parser = attribute_value::<ContextError>();
+            let parsed = parser.parse_next(&mut s.as_str()).unwrap();
             prop_assert_eq!(parsed, "");
         }
     }
