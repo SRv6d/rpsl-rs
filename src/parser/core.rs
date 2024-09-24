@@ -24,16 +24,19 @@ pub fn object_block<'s>(input: &mut &'s str) -> PResult<Object<'s>> {
 /// Extends the object block parser to consume optional padding server messages or newlines.
 pub fn object_block_padded<'s>(input: &mut &'s str) -> PResult<Object<'s>> {
     delimited(
-        consume_opt_message_or_newlines,
+        consume_opt_messages_or_newlines(),
         object_block,
-        consume_opt_message_or_newlines,
+        consume_opt_messages_or_newlines(),
     )
     .parse_next(input)
 }
 
-/// Consume optional server messages or newlines.
-fn consume_opt_message_or_newlines(input: &mut &str) -> PResult<()> {
-    repeat(0.., alt((newline.void(), server_message().void()))).parse_next(input)
+/// Generate a parser that consumes optional messages or newlines.
+fn consume_opt_messages_or_newlines<'s, E>() -> impl Parser<&'s str, (), E>
+where
+    E: ParserError<&'s str>,
+{
+    repeat(0.., alt((newline.void(), server_message().void())))
 }
 
 // A response code or message sent by the whois server.
@@ -191,13 +194,15 @@ mod tests {
         )
     )]
     fn optional_comment_or_newlines_consumed(#[case] given: &mut &str) {
-        consume_opt_message_or_newlines(given).unwrap();
+        let mut parser = consume_opt_messages_or_newlines::<ContextError>();
+        parser.parse_next(given).unwrap();
         assert_eq!(*given, "");
     }
 
     #[test]
     fn optional_comment_or_newlines_optional() {
-        assert_eq!(consume_opt_message_or_newlines(&mut ""), Ok(()));
+        let mut parser = consume_opt_messages_or_newlines::<ContextError>();
+        assert_eq!(parser.parse_next(&mut ""), Ok(()));
     }
 
     #[rstest]
