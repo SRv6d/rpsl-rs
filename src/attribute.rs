@@ -35,6 +35,7 @@ impl<'a> Attribute<'a> {
         Self { name, value }
     }
 
+    #[cfg(test)]
     pub(crate) fn unchecked_single<V>(name: &'a str, value: V) -> Self
     where
         V: Into<Option<&'a str>>,
@@ -44,6 +45,7 @@ impl<'a> Attribute<'a> {
         Self { name, value }
     }
 
+    #[cfg(test)]
     pub(crate) fn unchecked_multi<I, V>(name: &'a str, values: I) -> Self
     where
         I: IntoIterator<Item = V>,
