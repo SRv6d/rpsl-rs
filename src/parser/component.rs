@@ -156,7 +156,8 @@ mod tests {
         #[case] expected: Attribute,
         #[case] remaining: &str,
     ) {
-        let parsed = attribute::<ContextError>().parse_next(given).unwrap();
+        let mut parser = attribute::<ContextError>();
+        let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
@@ -184,7 +185,8 @@ mod tests {
         #[case] expected: Attribute,
         #[case] remaining: &str,
     ) {
-        let parsed = attribute::<ContextError>().parse_next(given).unwrap();
+        let mut parser = attribute::<ContextError>();
+        let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
