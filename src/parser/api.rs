@@ -4,7 +4,7 @@ use winnow::{
     Parser,
 };
 
-use super::component::{object_block, object_block_padded};
+use super::core::{object_block, object_block_padded};
 use crate::{Object, ParseError};
 
 /// Parse RPSL into an [`Object`], borrowing from the source.
