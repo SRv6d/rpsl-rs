@@ -4,20 +4,11 @@ use winnow::{
     ascii::{newline, space0},
     combinator::{alt, delimited, opt, preceded, repeat, separated_pair, terminated},
     error::ParserError,
-    stream::ContainsToken,
     token::{one_of, take_while},
     Parser,
 };
 
 use crate::{Attribute, Name, Object, Value};
-
-const ATTR_NAME_SET: (
-    std::ops::RangeInclusive<char>,
-    std::ops::RangeInclusive<char>,
-    std::ops::RangeInclusive<char>,
-    char,
-    char,
-) = ('A'..='Z', 'a'..='z', '0'..='9', '-', '_');
 
 /// Generate an object block parser.
 /// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
@@ -73,22 +64,17 @@ fn attribute<'s, E>() -> impl Parser<&'s str, Attribute<'s>, E>
 where
     E: ParserError<&'s str>,
 {
-    separated_pair(
-        attribute_name(ATTR_NAME_SET),
-        (':', space0),
-        attribute_value_opt_multi(),
-    )
-    .map(|(name, value)| Attribute::new(name, value))
+    separated_pair(attribute_name(), (':', space0), attribute_value_opt_multi())
+        .map(|(name, value)| Attribute::new(name, value))
 }
 
 /// Generate an attribute value parser given a set of valid chars.
 /// The first character must be a letter, while the last character may be a letter or a digit.
-fn attribute_name<'s, S, E>(set: S) -> impl Parser<&'s str, Name<'s>, E>
+fn attribute_name<'s, E>() -> impl Parser<&'s str, Name<'s>, E>
 where
-    S: ContainsToken<char>,
     E: ParserError<&'s str>,
 {
-    take_while(2.., set)
+    take_while(2.., ('A'..='Z', 'a'..='z', '0'..='9', '-', '_'))
         .verify(|s: &str| {
             s.starts_with(|c: char| c.is_ascii_alphabetic())
                 && s.ends_with(|c: char| c.is_ascii_alphanumeric())
@@ -97,12 +83,14 @@ where
 }
 
 /// Generate an attribute value parser given a set of valid chars.
-fn attribute_value<'s, S, E>(set: S) -> impl Parser<&'s str, &'s str, E>
+fn attribute_value<'s, E>() -> impl Parser<&'s str, &'s str, E>
 where
-    S: ContainsToken<char>,
     E: ParserError<&'s str>,
 {
-    terminated(take_while(0.., set), newline)
+    terminated(
+        take_while(0.., |c: char| c.is_ascii() && !c.is_ascii_control()),
+        newline,
+    )
 }
 
 /// Generate a parser for continuation values.
@@ -123,10 +111,8 @@ where
     E: ParserError<&'s str>,
 {
     (
-        attribute_value(|c: char| c.is_ascii() && !c.is_ascii_control()),
-        opt(attribute_value_continuation(attribute_value(|c: char| {
-            c.is_ascii() && !c.is_ascii_control()
-        }))),
+        attribute_value(),
+        opt(attribute_value_continuation(attribute_value())),
     )
         .map(|(first_value, continuation)| {
             if let Some(continuation_values) = continuation {
@@ -302,83 +288,71 @@ mod tests {
     }
 
     #[rstest]
-    #[case(ATTR_NAME_SET, &mut "remarks:", "remarks", ":")]
-    #[case(ATTR_NAME_SET, &mut "aut-num:", "aut-num", ":")]
-    #[case(ATTR_NAME_SET, &mut "ASNumber:", "ASNumber", ":")]
-    #[case(ATTR_NAME_SET, &mut "route6:", "route6", ":")]
+    #[case(&mut "remarks:", "remarks", ":")]
+    #[case(&mut "aut-num:", "aut-num", ":")]
+    #[case(&mut "ASNumber:", "ASNumber", ":")]
+    #[case(&mut "route6:", "route6", ":")]
     fn attribute_name_valid(
-        #[case] set: impl ContainsToken<char>,
         #[case] given: &mut &str,
         #[case] expected: &str,
         #[case] remaining: &str,
     ) {
-        let mut parser = attribute_name::<_, ContextError>(set);
+        let mut parser = attribute_name::<ContextError>();
         let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
 
     #[rstest]
-    #[case(ATTR_NAME_SET, &mut "1remarks:")]
-    #[case(ATTR_NAME_SET, &mut "-remarks:")]
-    #[case(ATTR_NAME_SET, &mut "_remarks:")]
-    fn attribute_name_non_letter_first_char_is_error(
-        #[case] set: impl ContainsToken<char>,
-        #[case] given: &mut &str,
-    ) {
-        let mut parser = attribute_name::<_, ContextError>(set);
+    #[case(&mut "1remarks:")]
+    #[case(&mut "-remarks:")]
+    #[case(&mut "_remarks:")]
+    fn attribute_name_non_letter_first_char_is_error(#[case] given: &mut &str) {
+        let mut parser = attribute_name::<ContextError>();
         assert!(parser.parse_next(given).is_err());
     }
 
     #[rstest]
-    #[case(ATTR_NAME_SET, &mut "remarks-:")]
-    #[case(ATTR_NAME_SET, &mut "remarks_:")]
-    fn attribute_name_non_letter_or_digit_last_char_is_error(
-        #[case] set: impl ContainsToken<char>,
-        #[case] given: &mut &str,
-    ) {
-        let mut parser = attribute_name::<_, ContextError>(set);
+    #[case(&mut "remarks-:")]
+    #[case(&mut "remarks_:")]
+    fn attribute_name_non_letter_or_digit_last_char_is_error(#[case] given: &mut &str) {
+        let mut parser = attribute_name::<ContextError>();
         assert!(parser.parse_next(given).is_err());
     }
 
     #[test]
     fn attribute_name_single_letter_is_error() {
-        let mut parser = attribute_name::<_, ContextError>(ATTR_NAME_SET);
+        let mut parser = attribute_name::<ContextError>();
         assert!(parser.parse_next(&mut "a").is_err());
     }
 
     #[rstest]
     #[case(
-            |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "This is an example remark\n",
             "This is an example remark",
             ""
         )]
     #[case(
-            |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "Concerning abuse and spam ... mailto: abuse@asn.net\n",
             "Concerning abuse and spam ... mailto: abuse@asn.net",
             ""
         )]
     #[case(
-            |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "+49 176 07071964\n",
             "+49 176 07071964",
             ""
         )]
     #[case(
-            |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "* Equinix FR5, Kleyerstr, Frankfurt am Main\n",
             "* Equinix FR5, Kleyerstr, Frankfurt am Main",
             ""
         )]
     fn attribute_value_valid(
-        #[case] set: impl ContainsToken<char>,
         #[case] given: &mut &str,
         #[case] expected: &str,
         #[case] remaining: &str,
     ) {
-        let mut parser = attribute_value::<_, ContextError>(set);
+        let mut parser = attribute_value::<ContextError>();
         let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
@@ -405,8 +379,7 @@ mod tests {
         #[case] expected: Vec<&str>,
         #[case] remaining: &str,
     ) {
-        let value_parser =
-            attribute_value::<_, ContextError>(|c: char| c.is_ascii() && !c.is_ascii_control());
+        let value_parser = attribute_value::<ContextError>();
         let mut continuation_parser = attribute_value_continuation::<_, ContextError>(value_parser);
         let parsed = continuation_parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
