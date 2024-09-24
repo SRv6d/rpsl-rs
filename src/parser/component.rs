@@ -2,8 +2,8 @@ use std::iter::once;
 
 use winnow::{
     ascii::{newline, space0},
-    combinator::{delimited, peek, preceded, repeat, separated_pair, terminated},
-    error::{ContextError, ParserError},
+    combinator::{delimited, opt, preceded, repeat, separated_pair, terminated},
+    error::ParserError,
     stream::ContainsToken,
     token::{one_of, take_while},
     PResult, Parser,
@@ -31,36 +31,18 @@ pub fn server_message<'s>(input: &mut &'s str) -> PResult<&'s str> {
     .parse_next(input)
 }
 
-// A RPSL attribute consisting of a name and one or more values.
-// The name is followed by a colon and optional spaces.
-// Single value attributes are limited to one line, while multi value attributes span over multiple lines.
-pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
-    let (name, first_value) = separated_pair(
+// Generate an attribute parser.
+// The attributes name and value are separated by a colon and optional spaces.
+pub fn attribute<'s, E>() -> impl Parser<&'s str, Attribute<'s>, E>
+where
+    E: ParserError<&'s str>,
+{
+    separated_pair(
         attribute_name(ATTR_NAME_SET),
         (':', space0),
-        terminated(
-            attribute_value(|c: char| c.is_ascii() && !c.is_ascii_control()),
-            newline,
-        ),
+        attribute_value_opt_multi(),
     )
-    .parse_next(input)?;
-
-    if peek(continuation_char::<ContextError>())
-        .parse_next(input)
-        .is_ok()
-    {
-        let continuation_values: Vec<&str> = repeat(
-            1..,
-            continuation_line(attribute_value(|c: char| {
-                c.is_ascii() && !c.is_ascii_control()
-            })),
-        )
-        .parse_next(input)?;
-        let value = Value::unchecked_multi(once(first_value).chain(continuation_values));
-        return Ok(Attribute::new(name, value));
-    }
-
-    Ok(Attribute::new(name, Value::unchecked_single(first_value)))
+    .map(|(name, value)| Attribute::new(name, value))
 }
 
 /// Generate an attribute value parser given a set of valid chars.
@@ -84,17 +66,39 @@ where
     S: ContainsToken<char>,
     E: ParserError<&'s str>,
 {
-    take_while(0.., set)
+    terminated(take_while(0.., set), newline)
 }
 
-/// Generate a parser that extends an attributes value over multiple lines,
-/// where each value is prefixed with a continuation character.
-fn continuation_line<'s, P, E>(value_parser: P) -> impl Parser<&'s str, &'s str, E>
+/// Generate a parser for continuation values.
+fn attribute_value_continuation<'s, P, E>(value_parser: P) -> impl Parser<&'s str, Vec<&'s str>, E>
 where
     P: Parser<&'s str, &'s str, E>,
     E: ParserError<&'s str>,
 {
-    delimited(continuation_char(), preceded(space0, value_parser), newline)
+    repeat(
+        1..,
+        preceded(continuation_char(), preceded(space0, value_parser)),
+    )
+}
+
+/// Generate an attribute value parser that optionally parses continuation lines.
+fn attribute_value_opt_multi<'s, E>() -> impl Parser<&'s str, Value<'s>, E>
+where
+    E: ParserError<&'s str>,
+{
+    (
+        attribute_value(|c: char| c.is_ascii() && !c.is_ascii_control()),
+        opt(attribute_value_continuation(attribute_value(|c: char| {
+            c.is_ascii() && !c.is_ascii_control()
+        }))),
+    )
+        .map(|(first_value, continuation)| {
+            if let Some(continuation_values) = continuation {
+                Value::unchecked_multi(once(first_value).chain(continuation_values))
+            } else {
+                Value::unchecked_single(first_value)
+            }
+        })
 }
 
 /// Generate a parser for a single continuation character.
@@ -108,6 +112,7 @@ where
 #[cfg(test)]
 mod tests {
     use rstest::*;
+    use winnow::error::ContextError;
 
     use super::*;
 
@@ -148,7 +153,7 @@ mod tests {
         #[case] expected: Attribute,
         #[case] remaining: &str,
     ) {
-        let parsed = attribute(given).unwrap();
+        let parsed = attribute::<ContextError>().parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
@@ -176,7 +181,7 @@ mod tests {
         #[case] expected: Attribute,
         #[case] remaining: &str,
     ) {
-        let parsed = attribute(given).unwrap();
+        let parsed = attribute::<ContextError>().parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
@@ -232,31 +237,25 @@ mod tests {
             |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "This is an example remark\n",
             "This is an example remark",
-            "\n"
+            ""
         )]
     #[case(
             |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "Concerning abuse and spam ... mailto: abuse@asn.net\n",
             "Concerning abuse and spam ... mailto: abuse@asn.net",
-            "\n"
+            ""
         )]
     #[case(
             |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "+49 176 07071964\n",
             "+49 176 07071964",
-            "\n"
+            ""
         )]
     #[case(
             |c: char| c.is_ascii() && !c.is_ascii_control(),
             &mut "* Equinix FR5, Kleyerstr, Frankfurt am Main\n",
             "* Equinix FR5, Kleyerstr, Frankfurt am Main",
-            "\n"
-        )]
-    #[case(
-            |c: char| c.is_ascii() && !c.is_ascii_control(),
-            &mut "\n",
-            "",
-            "\n"
+            ""
         )]
     fn attribute_value_valid(
         #[case] set: impl ContainsToken<char>,
@@ -273,28 +272,28 @@ mod tests {
     #[rstest]
     #[case(
             &mut "    continuation value prefixed by a space\n",
-            "continuation value prefixed by a space",
+            vec!["continuation value prefixed by a space"],
             ""
         )]
     #[case(
             &mut "\t    continuation value prefixed by a tab\n",
-            "continuation value prefixed by a tab",
+            vec!["continuation value prefixed by a tab"],
             ""
         )]
     #[case(
             &mut "+    continuation value prefixed by a plus\n",
-            "continuation value prefixed by a plus",
+            vec!["continuation value prefixed by a plus"],
             ""
         )]
-    fn continuation_line_valid(
+    fn attribute_value_continuation_valid(
         #[case] given: &mut &str,
-        #[case] expected: &str,
+        #[case] expected: Vec<&str>,
         #[case] remaining: &str,
     ) {
-        let mut parser = continuation_line::<_, ContextError>(attribute_value(|c: char| {
-            c.is_ascii() && !c.is_ascii_control()
-        }));
-        let parsed = parser.parse_next(given).unwrap();
+        let value_parser =
+            attribute_value::<_, ContextError>(|c: char| c.is_ascii() && !c.is_ascii_control());
+        let mut continuation_parser = attribute_value_continuation::<_, ContextError>(value_parser);
+        let parsed = continuation_parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
