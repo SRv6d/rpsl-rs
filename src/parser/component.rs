@@ -5,7 +5,7 @@ use winnow::{
     combinator::{delimited, opt, preceded, repeat, separated_pair, terminated},
     error::ParserError,
     token::{one_of, take_while},
-    PResult, Parser,
+    Parser,
 };
 
 use crate::{Attribute, Name, Value};
@@ -13,13 +13,15 @@ use crate::{Attribute, Name, Value};
 // A response code or message sent by the whois server.
 // Starts with the "%" character and extends until the end of the line.
 // In contrast to RPSL, characters are not limited to ASCII.
-pub fn server_message<'s>(input: &mut &'s str) -> PResult<&'s str> {
+pub fn server_message<'s, E>() -> impl Parser<&'s str, &'s str, E>
+where
+    E: ParserError<&'s str>,
+{
     delimited(
         ('%', space0),
         take_while(0.., |c: char| !c.is_control()),
         newline,
     )
-    .parse_next(input)
 }
 
 // Generate an attribute parser.
@@ -125,7 +127,8 @@ mod tests {
         #[case] expected: &str,
         #[case] remaining: &str,
     ) {
-        let parsed = server_message(given).unwrap();
+        let mut parser = server_message::<ContextError>();
+        let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }

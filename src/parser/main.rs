@@ -30,7 +30,11 @@ fn object_block_padded<'s>(input: &mut &'s str) -> PResult<Object<'s>> {
 
 /// Consume optional server messages or newlines.
 fn consume_opt_message_or_newlines(input: &mut &str) -> PResult<()> {
-    repeat(0.., alt((newline.void(), component::server_message.void()))).parse_next(input)
+    repeat(
+        0..,
+        alt((newline.void(), component::server_message().void())),
+    )
+    .parse_next(input)
 }
 
 /// Parse RPSL into an [`Object`], borrowing from the source.
