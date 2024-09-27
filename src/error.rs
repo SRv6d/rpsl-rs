@@ -6,7 +6,7 @@ use thiserror::Error;
 pub enum InvalidNameError {
     #[error("cannot be empty")]
     Empty,
-    #[error("cannot contain non-ASCII characters")]
+    #[error("cannot contain characters that are not part of the extended ASCII set")]
     NonAscii,
     #[error("cannot start with a non-letter ASCII character")]
     NonAsciiAlphabeticFirstChar,
@@ -16,8 +16,8 @@ pub enum InvalidNameError {
 
 #[derive(Error, Debug)]
 pub enum InvalidValueError {
-    #[error("cannot contain non-ASCII characters")]
-    NonAscii,
+    #[error("cannot contain characters that are not part of the extended ASCII set")]
+    NonExtendedAscii,
     #[error("cannot contain ASCII control characters")]
     ContainsControlChar,
 }

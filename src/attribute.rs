@@ -216,7 +216,7 @@ impl<'a> Value<'a> {
 
     fn validate(value: &str) -> Result<(), InvalidValueError> {
         if value.chars().any(|c| !matches!(c, '\u{0000}'..='\u{00FF}')) {
-            return Err(InvalidValueError::NonAscii);
+            return Err(InvalidValueError::NonExtendedAscii);
         } else if value.chars().any(|c| c.is_ascii_control()) {
             return Err(InvalidValueError::ContainsControlChar);
         }
@@ -574,7 +574,7 @@ mod tests {
     proptest! {
         #[test]
         fn value_validation_any_non_extended_ascii_is_err(s in r"[^\x00-\xFF]+") {
-            matches!(Value::validate(&s).unwrap_err(), InvalidValueError::NonAscii);
+            matches!(Value::validate(&s).unwrap_err(), InvalidValueError::NonExtendedAscii);
         }
     }
 
