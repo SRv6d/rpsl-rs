@@ -30,16 +30,13 @@ mod strategies {
     /// An attribute value may consist of any characters from the extended ASCII set,
     /// while excluding control and not starting with, or consisting entirely of whitespace.
     fn attribute_value_content() -> impl Strategy<Value = String> {
-        proptest::string::string_regex(r"[\x00-\xFF]+")
+        proptest::string::string_regex(r"[\x20-\x7E\x80-\xFF]+")
             .unwrap()
             .prop_filter("Cannot start with whitespace", |s| {
                 !s.starts_with(|c: char| c.is_whitespace())
             })
             .prop_filter("Cannot consist of whitespace only", |s| {
                 !s.trim().is_empty()
-            })
-            .prop_filter("Cannot contain control characters", |s| {
-                !s.chars().any(|c| c.is_control())
             })
     }
 
