@@ -561,6 +561,30 @@ mod tests {
         assert_eq!(Value::from_str(s).unwrap(), Value::SingleLine(None));
     }
 
+    proptest! {
+        #[test]
+        fn value_validation_any_non_control_extended_ascii_valid(
+            s in r"[\x00-\xFF]+"
+                .prop_filter("Must not contain control chars", |s| !s.chars().any(|c| c.is_ascii_control())))
+            {
+                Value::validate(&s).unwrap();
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn value_validation_any_non_extended_ascii_is_err(s in r"[^\x00-\xFF]+") {
+            matches!(Value::validate(&s).unwrap_err(), InvalidValueError::NonAscii);
+        }
+    }
+
+    proptest! {
+        #[test]
+        fn value_validation_any_ascii_control_is_err(s in r"[\x00-\x1F\x7F]+") {
+            matches!(Value::validate(&s).unwrap_err(), InvalidValueError::ContainsControlChar);
+        }
+    }
+
     #[rstest]
     #[case(
         Value::unchecked_single("32934"),
