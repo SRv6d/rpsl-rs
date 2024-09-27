@@ -215,7 +215,7 @@ impl<'a> Value<'a> {
     }
 
     fn validate(value: &str) -> Result<(), InvalidValueError> {
-        if !value.is_ascii() {
+        if value.chars().any(|c| !matches!(c, '\u{0000}'..='\u{00FF}')) {
             return Err(InvalidValueError::NonAscii);
         } else if value.chars().any(|c| c.is_ascii_control()) {
             return Err(InvalidValueError::ContainsControlChar);
