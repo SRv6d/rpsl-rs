@@ -80,6 +80,7 @@ pub fn consume_continuation_char(input: &mut &str) -> PResult<()> {
 
 #[cfg(test)]
 mod tests {
+    use proptest::prelude::*;
     use rstest::*;
 
     use super::*;
@@ -223,6 +224,15 @@ mod tests {
         let parsed = attribute_value(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
+    }
+
+    proptest! {
+        /// Any non extended ASCII is not returned by the value parser.
+        #[test]
+        fn attribute_value_non_extended_ascii_not_parsed(s in r"[^\x00-\xFF]+") {
+            let parsed = attribute_value(&mut s.as_str()).unwrap();
+            prop_assert_eq!(parsed, "");
+        }
     }
 
     #[rstest]
