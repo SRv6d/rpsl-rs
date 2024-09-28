@@ -60,7 +60,6 @@ harness = false
 
 [profile.release]
 lto = true
-strip = true
 
 [profile.test.package.proptest]
 opt-level = 3
