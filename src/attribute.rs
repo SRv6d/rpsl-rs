@@ -223,6 +223,8 @@ impl<'a> Value<'a> {
         value.chars().try_for_each(Self::validate_char)
     }
 
+    /// Even though RFC 2622 requires values to be ASCII, in practice some WHOIS databases
+    /// (e.g. RIPE) do not enforce this so, to be useful in the real world, we don't either.
     #[inline]
     pub(crate) fn validate_char(c: char) -> Result<(), InvalidValueError> {
         if !is_extended_ascii(c) {

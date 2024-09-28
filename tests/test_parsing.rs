@@ -27,8 +27,8 @@ mod strategies {
 
     /// A valid attribute value.
     ///
-    /// An attribute value may consist of any characters from the extended ASCII set,
-    /// while excluding control and not starting with, or consisting entirely of whitespace.
+    /// Creates a string of extended ASCII characters while excluding control and not
+    /// starting with, or consisting entirely of whitespace.
     fn attribute_value_content() -> impl Strategy<Value = String> {
         proptest::string::string_regex(r"[\x20-\x7E\x80-\xFF]+")
             .unwrap()
