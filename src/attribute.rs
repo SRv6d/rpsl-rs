@@ -585,16 +585,12 @@ mod tests {
             {
                 Value::validate(&s).unwrap();
         }
-    }
 
-    proptest! {
         #[test]
         fn value_validation_any_non_extended_ascii_is_err(s in r"[^\x00-\xFF]+") {
             matches!(Value::validate(&s).unwrap_err(), InvalidValueError::NonExtendedAscii);
         }
-    }
 
-    proptest! {
         #[test]
         fn value_validation_any_ascii_control_is_err(s in r"[\x00-\x1F\x7F]+") {
             matches!(Value::validate(&s).unwrap_err(), InvalidValueError::ContainsControlChar);
