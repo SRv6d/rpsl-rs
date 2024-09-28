@@ -7,7 +7,7 @@ use winnow::{
     PResult, Parser,
 };
 
-use crate::Attribute;
+use crate::{Attribute, Value};
 
 // A response code or message sent by the whois server.
 // Starts with the "%" character and extends until the end of the line.
@@ -56,10 +56,7 @@ pub fn attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
 
 // An extended ASCII sequence of characters, excluding control.
 pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
-    take_while(0.., |c: char| {
-        matches!(c, '\u{0000}'..='\u{00FF}') && !c.is_ascii_control()
-    })
-    .parse_next(input)
+    take_while(0.., |c| Value::validate_char(c).is_ok()).parse_next(input)
 }
 
 // Extends an attributes value over multiple lines.

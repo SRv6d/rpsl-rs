@@ -215,9 +215,14 @@ impl<'a> Value<'a> {
     }
 
     fn validate(value: &str) -> Result<(), InvalidValueError> {
-        if value.chars().any(|c| !matches!(c, '\u{0000}'..='\u{00FF}')) {
+        value.chars().try_for_each(Self::validate_char)
+    }
+
+    #[inline]
+    pub(crate) fn validate_char(c: char) -> Result<(), InvalidValueError> {
+        if !is_extended_ascii(c) {
             return Err(InvalidValueError::NonExtendedAscii);
-        } else if value.chars().any(|c| c.is_ascii_control()) {
+        } else if c.is_ascii_control() {
             return Err(InvalidValueError::ContainsControlChar);
         }
 
@@ -411,6 +416,12 @@ where
     } else {
         Some(value)
     }
+}
+
+/// Checks if the given char is part of the extended ASCII set.
+#[inline]
+fn is_extended_ascii(char: char) -> bool {
+    matches!(char, '\u{0000}'..='\u{00FF}')
 }
 
 #[cfg(test)]
