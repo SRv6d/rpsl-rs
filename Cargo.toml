@@ -1,6 +1,6 @@
 [package]
 name = "rpsl-rs"
-description = "An RFC 2622 conformant Routing Policy Specification Language (RPSL) parser with a focus on speed and correctness."
+description = "A Routing Policy Specification Language (RPSL) parser with a focus on speed and correctness."
 version = "1.0.1"
 keywords = ["rpsl", "parser", "routing", "policy", "whois"]
 categories = ["parsing", "database"]

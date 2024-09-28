@@ -27,10 +27,17 @@ mod strategies {
 
     /// A valid attribute value.
     ///
-    /// An attribute value may consist of any ASCII characters excluding control and
-    /// must not start with, or consist entirely of whitespace.
+    /// Creates a string of extended ASCII characters while excluding control and not
+    /// starting with, or consisting entirely of whitespace.
     fn attribute_value_content() -> impl Strategy<Value = String> {
-        proptest::string::string_regex("[!-~][ -~]*").unwrap()
+        proptest::string::string_regex(r"[\x20-\x7E\x80-\xFF]+")
+            .unwrap()
+            .prop_filter("Cannot start with whitespace", |s| {
+                !s.starts_with(|c: char| c.is_whitespace())
+            })
+            .prop_filter("Cannot consist of whitespace only", |s| {
+                !s.trim().is_empty()
+            })
     }
 
     /// An empty attribute value.

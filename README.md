@@ -17,7 +17,7 @@
 </div>
 <br>
 
-An [RFC 2622] conformant Routing Policy Specification Language (RPSL) parser with a focus on speed and correctness.
+A Routing Policy Specification Language (RPSL) parser with a focus on speed and correctness.
 
 ⚡️ 130-250x faster than other parsers\
 📰 Complete implementation for multiline RPSL values\
@@ -173,7 +173,6 @@ To get started, please read the [contribution guidelines](.github/CONTRIBUTING.m
 
 The source code of this project is licensed under the MIT License. For more information, see [LICENSE](LICENSE).
 
-[RFC 2622]: https://datatracker.ietf.org/doc/html/rfc2622
 [Object]: https://docs.rs/rpsl-rs/latest/rpsl/struct.Object.html
 [Attribute]: https://docs.rs/rpsl-rs/latest/rpsl/struct.Attribute.html
 [parse_object]: https://docs.rs/rpsl-rs/latest/rpsl/fn.parse_object.html

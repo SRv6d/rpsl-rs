@@ -7,7 +7,7 @@ use winnow::{
     PResult, Parser,
 };
 
-use crate::Attribute;
+use crate::{Attribute, Value};
 
 // A response code or message sent by the whois server.
 // Starts with the "%" character and extends until the end of the line.
@@ -54,9 +54,9 @@ pub fn attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
         .parse_next(input)
 }
 
-// An ASCII sequence of characters, excluding control.
+// An extended ASCII sequence of characters, excluding control.
 pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
-    take_while(0.., |c: char| c.is_ascii() && !c.is_ascii_control()).parse_next(input)
+    take_while(0.., |c| Value::validate_char(c).is_ok()).parse_next(input)
 }
 
 // Extends an attributes value over multiple lines.
@@ -77,6 +77,7 @@ pub fn consume_continuation_char(input: &mut &str) -> PResult<()> {
 
 #[cfg(test)]
 mod tests {
+    use proptest::prelude::*;
     use rstest::*;
 
     use super::*;
@@ -220,6 +221,15 @@ mod tests {
         let parsed = attribute_value(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
+    }
+
+    proptest! {
+        /// Any non extended ASCII is not returned by the value parser.
+        #[test]
+        fn attribute_value_non_extended_ascii_not_parsed(s in r"[^\x00-\xFF]+") {
+            let parsed = attribute_value(&mut s.as_str()).unwrap();
+            prop_assert_eq!(parsed, "");
+        }
     }
 
     #[rstest]

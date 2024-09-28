@@ -98,6 +98,20 @@ impl<'a> Name<'a> {
     fn unchecked(name: &'a str) -> Self {
         Self(Cow::Borrowed(name))
     }
+
+    fn validate(name: &str) -> Result<(), InvalidNameError> {
+        if name.trim().is_empty() {
+            return Err(InvalidNameError::Empty);
+        } else if !name.is_ascii() {
+            return Err(InvalidNameError::NonAscii);
+        } else if !name.chars().next().unwrap().is_ascii_alphabetic() {
+            return Err(InvalidNameError::NonAsciiAlphabeticFirstChar);
+        } else if !name.chars().last().unwrap().is_ascii_alphanumeric() {
+            return Err(InvalidNameError::NonAsciiAlphanumericLastChar);
+        }
+
+        Ok(())
+    }
 }
 
 impl FromStr for Name<'_> {
@@ -111,16 +125,7 @@ impl FromStr for Name<'_> {
     /// # Errors
     /// Returns an error if the name is empty or invalid.
     fn from_str(name: &str) -> Result<Self, Self::Err> {
-        if name.trim().is_empty() {
-            return Err(InvalidNameError::Empty);
-        } else if !name.is_ascii() {
-            return Err(InvalidNameError::NonAscii);
-        } else if !name.chars().next().unwrap().is_ascii_alphabetic() {
-            return Err(InvalidNameError::NonAsciiAlphabeticFirstChar);
-        } else if !name.chars().last().unwrap().is_ascii_alphanumeric() {
-            return Err(InvalidNameError::NonAsciiAlphanumericLastChar);
-        }
-
+        Self::validate(name)?;
         Ok(Self(Cow::Owned(name.to_string())))
     }
 }
@@ -215,9 +220,16 @@ impl<'a> Value<'a> {
     }
 
     fn validate(value: &str) -> Result<(), InvalidValueError> {
-        if !value.is_ascii() {
-            return Err(InvalidValueError::NonAscii);
-        } else if value.chars().any(|c| c.is_ascii_control()) {
+        value.chars().try_for_each(Self::validate_char)
+    }
+
+    /// Even though RFC 2622 requires values to be ASCII, in practice some WHOIS databases
+    /// (e.g. RIPE) do not enforce this so, to be useful in the real world, we don't either.
+    #[inline]
+    pub(crate) fn validate_char(c: char) -> Result<(), InvalidValueError> {
+        if !is_extended_ascii(c) {
+            return Err(InvalidValueError::NonExtendedAscii);
+        } else if c.is_ascii_control() {
             return Err(InvalidValueError::ContainsControlChar);
         }
 
@@ -413,6 +425,12 @@ where
     }
 }
 
+/// Checks if the given char is part of the extended ASCII set.
+#[inline]
+fn is_extended_ascii(char: char) -> bool {
+    matches!(char, '\u{0000}'..='\u{00FF}')
+}
+
 #[cfg(test)]
 mod tests {
     use proptest::prelude::*;
@@ -559,6 +577,26 @@ mod tests {
     #[rstest]
     fn value_from_empty_str(#[values("", "   ")] s: &str) {
         assert_eq!(Value::from_str(s).unwrap(), Value::SingleLine(None));
+    }
+
+    proptest! {
+        #[test]
+        fn value_validation_any_non_control_extended_ascii_valid(
+            s in r"[\x00-\xFF]+"
+                .prop_filter("Must not contain control chars", |s| !s.chars().any(|c| c.is_ascii_control())))
+            {
+                Value::validate(&s).unwrap();
+        }
+
+        #[test]
+        fn value_validation_any_non_extended_ascii_is_err(s in r"[^\x00-\xFF]+") {
+            matches!(Value::validate(&s).unwrap_err(), InvalidValueError::NonExtendedAscii);
+        }
+
+        #[test]
+        fn value_validation_any_ascii_control_is_err(s in r"[\x00-\x1F\x7F]+") {
+            matches!(Value::validate(&s).unwrap_err(), InvalidValueError::ContainsControlChar);
+        }
     }
 
     #[rstest]
