@@ -98,6 +98,20 @@ impl<'a> Name<'a> {
     fn unchecked(name: &'a str) -> Self {
         Self(Cow::Borrowed(name))
     }
+
+    fn validate(name: &str) -> Result<(), InvalidNameError> {
+        if name.trim().is_empty() {
+            return Err(InvalidNameError::Empty);
+        } else if !name.is_ascii() {
+            return Err(InvalidNameError::NonAscii);
+        } else if !name.chars().next().unwrap().is_ascii_alphabetic() {
+            return Err(InvalidNameError::NonAsciiAlphabeticFirstChar);
+        } else if !name.chars().last().unwrap().is_ascii_alphanumeric() {
+            return Err(InvalidNameError::NonAsciiAlphanumericLastChar);
+        }
+
+        Ok(())
+    }
 }
 
 impl FromStr for Name<'_> {
@@ -111,16 +125,7 @@ impl FromStr for Name<'_> {
     /// # Errors
     /// Returns an error if the name is empty or invalid.
     fn from_str(name: &str) -> Result<Self, Self::Err> {
-        if name.trim().is_empty() {
-            return Err(InvalidNameError::Empty);
-        } else if !name.is_ascii() {
-            return Err(InvalidNameError::NonAscii);
-        } else if !name.chars().next().unwrap().is_ascii_alphabetic() {
-            return Err(InvalidNameError::NonAsciiAlphabeticFirstChar);
-        } else if !name.chars().last().unwrap().is_ascii_alphanumeric() {
-            return Err(InvalidNameError::NonAsciiAlphanumericLastChar);
-        }
-
+        Self::validate(name)?;
         Ok(Self(Cow::Owned(name.to_string())))
     }
 }
