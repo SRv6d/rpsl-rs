@@ -8,7 +8,7 @@ use winnow::{
     PResult, Parser,
 };
 
-use crate::{Attribute, Value};
+use crate::{Attribute, Name, Value};
 
 // A response code or message sent by the whois server.
 // Starts with the "%" character and extends until the end of the line.
@@ -39,26 +39,26 @@ pub fn attribute<'s>(input: &mut &'s str) -> PResult<Attribute<'s>> {
     {
         let continuation_values: Vec<&str> =
             repeat(1.., continuation_line(attribute_value())).parse_next(input)?;
-        return Ok(Attribute::unchecked_multi(
-            name,
-            once(first_value).chain(continuation_values),
-        ));
+        let value = Value::unchecked_multi(once(first_value).chain(continuation_values));
+        return Ok(Attribute::new(name, value));
     }
 
-    Ok(Attribute::unchecked_single(name, first_value))
+    Ok(Attribute::new(name, Value::unchecked_single(first_value)))
 }
 
 /// Generate an attribute value parser that parses an ASCII sequence of letters,
 /// digits and the characters "-", "_". The first character must be a letter,
 /// while the last character may be a letter or a digit.
-fn attribute_name<'s, E>() -> impl Parser<&'s str, &'s str, E>
+fn attribute_name<'s, E>() -> impl Parser<&'s str, Name<'s>, E>
 where
     E: ParserError<&'s str>,
 {
-    take_while(2.., ('A'..='Z', 'a'..='z', '0'..='9', '-', '_')).verify(|s: &str| {
-        s.starts_with(|c: char| c.is_ascii_alphabetic())
-            && s.ends_with(|c: char| c.is_ascii_alphanumeric())
-    })
+    take_while(2.., ('A'..='Z', 'a'..='z', '0'..='9', '-', '_'))
+        .verify(|s: &str| {
+            s.starts_with(|c: char| c.is_ascii_alphabetic())
+                && s.ends_with(|c: char| c.is_ascii_alphanumeric())
+        })
+        .map(Name::unchecked)
 }
 
 /// Generate an attribute value parser.
