@@ -54,9 +54,12 @@ pub fn attribute_name<'s>(input: &mut &'s str) -> PResult<&'s str> {
         .parse_next(input)
 }
 
-// An ASCII sequence of characters, excluding control.
+// An extended ASCII sequence of characters, excluding control.
 pub fn attribute_value<'s>(input: &mut &'s str) -> PResult<&'s str> {
-    take_while(0.., |c: char| c.is_ascii() && !c.is_ascii_control()).parse_next(input)
+    take_while(0.., |c: char| {
+        matches!(c, '\u{0000}'..='\u{00FF}') && !c.is_ascii_control()
+    })
+    .parse_next(input)
 }
 
 // Extends an attributes value over multiple lines.
