@@ -12,7 +12,7 @@ use crate::{Object, ParseError};
 /// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
 /// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
 fn object_block<'s>(input: &mut &'s str) -> PResult<Object<'s>> {
-    let (attributes, source) = terminated(repeat(1.., component::attribute), newline)
+    let (attributes, source) = terminated(repeat(1.., component::attribute()), newline)
         .with_taken()
         .parse_next(input)?;
     Ok(Object::from_parsed(source, attributes))
