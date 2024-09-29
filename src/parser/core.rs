@@ -64,7 +64,7 @@ fn attribute<'s, E>() -> impl Parser<&'s str, Attribute<'s>, E>
 where
     E: ParserError<&'s str>,
 {
-    separated_pair(attribute_name(), (':', space0), attribute_value_opt_multi())
+    separated_pair(attribute_name(), (':', space0), attribute_value())
         .map(|(name, value)| Attribute::new(name, value))
 }
 
@@ -83,8 +83,32 @@ where
         .map(Name::unchecked)
 }
 
-/// Generate an attribute value parser.
-fn attribute_value<'s, E>() -> impl Parser<&'s str, &'s str, E>
+/// Generate an attribute value parser that includes continuation lines.
+fn attribute_value<'s, E>() -> impl Parser<&'s str, Value<'s>, E>
+where
+    E: ParserError<&'s str>,
+{
+    (
+        single_attribute_value(),
+        opt(repeat(
+            1..,
+            preceded(
+                continuation_char(),
+                preceded(space0, single_attribute_value()),
+            ),
+        )),
+    )
+        .map(|(first_value, continuation)| {
+            if let Some(continuation_values) = continuation {
+                Value::unchecked_multi(once(first_value).chain::<Vec<_>>(continuation_values))
+            } else {
+                Value::unchecked_single(first_value)
+            }
+        })
+}
+
+/// Generate a parser for a singular attribute value without continuation.
+fn single_attribute_value<'s, E>() -> impl Parser<&'s str, &'s str, E>
 where
     E: ParserError<&'s str>,
 {
@@ -92,36 +116,6 @@ where
         take_while(0.., |c| Value::validate_char(c).is_ok()),
         newline,
     )
-}
-
-/// Generate a parser for continuation values.
-fn attribute_value_continuation<'s, P, E>(value_parser: P) -> impl Parser<&'s str, Vec<&'s str>, E>
-where
-    P: Parser<&'s str, &'s str, E>,
-    E: ParserError<&'s str>,
-{
-    repeat(
-        1..,
-        preceded(continuation_char(), preceded(space0, value_parser)),
-    )
-}
-
-/// Generate an attribute value parser that optionally parses continuation lines.
-fn attribute_value_opt_multi<'s, E>() -> impl Parser<&'s str, Value<'s>, E>
-where
-    E: ParserError<&'s str>,
-{
-    (
-        attribute_value(),
-        opt(attribute_value_continuation(attribute_value())),
-    )
-        .map(|(first_value, continuation)| {
-            if let Some(continuation_values) = continuation {
-                Value::unchecked_multi(once(first_value).chain(continuation_values))
-            } else {
-                Value::unchecked_single(first_value)
-            }
-        })
 }
 
 /// Generate a parser for a single continuation character.
@@ -278,6 +272,24 @@ mod tests {
         ),
         "remarks:        Peering Policy\n"
     )]
+    #[case(
+        &mut concat!(
+            "remarks:        Test\n",
+            "                continuation value prefixed by a space\n",
+            "\t              continuation value prefixed by a tab\n",
+            "+               continuation value prefixed by a plus\n",
+        ),
+        Attribute::unchecked_multi(
+            "remarks",
+            vec![
+                "Test",
+                "continuation value prefixed by a space",
+                "continuation value prefixed by a tab",
+                "continuation value prefixed by a plus"
+            ]
+        ),
+        ""
+    )]
     fn attribute_valid_multi_value(
         #[case] given: &mut &str,
         #[case] expected: Attribute,
@@ -354,7 +366,7 @@ mod tests {
         #[case] expected: &str,
         #[case] remaining: &str,
     ) {
-        let mut parser = attribute_value::<ContextError>();
+        let mut parser = single_attribute_value::<ContextError>();
         let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
@@ -364,36 +376,8 @@ mod tests {
         /// Parsing any non extended ASCII returns an error.
         #[test]
         fn attribute_value_non_extended_ascii_is_err(s in r"[^\x00-\xFF]+") {
-            let mut parser = attribute_value::<ContextError>();
+            let mut parser = single_attribute_value::<ContextError>();
             assert!(parser.parse_next(&mut s.as_str()).is_err());
         }
-    }
-
-    #[rstest]
-    #[case(
-            &mut "    continuation value prefixed by a space\n",
-            vec!["continuation value prefixed by a space"],
-            ""
-        )]
-    #[case(
-            &mut "\t    continuation value prefixed by a tab\n",
-            vec!["continuation value prefixed by a tab"],
-            ""
-        )]
-    #[case(
-            &mut "+    continuation value prefixed by a plus\n",
-            vec!["continuation value prefixed by a plus"],
-            ""
-        )]
-    fn attribute_value_continuation_valid(
-        #[case] given: &mut &str,
-        #[case] expected: Vec<&str>,
-        #[case] remaining: &str,
-    ) {
-        let value_parser = attribute_value::<ContextError>();
-        let mut continuation_parser = attribute_value_continuation::<_, ContextError>(value_parser);
-        let parsed = continuation_parser.parse_next(given).unwrap();
-        assert_eq!(parsed, expected);
-        assert_eq!(*given, remaining);
     }
 }
