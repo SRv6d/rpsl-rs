@@ -126,7 +126,8 @@ use crate::{Object, ParseError};
 /// # }
 /// ```
 pub fn parse_object(rpsl: &str) -> Result<Object, ParseError> {
-    let object = delimited(multispace0, object_block, multispace0).parse(rpsl)?;
+    let block_parser = object_block();
+    let object = delimited(multispace0, block_parser, multispace0).parse(rpsl)?;
     Ok(object)
 }
 
@@ -191,6 +192,7 @@ pub fn parse_object(rpsl: &str) -> Result<Object, ParseError> {
 /// # Ok(())
 /// # }
 pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, ParseError> {
-    let objects = repeat(1.., object_block_padded).parse(response)?;
+    let block_parser = object_block_padded(object_block());
+    let objects = repeat(1.., block_parser).parse(response)?;
     Ok(objects)
 }

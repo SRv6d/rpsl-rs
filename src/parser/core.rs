@@ -5,30 +5,35 @@ use winnow::{
     combinator::{alt, delimited, opt, preceded, repeat, separated_pair, terminated},
     error::ParserError,
     token::{one_of, take_while},
-    PResult, Parser,
+    Parser,
 };
 
 use crate::{Attribute, Name, Object, Value};
 
-/// Parse an object with at least one attribute terminated by a newline.
-///
+/// Generate an object block parser.
 /// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
 /// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
-pub fn object_block<'s>(input: &mut &'s str) -> PResult<Object<'s>> {
-    let (attributes, source) = terminated(repeat(1.., attribute()), newline)
+pub fn object_block<'s, E>() -> impl Parser<&'s str, Object<'s>, E>
+where
+    E: ParserError<&'s str>,
+{
+    terminated(repeat(1.., attribute()), newline)
         .with_taken()
-        .parse_next(input)?;
-    Ok(Object::from_parsed(source, attributes))
+        .map(|(attributes, source)| Object::from_parsed(source, attributes))
 }
 
-/// Extends the object block parser to consume optional padding server messages or newlines.
-pub fn object_block_padded<'s>(input: &mut &'s str) -> PResult<Object<'s>> {
+/// Generate a parser that extends the given object block parser to consume optional padding
+/// server messages or newlines.
+pub fn object_block_padded<'s, P, E>(block_parser: P) -> impl Parser<&'s str, Object<'s>, E>
+where
+    P: Parser<&'s str, Object<'s>, E>,
+    E: ParserError<&'s str>,
+{
     delimited(
         consume_opt_messages_or_newlines(),
-        object_block,
+        block_parser,
         consume_opt_messages_or_newlines(),
     )
-    .parse_next(input)
 }
 
 /// Generate a parser that consumes optional messages or newlines.
@@ -135,23 +140,25 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn object_block_valid() {
-        let object = &mut concat!(
+    #[rstest]
+    #[case(
+        &mut concat!(
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
             "\n"
-        );
-        assert_eq!(
-            object_block(object),
-            Ok(Object::from_parsed(
-                object,
-                vec![
-                    Attribute::unchecked_single("email", "rpsl-rs@github.com"),
-                    Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE")
-                ]
-            ))
-        );
+        ),
+        vec![
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE")
+        ]
+    )]
+    fn object_block_valid(#[case] given: &mut &str, #[case] attributes: Vec<Attribute>) {
+        let expected = Object::from_parsed(given, attributes);
+
+        let mut parser = object_block::<ContextError>();
+        let parsed = parser.parse_next(given).unwrap();
+
+        assert_eq!(parsed, expected);
     }
 
     #[test]
@@ -163,8 +170,11 @@ mod tests {
             "\n"
         );
         let source = *rpsl;
-        let object = object_block(rpsl).unwrap();
-        assert_eq!(object.source().unwrap(), source);
+
+        let mut parser = object_block::<ContextError>();
+        let parsed = parser.parse_next(rpsl).unwrap();
+
+        assert_eq!(parsed.source().unwrap(), source);
     }
 
     #[test]
@@ -173,7 +183,8 @@ mod tests {
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
         );
-        assert!(object_block(object).is_err());
+        let mut parser = object_block::<ContextError>();
+        assert!(parser.parse_next(object).is_err());
     }
 
     #[rstest]
