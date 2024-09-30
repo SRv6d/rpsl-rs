@@ -1,7 +1,7 @@
 use winnow::{
     ascii::{newline, space0},
-    combinator::{alt, delimited, preceded, repeat, separated_pair, terminated},
-    error::ParserError,
+    combinator::{alt, delimited, peek, preceded, repeat, separated_pair, terminated},
+    error::{ContextError, ParserError},
     token::{one_of, take_while},
     Parser,
 };
@@ -86,28 +86,27 @@ fn attribute_value<'s, E>() -> impl Parser<&'s str, Value<'s>, E>
 where
     E: ParserError<&'s str>,
 {
-    (
-        single_attribute_value(),
-        repeat(
-            0..,
-            preceded(
-                continuation_char(),
-                preceded(space0, single_attribute_value()),
-            ),
-        )
-        .fold(Vec::new, |mut values: Vec<_>, item| {
-            values.push(item);
-            values
-        }),
-    )
-        .map(|(first_value, mut continuation_values)| {
-            if continuation_values.is_empty() {
-                Value::unchecked_single(first_value)
-            } else {
-                continuation_values.insert(0, first_value);
-                Value::unchecked_multi(continuation_values)
-            }
-        })
+    move |input: &mut &'s str| {
+        let first_value = single_attribute_value().parse_next(input)?;
+
+        if peek(continuation_char::<ContextError>())
+            .parse_next(input)
+            .is_ok()
+        {
+            let mut continuation_values: Vec<&str> = repeat(
+                1..,
+                preceded(
+                    continuation_char(),
+                    preceded(space0, single_attribute_value()),
+                ),
+            )
+            .parse_next(input)?;
+            continuation_values.insert(0, first_value);
+            return Ok(Value::unchecked_multi(continuation_values));
+        }
+
+        Ok(Value::unchecked_single(first_value))
+    }
 }
 
 /// Generate a parser for a singular attribute value without continuation.
