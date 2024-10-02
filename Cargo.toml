@@ -29,7 +29,7 @@ serde = { version = "1.0.210", features = ["derive"], optional = true }
 serde_json = { version = "1.0.128", optional = true }
 
 [dev-dependencies]
-codspeed-criterion-compat = "=2.7.1"
+codspeed-criterion-compat = "=2.7.2"
 criterion = "=0.5.1"
 proptest = "=1.5.0"
 rstest = "=0.23.0"
