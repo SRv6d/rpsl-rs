@@ -4,6 +4,9 @@
   <a href="https://github.com/srv6d/rpsl-rs/actions">
     <img src="https://github.com/srv6d/rpsl-rs/workflows/CI/badge.svg" alt="CI status">
   </a>
+  <a href="https://codecov.io/github/SRv6d/rpsl-rs"> 
+    <img src="https://codecov.io/github/SRv6d/rpsl-rs/graph/badge.svg?token=M9F79BNTJ9"> 
+  </a>
   <a href="https://codspeed.io/SRv6d/rpsl-rs">
     <img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed Badge">
   </a>

@@ -1,3 +1,5 @@
+export CI := env("CI", "false")
+
 default: lint test
 
 # Lint code and check formatting
@@ -8,9 +10,11 @@ lint: lint-justfile
 lint-justfile:
     just --check --fmt --unstable
 
+cov_output := if CI == "true" { "--lcov --output-path lcov.info" } else { "--summary-only" }
+
 # Run tests
-test:
-    cargo test --all-features
+test $COV=CI: (_install_llvm_cov COV)
+    {{ if COV == "true" { "cargo llvm-cov --all-features" + " " + cov_output } else { "cargo test --all-features" } }}
 
 # Bump our version
 bump-version $VERSION: (_validate_semver VERSION)
@@ -47,4 +51,12 @@ _validate_semver version:
     if [[ ! "{{ version }}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then
         echo Invalid SemVer {{ version }}
         exit 1
+    fi
+
+_install_llvm_cov $run:
+    #!/usr/bin/env bash
+    set -euxo pipefail
+
+    if [ $run == true ] && [ $CI = false ]; then
+        cargo install cargo-llvm-cov --locked
     fi
