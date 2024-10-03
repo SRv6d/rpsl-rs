@@ -7,6 +7,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   cargo-test:
     runs-on: ubuntu-latest
