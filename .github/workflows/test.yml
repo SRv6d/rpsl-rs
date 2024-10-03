@@ -27,3 +27,10 @@ jobs:
 
       - name: Test
         run: just test
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.5.0
+        with:
+          files: lcov.info
+          use_oidc: true
+          fail_ci_if_error: true
