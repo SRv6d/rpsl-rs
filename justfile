@@ -1,4 +1,4 @@
-CI := env("CI", "false")
+export CI := env("CI", "false")
 
 default: lint test
 
@@ -53,5 +53,10 @@ _validate_semver version:
         exit 1
     fi
 
-_install_llvm_cov run:
-    {{ if run == "true" { "cargo install cargo-llvm-cov --locked" } else { "" } }}
+_install_llvm_cov $run:
+    #!/usr/bin/env bash
+    set -euxo pipefail
+
+    if [ $run == true ] && [ $CI = false ]; then
+        cargo install cargo-llvm-cov --locked
+    fi
