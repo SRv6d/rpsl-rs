@@ -1,3 +1,5 @@
+CI := env("CI", "false")
+
 default: lint test
 
 # Lint code and check formatting
@@ -8,9 +10,11 @@ lint: lint-justfile
 lint-justfile:
     just --check --fmt --unstable
 
+cov_output := if CI == "true" { "--lcov" } else { "--summary-only" }
+
 # Run tests
-test:
-    cargo test --all-features
+test $COV=CI:
+    {{ if COV == "true" { "cargo llvm-cov --all-features" + " " + cov_output } else { "cargo test --all-features" } }}
 
 # Bump our version
 bump-version $VERSION: (_validate_semver VERSION)
