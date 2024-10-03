@@ -13,7 +13,7 @@ lint-justfile:
 cov_output := if CI == "true" { "--lcov" } else { "--summary-only" }
 
 # Run tests
-test $COV=CI:
+test $COV=CI: (_install_llvm_cov COV)
     {{ if COV == "true" { "cargo llvm-cov --all-features" + " " + cov_output } else { "cargo test --all-features" } }}
 
 # Bump our version
@@ -52,3 +52,6 @@ _validate_semver version:
         echo Invalid SemVer {{ version }}
         exit 1
     fi
+
+_install_llvm_cov run:
+    {{ if run == "true" { "cargo install cargo-llvm-cov --locked" } else { "" } }}
