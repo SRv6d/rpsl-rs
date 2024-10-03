@@ -10,7 +10,7 @@ lint: lint-justfile
 lint-justfile:
     just --check --fmt --unstable
 
-cov_output := if CI == "true" { "--lcov" } else { "--summary-only" }
+cov_output := if CI == "true" { "--lcov --output-path lcov.info" } else { "--summary-only" }
 
 # Run tests
 test $COV=CI: (_install_llvm_cov COV)
