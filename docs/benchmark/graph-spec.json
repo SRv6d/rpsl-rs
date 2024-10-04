@@ -4,8 +4,8 @@
     "values": [
       {
         "parser": "rpsl-rs",
-        "time": 0.44461,
-        "timeFormat": "444µs"
+        "time": 1,
+        "timeFormat": "< 1ms"
       },
       {
         "parser": "RPSL::Parser",
