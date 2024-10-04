@@ -6,14 +6,14 @@ Benchmarks comparing performance to other RPSL parsers.
 
 ![graph](graph.svg)
 
-| Parser           | Mean              | Min       | Max       |
-| ---------------- | ----------------- | --------- | --------- |
-| **rpsl-rs**      | **444.61 µs**     | 444.96 µs | 445.38 µs |
-| [RPSL::Parser]   | 61.8 ms ± 2.5 ms  | 60.1 ms   | 74.7 ms   |
-| [RIPE-NCC/whois] | 114.7 ms ± 6.3 ms | 106.5 ms  | 124.6 ms  |
-| [irrdnet/irrd]   | 114.8 ms ± 0.9 ms | 113.5 ms  | 116.7 ms  |
+| Parser           | Mean              | Min       | Max       | Compiler / Runtime                              |
+| ---------------- | ----------------- | --------- | --------- | ----------------------------------------------- |
+| **rpsl-rs**      | **508.67 µs**     | 509.11 µs | 509.67 µs | rustc 1.81.0 (eeb90cda1 2024-09-04) LLVM 18.1.7 |
+| [RPSL::Parser]   | 59.4 ms ± 3.2 ms  | 58.1 ms   | 81.3 ms   | perl v5.36.0                                    |
+| [irrdnet/irrd]   | 93.5 ms ± 2.5 ms  | 90.7 ms   | 102.4 ms  | Python 3.11.2                                   |
+| [RIPE-NCC/whois] | 114.7 ms ± 6.3 ms | 106.5 ms  | 124.6 ms  | openjdk version "17.0.12" 2024-07-16            |
 
-_Parsing of the AS3257 aut-num object on a 2022 M1 Max._
+_Parsing of the AS3257 aut-num object on a 2022 M1 Max running macOS 15.0 (24A335)._
 
 ## Methology
 
