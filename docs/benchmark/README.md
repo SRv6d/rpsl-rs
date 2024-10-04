@@ -9,7 +9,7 @@ Benchmarks comparing performance to other RPSL parsers.
 | Parser           | Mean              | Min       | Max       | Compiler / Runtime                              |
 | ---------------- | ----------------- | --------- | --------- | ----------------------------------------------- |
 | **rpsl-rs**      | **508.67 µs**     | 509.11 µs | 509.67 µs | rustc 1.81.0 (eeb90cda1 2024-09-04) LLVM 18.1.7 |
-| [RPSL::Parser]   | 61.8 ms ± 2.5 ms  | 60.1 ms   | 74.7 ms   |                                                 |
+| [RPSL::Parser]   | 61.8 ms ± 2.5 ms  | 60.1 ms   | 74.7 ms   | perl v5.36.0                                    |
 | [RIPE-NCC/whois] | 114.7 ms ± 6.3 ms | 106.5 ms  | 124.6 ms  |                                                 |
 | [irrdnet/irrd]   | 114.8 ms ± 0.9 ms | 113.5 ms  | 116.7 ms  |                                                 |
 
