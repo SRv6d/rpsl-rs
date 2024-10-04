@@ -8,12 +8,12 @@ Benchmarks comparing performance to other RPSL parsers.
 
 | Parser           | Mean              | Min       | Max       |
 | ---------------- | ----------------- | --------- | --------- |
-| **rpsl-rs**      | **444.61 µs**     | 444.96 µs | 445.38 µs |
+| **rpsl-rs**      | **508.67 µs**     | 509.11 µs | 509.67 µs |
 | [RPSL::Parser]   | 61.8 ms ± 2.5 ms  | 60.1 ms   | 74.7 ms   |
 | [RIPE-NCC/whois] | 114.7 ms ± 6.3 ms | 106.5 ms  | 124.6 ms  |
 | [irrdnet/irrd]   | 114.8 ms ± 0.9 ms | 113.5 ms  | 116.7 ms  |
 
-_Parsing of the AS3257 aut-num object on a 2022 M1 Max._
+_Parsing of the AS3257 aut-num object on a 2022 M1 Max running macOS 15.0 (24A335)._
 
 ## Methology
 
