@@ -11,7 +11,7 @@ Benchmarks comparing performance to other RPSL parsers.
 | **rpsl-rs**      | **508.67 µs**     | 509.11 µs | 509.67 µs | rustc 1.81.0 (eeb90cda1 2024-09-04) LLVM 18.1.7 |
 | [RPSL::Parser]   | 59.4 ms ± 3.2 ms  | 58.1 ms   | 81.3 ms   | perl v5.36.0                                    |
 | [RIPE-NCC/whois] | 114.7 ms ± 6.3 ms | 106.5 ms  | 124.6 ms  |                                                 |
-| [irrdnet/irrd]   | 114.8 ms ± 0.9 ms | 113.5 ms  | 116.7 ms  |                                                 |
+| [irrdnet/irrd]   | 114.8 ms ± 0.9 ms | 113.5 ms  | 116.7 ms  | Python 3.11.2                                   |
 
 _Parsing of the AS3257 aut-num object on a 2022 M1 Max running macOS 15.0 (24A335)._
 
