@@ -9,17 +9,17 @@
       },
       {
         "parser": "RPSL::Parser",
-        "time": 61.8,
+        "time": 59.4,
         "timeFormat": "61.8ms"
+      },
+      {
+        "parser": "irrdnet/irrd",
+        "time": 93.5,
+        "timeFormat": "93.5ms"
       },
       {
         "parser": "RIPE-NCC/whois",
         "time": 114.7,
-        "timeFormat": "> 100ms"
-      },
-      {
-        "parser": "irrdnet/irrd",
-        "time": 114.8,
         "timeFormat": "> 100ms"
       }
     ]
