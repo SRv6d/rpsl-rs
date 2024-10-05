@@ -159,7 +159,7 @@ mod tests {
 
     #[test]
     /// When parsing RPSL, the resulting object contains the original source it was created from.
-    fn parsed_object_contains_source() {
+    fn object_block_parsed_object_contains_source() {
         let rpsl = &mut concat!(
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
