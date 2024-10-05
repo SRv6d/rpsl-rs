@@ -490,6 +490,24 @@ mod tests {
             Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
             Attribute::unchecked_single("source", "RIPE"),
         ]),
+        2,
+        Attribute::unchecked_single("address", "128 Series of Tubes"),
+    )]
+    fn object_index(#[case] object: Object, #[case] index: usize, #[case] expected: Attribute) {
+        assert_eq!(object[index], expected);
+    }
+
+    #[rstest]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_single("address", "Packet Street 6"),
+            Attribute::unchecked_single("address", "128 Series of Tubes"),
+            Attribute::unchecked_single("address", "Internet"),
+            Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+            Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+            Attribute::unchecked_single("source", "RIPE"),
+        ]),
         json!({
             "attributes": [
                 { "name": "role", "values": ["ACME Company"] },
