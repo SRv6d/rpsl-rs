@@ -444,26 +444,20 @@ mod tests {
 
     #[rstest]
     #[case(
-        Attribute::new("ASNumber".parse().unwrap(), "32934".parse().unwrap()),
+        Attribute::unchecked_single("ASNumber", "32934"),
         "ASNumber:       32934\n"
     )]
+    #[case(Attribute::unchecked_single("ASNumber", None), "ASNumber:       \n")]
     #[case(
-        Attribute::new("ASNumber".parse().unwrap(), Value::unchecked_single(None)),
-        "ASNumber:       \n"
-    )]
-    #[case(
-        Attribute::new("ASName".parse().unwrap(), "FACEBOOK".parse().unwrap()),
+        Attribute::unchecked_single("ASName", "FACEBOOK"),
         "ASName:         FACEBOOK\n"
     )]
     #[case(
-        Attribute::new("RegDate".parse().unwrap(), "2004-08-24".parse().unwrap()),
+        Attribute::unchecked_single("RegDate", "2004-08-24"),
         "RegDate:        2004-08-24\n"
     )]
     #[case(
-        Attribute::new(
-            "Ref".parse().unwrap(),
-            "https://rdap.arin.net/registry/autnum/32934".parse().unwrap()
-        ),
+        Attribute::unchecked_single("Ref", "https://rdap.arin.net/registry/autnum/32934"),
         "Ref:            https://rdap.arin.net/registry/autnum/32934\n"
     )]
     fn attribute_display_single_line(#[case] attribute: Attribute, #[case] expected: &str) {
@@ -472,14 +466,13 @@ mod tests {
 
     #[rstest]
     #[case(
-        Attribute::new(
-            "remarks".parse().unwrap(),
-            vec![
+        Attribute::unchecked_multi(
+            "remarks",
+            [
                 "AS1299 is matching RPKI validation state and reject",
                 "invalid prefixes from peers and customers."
             ]
-            .try_into()
-            .unwrap()
+
         ),
         concat!(
             "remarks:        AS1299 is matching RPKI validation state and reject\n",
@@ -487,14 +480,12 @@ mod tests {
         )
     )]
     #[case(
-        Attribute::new(
-            "remarks".parse().unwrap(),
-            Value::unchecked_multi(
-                vec![
-                    None,
-                    None
-                ]
-            )
+        Attribute::unchecked_multi(
+            "remarks",
+            [
+                None,
+                None
+            ]
         ),
         concat!(
             "remarks:        \n",
@@ -507,7 +498,7 @@ mod tests {
 
     #[rstest]
     #[case(
-        Attribute::new(Name::unchecked("ASNumber"), Value::unchecked_single("32934")),
+        Attribute::unchecked_single("ASNumber", "32934"),
         &[
             Token::Struct { name: "Attribute", len: 2 },
             Token::Str("name"),
@@ -521,9 +512,9 @@ mod tests {
         ],
     )]
     #[case(
-        Attribute::new(
-            Name::unchecked("address"),
-            Value::unchecked_multi(["Packet Street 6", "128 Series of Tubes", "Internet"])
+        Attribute::unchecked_multi(
+            "address",
+            ["Packet Street 6", "128 Series of Tubes", "Internet"]
         ),
         &[
             Token::Struct { name: "Attribute", len: 2 },
@@ -548,7 +539,7 @@ mod tests {
 
     #[test]
     fn name_display() {
-        let name_display = Name::from_str("address").unwrap().to_string();
+        let name_display = Name::unchecked("address").to_string();
         assert_eq!(name_display, "address");
     }
 
@@ -723,26 +714,26 @@ mod tests {
 
     #[rstest]
     #[case(
-        Value::SingleLine(None),
+        Value::unchecked_single(None),
         vec![]
     )]
     #[case(
-        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        Value::unchecked_single("single value"),
         vec!["single value"]
     )]
     #[case(
-        Value::MultiLine(vec![
+        Value::unchecked_multi(vec![
             None,
-            Some(Cow::Owned("128 Series of Tubes".to_string())),
-            Some(Cow::Owned("Internet".to_string()))
+            Some("128 Series of Tubes"),
+            Some("Internet"),
         ]),
         vec!["128 Series of Tubes", "Internet"]
     )]
     #[case(
-        Value::MultiLine(vec![
-            Some(Cow::Owned("Packet Street 6".to_string())),
-            Some(Cow::Owned("128 Series of Tubes".to_string())),
-            Some(Cow::Owned("Internet".to_string()))
+        Value::unchecked_multi([
+            "Packet Street 6",
+            "128 Series of Tubes",
+            "Internet"
         ]),
         vec!["Packet Street 6", "128 Series of Tubes", "Internet"]
     )]
@@ -756,19 +747,16 @@ mod tests {
     #[case("single value")]
     /// A value and &str evaluate as equal if the contents match.
     fn value_partialeq_str_eq_is_eq(#[case] s: &str) {
-        let value = Value::SingleLine(Some(Cow::Owned(s.to_string())));
+        let value = Value::unchecked_single(s);
         assert_eq!(value, s);
     }
 
     #[rstest]
+    #[case(Value::unchecked_single("a value"), "a different value")]
     #[case(
-        Value::SingleLine(Some(Cow::Owned("a value".to_string()))),
-        "a different value"
-    )]
-    #[case(
-        Value::MultiLine(vec![
-            Some(Cow::Owned("multi".to_string())),
-            Some(Cow::Owned("value".to_string()))
+        Value::unchecked_multi([
+            "multi",
+            "value"
         ]),
        "single value"
     )]
@@ -779,26 +767,26 @@ mod tests {
 
     #[rstest]
     #[case(
-        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        Value::unchecked_single("single value"),
         vec!["single value"]
     )]
     #[case(
-        Value::SingleLine(None),
+        Value::unchecked_single(None),
         vec!["     "]
     )]
     #[case(
-        Value::MultiLine(vec![
-            Some(Cow::Owned("multi".to_string())),
-            Some(Cow::Owned("value".to_string())),
-            Some(Cow::Owned("attribute".to_string()))
+        Value::unchecked_multi([
+            "multi",
+            "value",
+            "attribute"
         ]),
         vec!["multi", "value", "attribute"]
     )]
     #[case(
-        Value::MultiLine(vec![
-            Some(Cow::Owned("multi".to_string())),
+        Value::unchecked_multi([
+            Some("multi"),
             None,
-            Some(Cow::Owned("attribute".to_string()))
+            Some("attribute")
         ]),
         vec!["multi", "     ", "attribute"]
     )]
@@ -809,18 +797,18 @@ mod tests {
 
     #[rstest]
     #[case(
-        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        Value::unchecked_single("single value"),
         vec!["multi", "value"]
     )]
     #[case(
-        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        Value::unchecked_single("single value"),
         vec!["other single value"]
     )]
     #[case(
-        Value::MultiLine(vec![
-            Some(Cow::Owned("multi".to_string())),
-            Some(Cow::Owned("value".to_string())),
-            Some(Cow::Owned("attribute".to_string()))
+        Value::unchecked_multi([
+            "multi",
+            "value",
+            "attribute"
         ]),
         vec!["different", "multi", "value", "attribute"]
     )]
@@ -831,19 +819,19 @@ mod tests {
 
     #[rstest]
     #[case(
-        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        Value::unchecked_single("single value"),
         vec![Some("single value")]
     )]
     #[case(
-        Value::MultiLine(vec![
-            Some(Cow::Owned("multi".to_string())),
-            Some(Cow::Owned("value".to_string())),
-            Some(Cow::Owned("attribute".to_string()))
+        Value::unchecked_multi([
+            "multi",
+            "value",
+            "attribute"
         ]),
         vec![Some("multi"), Some("value"), Some("attribute")]
     )]
     #[case(
-        Value::MultiLine(vec![Some(Cow::Owned("multi".to_string())), None, Some(Cow::Owned("attribute".to_string()))]),
+        Value::unchecked_multi([Some("multi"), None, Some("attribute")]),
         vec![Some("multi"), None, Some("attribute")]
     )]
     /// A value and a Vec<Option<&str>> evaluate as equal if the contents match.
@@ -853,22 +841,22 @@ mod tests {
 
     #[rstest]
     #[case(
-        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        Value::unchecked_single("single value"),
         vec![Some("multi"), Some("value")]
     )]
     #[case(
-        Value::SingleLine(Some(Cow::Owned("single value".to_string()))),
+        Value::unchecked_single("single value"),
         vec![Some("other single value")]
     )]
     #[case(
-        Value::SingleLine(None),
+        Value::unchecked_single(None),
         vec![Some("     ")]
     )]
     #[case(
-        Value::MultiLine(vec![
-            Some(Cow::Owned("multi".to_string())),
-            Some(Cow::Owned("value".to_string())),
-            Some(Cow::Owned("attribute".to_string()))
+        Value::unchecked_multi([
+            "multi",
+            "value",
+            "attribute"
         ]),
         vec![Some("different"), Some("multi"), Some("value"), Some("attribute")]
     )]
