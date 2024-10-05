@@ -555,6 +555,14 @@ mod tests {
     #[rstest]
     #[case("role")]
     #[case("person")]
+    fn name_deref(#[case] s: &str) {
+        let name = Name::unchecked(s);
+        assert_eq!(*name, *s);
+    }
+
+    #[rstest]
+    #[case("role")]
+    #[case("person")]
     fn name_from_str(#[case] s: &str) {
         assert_eq!(Name::from_str(s).unwrap(), Name(Cow::Owned(s.to_string())));
     }
