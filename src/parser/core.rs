@@ -185,6 +185,29 @@ mod tests {
 
     #[rstest]
     #[case(
+        &mut concat!(
+            "\n\n",
+            "email:       rpsl-rs@github.com\n",
+            "nic-hdl:     RPSL1-RIPE\n",
+            "\n",
+            "\n\n\n"
+        ),
+        vec![
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE")
+        ]
+    )]
+    fn object_block_padded_valid(#[case] given: &mut &str, #[case] attributes: Vec<Attribute>) {
+        let expected = Object::from_parsed(given, attributes);
+
+        let mut parser = object_block_padded::<_, ContextError>(object_block());
+        let parsed = parser.parse_next(given).unwrap();
+
+        assert_eq!(parsed, expected);
+    }
+
+    #[rstest]
+    #[case(
         &mut "% Note: This is a server message\n"
     )]
     #[case(
