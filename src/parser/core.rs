@@ -159,7 +159,7 @@ mod tests {
 
     #[test]
     /// When parsing RPSL, the resulting object contains the original source it was created from.
-    fn parsed_object_contains_source() {
+    fn object_block_parsed_object_contains_source() {
         let rpsl = &mut concat!(
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
@@ -181,6 +181,29 @@ mod tests {
         );
         let mut parser = object_block::<ContextError>();
         assert!(parser.parse_next(object).is_err());
+    }
+
+    #[rstest]
+    #[case(
+        &mut concat!(
+            "\n\n",
+            "email:       rpsl-rs@github.com\n",
+            "nic-hdl:     RPSL1-RIPE\n",
+            "\n",
+            "\n\n\n"
+        ),
+        vec![
+                Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+                Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE")
+        ]
+    )]
+    fn object_block_padded_valid(#[case] given: &mut &str, #[case] attributes: Vec<Attribute>) {
+        let expected = Object::from_parsed(given, attributes);
+
+        let mut parser = object_block_padded::<_, ContextError>(object_block());
+        let parsed = parser.parse_next(given).unwrap();
+
+        assert_eq!(parsed, expected);
     }
 
     #[rstest]

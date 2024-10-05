@@ -460,6 +460,87 @@ mod tests {
     #[case(
         Object::new(vec![
             Attribute::unchecked_single("role", "ACME Company"),
+        ]),
+        1
+    )]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_single("address", "Packet Street 6"),
+            Attribute::unchecked_single("address", "128 Series of Tubes"),
+            Attribute::unchecked_single("address", "Internet"),
+            Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+            Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+            Attribute::unchecked_single("source", "RIPE"),
+        ]),
+        7
+    )]
+    fn object_len(#[case] object: Object, #[case] expected: usize) {
+        assert_eq!(object.len(), expected);
+    }
+
+    #[rstest]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_single("address", "Packet Street 6"),
+            Attribute::unchecked_single("address", "128 Series of Tubes"),
+            Attribute::unchecked_single("address", "Internet"),
+            Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+            Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+            Attribute::unchecked_single("source", "RIPE"),
+        ]),
+        2,
+        Attribute::unchecked_single("address", "128 Series of Tubes"),
+    )]
+    fn object_index(#[case] object: Object, #[case] index: usize, #[case] expected: Attribute) {
+        assert_eq!(object[index], expected);
+    }
+
+    #[rstest]
+    #[case(
+        vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_single("address", "Packet Street 6"),
+            Attribute::unchecked_single("address", "128 Series of Tubes"),
+            Attribute::unchecked_single("address", "Internet"),
+            Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+            Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+            Attribute::unchecked_single("source", "RIPE"),
+        ],
+    )]
+    fn object_deref(#[case] attributes: Vec<Attribute<'static>>) {
+        let object = Object::new(attributes.clone());
+        assert_eq!(*object, attributes);
+    }
+
+    #[rstest]
+    #[case(
+        vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_single("address", "Packet Street 6"),
+            Attribute::unchecked_single("address", "128 Series of Tubes"),
+            Attribute::unchecked_single("address", "Internet"),
+            Attribute::unchecked_single("email", "rpsl-rs@github.com"),
+            Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
+            Attribute::unchecked_single("source", "RIPE"),
+        ],
+    )]
+    fn object_into_iter(#[case] attributes: Vec<Attribute<'static>>) {
+        let object = Object::new(attributes.clone());
+
+        let attr_iter = attributes.into_iter();
+        let obj_iter = object.into_iter();
+
+        for (a, b) in attr_iter.zip(obj_iter) {
+            assert_eq!(a, b);
+        }
+    }
+
+    #[rstest]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
             Attribute::unchecked_single("address", "Packet Street 6"),
             Attribute::unchecked_single("address", "128 Series of Tubes"),
             Attribute::unchecked_single("address", "Internet"),

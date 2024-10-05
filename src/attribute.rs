@@ -448,6 +448,10 @@ mod tests {
         "ASNumber:       32934\n"
     )]
     #[case(
+        Attribute::new("ASNumber".parse().unwrap(), Value::unchecked_single(None)),
+        "ASNumber:       \n"
+    )]
+    #[case(
         Attribute::new("ASName".parse().unwrap(), "FACEBOOK".parse().unwrap()),
         "ASName:         FACEBOOK\n"
     )]
@@ -480,6 +484,21 @@ mod tests {
         concat!(
             "remarks:        AS1299 is matching RPKI validation state and reject\n",
             "                invalid prefixes from peers and customers.\n",
+        )
+    )]
+    #[case(
+        Attribute::new(
+            "remarks".parse().unwrap(),
+            Value::unchecked_multi(
+                vec![
+                    None,
+                    None
+                ]
+            )
+        ),
+        concat!(
+            "remarks:        \n",
+            "                \n",
         )
     )]
     fn attribute_display_multi_line(#[case] attribute: Attribute, #[case] expected: &str) {
@@ -531,6 +550,14 @@ mod tests {
     fn name_display() {
         let name_display = Name::from_str("address").unwrap().to_string();
         assert_eq!(name_display, "address");
+    }
+
+    #[rstest]
+    #[case("role")]
+    #[case("person")]
+    fn name_deref(#[case] s: &str) {
+        let name = Name::unchecked(s);
+        assert_eq!(*name, *s);
     }
 
     #[rstest]
