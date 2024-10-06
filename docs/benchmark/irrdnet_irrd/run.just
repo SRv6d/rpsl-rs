@@ -1,3 +1,4 @@
+export UV_VERSION := "0.4.18"
 export PYTHON_VERSION := "3.11"
 export IRRD_VERSION := "4.4.2"
 
@@ -14,4 +15,4 @@ bench-irrdnet_irrd: _install_uv _install_hyperfine
     rm -rf .venv
 
 _install_uv:
-    curl -LsSf https://astral.sh/uv/install.sh | sh
+    curl -LsSf https://astral.sh/uv/$UV_VERSION/install.sh | sh
