@@ -24,7 +24,7 @@ With the exception of [RIPE-NCC/whois], the AS3257 object is included as a strin
 
 Benchmarks for the parser itself are done using `cargo bench`, while any external parser is benchmarked using [hyperfine].\
 To run specific benchmarks, execute `/.run` in the directory of the respective parser.
-It sets up dependencies and runs `sudo` so it is only recommended to be used in an isolated environment and is only tested on Ubuntu 22.04, other platforms might require additional dependencies to be installed.
+It sets up dependencies and runs `sudo` so it is only recommended to be used in an isolated environment and is only tested using the devcontainer, other platforms might require additional dependencies to be installed.
 
 [RPSL::Parser]: https://metacpan.org/pod/RPSL::Parser
 [irrdnet/irrd]: https://github.com/irrdnet/irrd
