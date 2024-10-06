@@ -1,3 +1,5 @@
+import "docs/benchmark/benchmark.just"
+
 export CI := env("CI", "false")
 
 default: lint test
