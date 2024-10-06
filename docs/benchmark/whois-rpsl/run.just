@@ -2,7 +2,7 @@ bench-whois-rpsl: _install_hyperfine
     #!/usr/bin/env bash
     set -euxo pipefail
 
-    sudo apt update && sudo apt install -y build-essential openjdk-18-jre openjdk-18-jdk maven
+    sudo apt update && sudo apt install -y build-essential openjdk-17-jre openjdk-17-jdk maven
     
     cd docs/benchmark/whois-rpsl
 
