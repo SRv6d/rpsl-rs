@@ -5,6 +5,6 @@ cargo install --locked hyperfine
 
 python3 -m venv .venv
 source .venv/bin/activate
-pip3 install -r requirements.txt
+pip3 install irrd==4.4.2
 
 hyperfine -N --warmup 3 "python3 main.py"
