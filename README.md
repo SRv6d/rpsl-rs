@@ -1,24 +1,25 @@
 <h1 align="center"><code>rpsl-rs</code></h1>
-
 <div align="center">
   <a href="https://github.com/srv6d/rpsl-rs/actions">
-    <img src="https://github.com/srv6d/rpsl-rs/workflows/CI/badge.svg" alt="CI status">
+    <img src="https://github.com/srv6d/rpsl-rs/workflows/CI/badge.svg" alt="CI status" />
   </a>
-  <a href="https://codecov.io/github/SRv6d/rpsl-rs"> 
-    <img src="https://codecov.io/github/SRv6d/rpsl-rs/graph/badge.svg?token=M9F79BNTJ9"> 
+  <a href="https://codecov.io/github/SRv6d/rpsl-rs">
+    <img src="https://codecov.io/github/SRv6d/rpsl-rs/graph/badge.svg?token=M9F79BNTJ9" />
   </a>
   <a href="https://codspeed.io/SRv6d/rpsl-rs">
-    <img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed Badge">
+    <img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed Badge" />
   </a>
   <a href="https://crates.io/crates/rpsl-rs">
-    <img src="https://img.shields.io/crates/v/rpsl-rs.svg?logo=rust" alt="Cargo version">
+    <img src="https://img.shields.io/crates/v/rpsl-rs.svg?logo=rust" alt="Cargo version" />
   </a>
   <a href="https://rust-lang.github.io/rfcs/2495-min-rust-version.html">
-    <img src="https://img.shields.io/badge/rustc-1.74+-blue?logo=rust" alt="Rust version">
+    <img src="https://img.shields.io/badge/rustc-1.74+-blue?logo=rust" alt="Rust version" />
   </a>
-  
 </div>
-<br>
+<div align="center">
+  <a href="https://www.bestpractices.dev/projects/9525"><img src="https://www.bestpractices.dev/projects/9525/badge" /></a>
+</div>
+<br />
 
 A Routing Policy Specification Language (RPSL) parser with a focus on speed and correctness.
 
