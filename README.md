@@ -18,12 +18,13 @@
 </div>
 <div align="center">
   <a href="https://scorecard.dev/viewer/?uri=github.com/SRv6d/rpsl-rs">
-     <img src="https://api.scorecard.dev/projects/github.com/SRv6d/rpsl-rs/badge" />
+    <img src="https://api.scorecard.dev/projects/github.com/SRv6d/rpsl-rs/badge" />
   </a>
   <a href="https://www.bestpractices.dev/projects/9525">
     <img src="https://www.bestpractices.dev/projects/9525/badge" />
   </a>
-<br />
+  <br />
+</div>
 
 A Routing Policy Specification Language (RPSL) parser with a focus on speed and correctness.
 
