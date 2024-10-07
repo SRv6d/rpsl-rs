@@ -447,7 +447,7 @@ mod tests {
         Attribute::unchecked_single("ASNumber", "32934"),
         "ASNumber:       32934\n"
     )]
-    #[case(Attribute::unchecked_single("ASNumber", None), "ASNumber:       \n")]
+    #[case(Attribute::unchecked_single("ASNumber", None), "ASNumber:\n")]
     #[case(
         Attribute::unchecked_single("ASName", "FACEBOOK"),
         "ASName:         FACEBOOK\n"
@@ -488,8 +488,8 @@ mod tests {
             ]
         ),
         concat!(
-            "remarks:        \n",
-            "                \n",
+            "remarks:\n",
+            " \n",
         )
     )]
     fn attribute_display_multi_line(#[case] attribute: Attribute, #[case] expected: &str) {
