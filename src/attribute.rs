@@ -878,7 +878,10 @@ mod tests {
         Value::unchecked_multi(["multiple", "", "separated",  "values"]),
         vec![Some("multiple".to_string()), None, Some("separated".to_string()),  Some("values".to_string())]
     )]
-    fn value_into_vec_of_option_str(#[case] value: Value, #[case] expected: Vec<Option<String>>) {
+    fn value_into_vec_of_option_string(
+        #[case] value: Value,
+        #[case] expected: Vec<Option<String>>,
+    ) {
         let vec: Vec<Option<String>> = value.into();
         assert_eq!(vec, expected);
     }
