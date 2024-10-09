@@ -7,21 +7,26 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   benchmarks:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup rust toolchain, cache and cargo-codspeed binary
-        uses: moonrepo/setup-rust@v1
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: dtolnay/rust-toolchain@7b1c307e0dcbda6122208f10795a713336a9b35a
         with:
-          channel: stable
-          cache-target: release
-          bins: cargo-codspeed
+          toolchain: stable
+      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84
+      - uses: taiki-e/install-action@6d49eff78fe8ad9f571fb25522747f2d9e84be6b
+        with:
+          tool: cargo-codspeed
+
       - name: Build the benchmark target(s)
         run: cargo codspeed build
       - name: Run the benchmarks
-        uses: CodSpeedHQ/action@v3
+        uses: CodSpeedHQ/action@ab07afd34cbbb7a1306e8d14b7cc44e029eee37a
         with:
           run: cargo codspeed run
           token: ${{ secrets.CODSPEED_TOKEN }}

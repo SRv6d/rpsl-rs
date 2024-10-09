@@ -5,22 +5,27 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-      - uses: extractions/setup-just@v2
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: dtolnay/rust-toolchain@1482605bfc5719782e1267fd0c0cc350fe7646b8
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84
+      - uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
 
       - run: just lint
   spellcheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
       - name: check for typos
-        uses: crate-ci/typos@v1.25.0
+        uses: crate-ci/typos@f12cee1d8f3c79282a98ecb41d235aef17dfa8fd
   cargo-deny:
     runs-on: ubuntu-latest
     strategy:
@@ -31,7 +36,7 @@ jobs:
     # Prevent sudden announcement of a new advisory from failing CI:
     continue-on-error: ${{ matrix.checks == 'advisories' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: EmbarkStudios/cargo-deny-action@v2
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: EmbarkStudios/cargo-deny-action@8371184bd11e21dcf8ac82ebf8c9c9f74ebf7268
         with:
           command: check ${{ matrix.checks }}
