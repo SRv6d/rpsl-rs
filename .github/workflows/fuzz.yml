@@ -1,0 +1,24 @@
+---
+name: Fuzz
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  fuzz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+      - uses: dtolnay/rust-toolchain@1482605bfc5719782e1267fd0c0cc350fe7646b8
+        with:
+          toolchain: nightly
+      - uses: Swatinem/rust-cache@23bce251a8cd2ffc3c1075eaa2367cf899916d84
+      - uses: taiki-e/install-action@6d49eff78fe8ad9f571fb25522747f2d9e84be6b
+        with:
+          tool: cargo-fuzz
+      - uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
+
+      - name: Fuzz
+        run: just fuzz
