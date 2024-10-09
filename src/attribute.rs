@@ -59,35 +59,29 @@ impl<'a> Attribute<'a> {
 
 impl fmt::Display for Attribute<'_> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match &self.value {
-            Value::SingleLine(value) => {
-                writeln!(f, "{:16}{}", format!("{}:", self.name), {
-                    match value {
-                        Some(value) => value,
-                        None => "",
-                    }
-                })
-            }
-            Value::MultiLine(values) => {
-                writeln!(f, "{:16}{}", format!("{}:", self.name), {
-                    match &values[0] {
-                        Some(value) => value,
-                        None => "",
-                    }
-                })?;
+        let values = self.value.values();
 
-                let mut continuation_values = String::new();
-                for value in &values[1..] {
-                    continuation_values.push_str(&format!("{:16}{}\n", "", {
-                        match &value {
-                            Some(value) => value,
-                            None => "",
-                        }
-                    }));
+        let first_value = values.first().expect("must contain at least one value");
+        match first_value {
+            Some(value) => {
+                writeln!(f, "{:16}{}", format!("{}:", self.name), value)?;
+            }
+            None => writeln!(f, "{}:", self.name)?,
+        }
+
+        let remaining_values = &values[1..];
+        for value in remaining_values {
+            match value {
+                Some(value) => {
+                    writeln!(f, "{:16}{}", " ", value)?;
                 }
-                write!(f, "{continuation_values}")
+                None => {
+                    writeln!(f, " ")?;
+                }
             }
         }
+
+        Ok(())
     }
 }
 
@@ -262,6 +256,18 @@ impl<'a> Value<'a> {
         match &self {
             Self::SingleLine(_) => 1,
             Self::MultiLine(values) => values.len(),
+        }
+    }
+
+    fn values(&'a self) -> Vec<Option<&'a str>> {
+        match self {
+            Value::SingleLine(value) => {
+                vec![value.as_ref().map(std::convert::AsRef::as_ref)]
+            }
+            Value::MultiLine(values) => values
+                .iter()
+                .map(|v| v.as_ref().map(std::convert::AsRef::as_ref))
+                .collect(),
         }
     }
 
