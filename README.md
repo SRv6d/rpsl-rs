@@ -23,6 +23,9 @@
   <a href="https://www.bestpractices.dev/projects/9525">
     <img src="https://www.bestpractices.dev/projects/9525/badge" />
   </a>
+  <a href="https://slsa.dev/spec/v1.0/">
+    <img src="https://slsa.dev/images/gh-badge-level2.svg" />
+  </a>
   <br />
 </div>
 
