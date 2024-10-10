@@ -1,7 +1,7 @@
 use winnow::{
     ascii::{newline, space0},
     combinator::{alt, delimited, peek, preceded, repeat, separated_pair, terminated},
-    error::{ContextError, ParserError},
+    error::{AddContext, ContextError, ParserError, StrContext, StrContextValue},
     token::{one_of, take_while},
     Parser,
 };
@@ -13,7 +13,7 @@ use crate::{Attribute, Name, Object, Value};
 /// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
 pub fn object_block<'s, E>() -> impl Parser<&'s str, Object<'s>, E>
 where
-    E: ParserError<&'s str>,
+    E: ParserError<&'s str> + AddContext<&'s str, StrContext>,
 {
     terminated(repeat(1.., attribute()), newline)
         .with_taken()
@@ -60,10 +60,18 @@ where
 // The attributes name and value are separated by a colon and optional spaces.
 fn attribute<'s, E>() -> impl Parser<&'s str, Attribute<'s>, E>
 where
-    E: ParserError<&'s str>,
+    E: ParserError<&'s str> + AddContext<&'s str, StrContext>,
 {
-    separated_pair(attribute_name(), (':', space0), attribute_value())
-        .map(|(name, value)| Attribute::new(name, value))
+    separated_pair(
+        attribute_name(),
+        (
+            ':'.context(StrContext::Label("separator"))
+                .context(StrContext::Expected(StrContextValue::StringLiteral(":"))),
+            space0,
+        ),
+        attribute_value(),
+    )
+    .map(|(name, value)| Attribute::new(name, value))
 }
 
 /// Generate an attribute value parser that parses an ASCII sequence of letters,
