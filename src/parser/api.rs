@@ -28,7 +28,7 @@ use crate::{Object, ParseError};
 /// ```
 ///
 /// # Errors
-/// Returns a `ParseError` if the input is not valid RPSL.
+/// Returns a [`ParseError`] if the input is not valid RPSL.
 ///
 /// # Examples
 /// ```
@@ -134,7 +134,7 @@ pub fn parse_object(rpsl: &str) -> Result<Object, ParseError> {
 /// Parse a WHOIS server response into [`Object`]s contained within.
 ///
 /// # Errors
-/// Returns a `ParseError` error if the input is not valid RPSL.
+/// Returns a [`ParseError`] error if the input is not valid RPSL.
 ///
 /// # Examples
 /// ```
