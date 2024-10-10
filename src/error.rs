@@ -34,6 +34,24 @@ pub enum AttributeError {
 }
 
 /// An error that can occur when parsing RPSL text.
+///
+/// # Example
+/// ```
+/// # use rpsl::parse_object;
+/// let rpsl = "\
+/// role;        ACME Company
+///
+/// ";
+/// let err = parse_object(rpsl).unwrap_err();
+/// let message = "\
+/// parse error at line 1, column 5
+///   |
+/// 1 | role;        ACME Company
+///   |     ^
+/// invalid separator
+/// expected `:`";
+/// assert_eq!(err.to_string(), message);
+/// ```
 #[derive(Error, Debug)]
 pub struct ParseError(String);
 
