@@ -1,5 +1,5 @@
 ---
-name: Benchmarks
+name: Benchmark
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  benchmarks:
+  benchmark:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
