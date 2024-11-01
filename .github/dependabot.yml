@@ -5,12 +5,12 @@ updates:
     schedule:
       interval: monthly
     groups:
-      minor-or-patch:
+      GitHub Actions Minor or Patch:
         update-types: [minor, patch]
   - package-ecosystem: cargo
     directory: /
     groups:
-      dev-dependencies:
+      Cargo dev-dependencies:
         dependency-type: development
     schedule:
       interval: monthly
