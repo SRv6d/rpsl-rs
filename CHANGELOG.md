@@ -9,7 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- This Changelog.
+- A Changelog.
+- MSRV policy to README.
+- Tracking of test coverage.
+- Security policy.
+- Serde and JSON object serialization.
+
+### Changed
+
+- Allow for extended ASCII chars in attribute values.
+- Parser now returns a single type that can represent both owned and borrowed values.
+
+### Fixed
+
+- Empty multiline attribute values no longer display as empty whitespace.
+
+### Internal
+
+- Replaced nom parser with winnow.
+- Improved test coverage to get close to 100%.
 
 ## [1.0.1] - 2024-12-26
 
