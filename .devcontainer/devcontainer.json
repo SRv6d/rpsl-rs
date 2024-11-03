@@ -2,6 +2,7 @@
   "name": "Rust",
   "image": "mcr.microsoft.com/devcontainers/rust",
   "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {},
     "ghcr.io/guiyomh/features/just:0": {}
   },
   "customizations": {
