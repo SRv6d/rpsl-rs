@@ -50,3 +50,27 @@ $ just test
 To ensure that the parser stays performant, benchmarks are run on every PR. To execute them locally, run `cargo bench`.
 
 [`just`]: https://github.com/casey/just
+
+## Releasing a new version
+
+To release a new version of `rpsl-rs`, perform the following steps.
+
+- Ensure the unreleased section of the [CHANGELOG](../CHANGELOG.md) contains all relevant changes.
+
+- Checkout a new branch.
+
+  ```sh
+  $ git switch -c bump-version-1-0-0
+  ```
+
+- Use the just recipe to bump the version. This will create the necessary commits as well as a pull request using the GitHub CLI.
+
+  ```sh
+  $ just bump-version 1.0.0
+  ```
+
+- Once the branch is merged, a GitHub release for the new version containing the recent changes can be created automatically.
+
+  ```sh
+  $ just release-latest-version 1.0.0
+  ```
