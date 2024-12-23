@@ -4,7 +4,11 @@ export CI := env("CI", "false")
 CHANGELOG_FILE := "CHANGELOG.md"
 REPO_URL := "https://github.com/SRv6d/rpsl-rs"
 
-default: lint test
+default: check-lockfile lint test
+
+# Check if the lockfile is up to date
+check-lockfile:
+    cargo update -w --locked
 
 # Lint code and check formatting
 lint: lint-justfile
