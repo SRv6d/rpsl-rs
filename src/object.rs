@@ -14,13 +14,13 @@ use super::Attribute;
 /// ┌───────────────────────────────────────────────┐
 /// │  Object                                       │
 /// ├───────────────────────────────────────────────┤
-/// │  [role]    ───  ACME Company                  │
+/// │  [role]    ──── ACME Company                  │
 /// │  [address] ──┬─ Packet Street 6               │
 /// │              ├─ 128 Series of Tubes           │
 /// │              └─ Internet                      │
-/// │  [email]   ───  rpsl-rs@github.com            │
-/// │  [nic-hdl] ───  RPSL1-RIPE                    │
-/// │  [source]  ───  RIPE                          │
+/// │  [email]   ──── rpsl-rs@github.com            │
+/// │  [nic-hdl] ──── RPSL1-RIPE                    │
+/// │  [source]  ──── RIPE                          │
 /// └───────────────────────────────────────────────┘
 /// ```
 ///

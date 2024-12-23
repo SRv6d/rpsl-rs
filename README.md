@@ -103,13 +103,13 @@ Object(
 instead of copying them.
 
 ```text
-role:           ACME Company ◀─────────────── &"role"    ───  &"ACME Company"
-address:        Packet Street 6 ◀──────────── &"address" ───  &"Packet Street 6"
-address:        128 Series of Tubes ◀──────── &"address" ───  &"128 Series of Tubes"
-address:        Internet ◀─────────────────── &"address" ───  &"Internet"
-email:          rpsl-rs@github.com ◀───────── &"email"   ───  &"rpsl-rs@github.com"
-nic-hdl:        RPSL1-RIPE ◀───────────────── &"nic-hdl" ───  &"RPSL1-RIPE"
-source:         RIPE ◀─────────────────────── &"source"  ───  &"RIPE"
+role:           ACME Company ◀─────────────── &"role":      &"ACME Company"
+address:        Packet Street 6 ◀──────────── &"address":   &"Packet Street 6"
+address:        128 Series of Tubes ◀──────── &"address":   &"128 Series of Tubes"
+address:        Internet ◀─────────────────── &"address":   &"Internet"
+email:          rpsl-rs@github.com ◀───────── &"email":     &"rpsl-rs@github.com"
+nic-hdl:        RPSL1-RIPE ◀───────────────── &"nic-hdl":   &"RPSL1-RIPE"
+source:         RIPE ◀─────────────────────── &"source":    &"RIPE"
 ```
 
 This is what makes `rpsl-rs` performant and memory efficient, since no additional allocation is required during parsing.
