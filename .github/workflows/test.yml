@@ -24,7 +24,7 @@ jobs:
           toolchain: ${{ matrix.rust_version }}
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@f0deed1e0edfc6a9be95417288c0e1099b1eeec3
-      - uses: taiki-e/install-action@ad0904967b4c8e3005f6ed2efa1fa74dd9a05f32
+      - uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456
         with:
           tool: cargo-llvm-cov
       - uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
@@ -33,7 +33,7 @@ jobs:
         run: just test
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@13ce06bfc6bbe3ecf90edbbf1bc32fe5978ca1d3
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574
         with:
           name: Rust ${{ matrix.rust_version }}
           files: lcov.info

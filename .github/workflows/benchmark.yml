@@ -19,14 +19,14 @@ jobs:
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@f0deed1e0edfc6a9be95417288c0e1099b1eeec3
-      - uses: taiki-e/install-action@ad0904967b4c8e3005f6ed2efa1fa74dd9a05f32
+      - uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456
         with:
           tool: cargo-codspeed
 
       - name: Build the benchmark target(s)
         run: cargo codspeed build
       - name: Run the benchmarks
-        uses: CodSpeedHQ/action@1015f4f828ff74b7a950909897fe581d6ba868cc
+        uses: CodSpeedHQ/action@63ae6025a0ffee97d7736a37c9192dbd6ed4e75f
         with:
           run: cargo codspeed run
           token: ${{ secrets.CODSPEED_TOKEN }}
