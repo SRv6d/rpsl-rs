@@ -21,8 +21,16 @@ lint-justfile:
 cov_output := if CI == "true" { "--lcov --output-path lcov.info" } else { "--summary-only" }
 
 # Run tests
-test $COV=CI: (_install_llvm_cov COV)
-    {{ if COV == "true" { "cargo llvm-cov --all-features" + " " + cov_output } else { "cargo test --all-features" } }}
+test $COV=CI: (_install_llvm_cov COV) && doc-test
+    {{ if COV == "true" { "cargo llvm-cov --all-features" + " " + cov_output } else { "cargo test --lib --all-features" } }}
+
+# Run documentation and example tests
+doc-test:
+    cargo test --all-features --doc
+    cargo test --all-features --examples
+
+# Alias to run tests with coverage
+coverage: (test "true")
 
 # Check feature combinations
 check-features:
