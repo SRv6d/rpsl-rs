@@ -39,3 +39,18 @@ jobs:
           files: lcov.info
           use_oidc: true
           fail_ci_if_error: true
+  cargo-hack:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: dtolnay/rust-toolchain@c5a29ddb4d9d194e7c84ec8c3fba61b1c31fee8c
+        with:
+          toolchain: stable
+      - uses: Swatinem/rust-cache@f0deed1e0edfc6a9be95417288c0e1099b1eeec3
+      - uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456
+        with:
+          tool: cargo-hack
+      - uses: extractions/setup-just@dd310ad5a97d8e7b41793f8ef055398d51ad4de6
+
+      - name: Test
+        run: just check-features
