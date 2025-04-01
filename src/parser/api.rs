@@ -1,6 +1,7 @@
 use winnow::{
     ascii::multispace0,
     combinator::{delimited, repeat},
+    error::ContextError,
     Parser,
 };
 
@@ -126,7 +127,7 @@ use crate::{Object, ParseError};
 /// # }
 /// ```
 pub fn parse_object(rpsl: &str) -> Result<Object, ParseError> {
-    let block_parser = object_block();
+    let block_parser = object_block::<ContextError>();
     let object = delimited(multispace0, block_parser, multispace0).parse(rpsl)?;
     Ok(object)
 }
@@ -192,7 +193,7 @@ pub fn parse_object(rpsl: &str) -> Result<Object, ParseError> {
 /// # Ok(())
 /// # }
 pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, ParseError> {
-    let block_parser = object_block_padded(object_block());
+    let block_parser = object_block_padded(object_block::<ContextError>());
     let objects = repeat(1.., block_parser).parse(response)?;
     Ok(objects)
 }
