@@ -12,7 +12,7 @@ repository = "https://github.com/srv6d/rpsl-rs"
 readme = "README.md"
 exclude = [".devcontainer", ".github", "doc/benchmark/**", "tests/**"]
 # Make sure to also adjust in README and CI
-rust-version = "1.74"
+rust-version = "1.80"
 
 [package.metadata.docs.rs]
 all-features = true
