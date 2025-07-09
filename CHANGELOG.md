@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2025-07-09
+
 ### Changed
 
 - Bumped MSRV to 1.80.
@@ -76,6 +78,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Complete refactor
 
-[unreleased]: https://github.com/SRv6d/rpsl-rs/compare/v2.0.0...HEAD
+[unreleased]: https://github.com/SRv6d/rpsl-rs/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/SRv6d/rpsl-rs/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/SRv6d/rpsl-rs/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/SRv6d/rpsl-rs/compare/v1.0.0...v1.0.1
