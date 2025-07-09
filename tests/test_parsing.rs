@@ -1,3 +1,4 @@
+#![allow(missing_docs)]
 use proptest::prelude::*;
 use rpsl::parse_object;
 
@@ -53,7 +54,7 @@ mod strategies {
     }
 
     fn multiline_continuation_prefix() -> impl Strategy<Value = String> {
-        prop_oneof![Just(" "), Just("\t"), Just("+")].prop_map(|s| s.to_owned())
+        prop_oneof![Just(" "), Just("\t"), Just("+")].prop_map(ToOwned::to_owned)
     }
 
     /// A test type that represents an attribute value.
@@ -104,7 +105,7 @@ mod strategies {
                     value = {
                         match &value {
                             AttributeValue::Single(value) => value.to_owned(),
-                            AttributeValue::Multi(values) => values[0].to_owned(),
+                            AttributeValue::Multi(values) => values[0].clone(),
                         }
                     }
                 );
@@ -114,7 +115,7 @@ mod strategies {
                         if value.trim().is_empty() {
                             rpsl.push(char::from_u32(0x002B).unwrap()); // Add a "+", since entirely empty lines are not allowed in multi-line attributes.
                         } else {
-                            rpsl.push_str(&format!("{}{}{}", cont_prefix, space, value));
+                            rpsl.push_str(&format!("{cont_prefix}{space}{value}"));
                         }
                     }
                 }
