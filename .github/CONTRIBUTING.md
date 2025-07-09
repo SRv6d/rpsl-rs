@@ -53,20 +53,26 @@ To release a new version of `rpsl-rs`, perform the following steps.
 
 - Ensure the unreleased section of the [CHANGELOG](../CHANGELOG.md) contains all relevant changes.
 
+- Pick a new version according to the [SemVer 2.0 spec](https://semver.org/spec/v2.0.0.html) and set it in your environment.
+
+  ```sh
+  export NEW_VERSION=0.5.0
+  ```
+
 - Checkout a new branch.
 
   ```sh
-  git switch -c bump-version-1-0-0
+  git switch -c bump-version-$NEW_VERSION
   ```
 
 - Use the just recipe to bump the version. This will create the necessary commits as well as a pull request using the GitHub CLI.
 
   ```sh
-  just bump-version 1.0.0
+  just bump-version $NEW_VERSION
   ```
 
 - Once the branch is merged, a GitHub release for the new version containing the recent changes can be created automatically.
 
   ```sh
-  just release-latest-version 1.0.0
+  just release-latest-version $NEW_VERSION
   ```
