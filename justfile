@@ -42,8 +42,9 @@ bump-version $VERSION: _check_clean_working (_validate_semver VERSION) && (_chan
     set -euxo pipefail
 
     sed -i 's/^version = .*/version = "'$VERSION'"/g' Cargo.toml
+    cargo update -w --offline
 
-    git add Cargo.toml
+    git add Cargo.toml Cargo.lock
     git commit -m "Bump version to v{{ VERSION }}"
 
 # Create a GitHub release containing the latest changes
