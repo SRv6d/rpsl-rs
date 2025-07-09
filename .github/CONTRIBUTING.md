@@ -32,17 +32,13 @@ Ensure a [recent version of rustup](https://www.rust-lang.org/tools/install) is 
 `rpsl-rs` uses [`rustfmt`](https://github.com/rust-lang/rustfmt) for uniform fomatting and [`clippy`](https://github.com/rust-lang/rust-clippy) for basic linting and enforcement of best practices. The [`just`] `lint` recipe can be used to run both.
 
 ```sh
-$ just lint
-cargo clippy --all-targets --all-features
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.34s
-cargo fmt --all --check
-...
+just lint
 ```
 
 In addition to basic formatting and linting, a high code coverage should be maintained. Property based tests are used to ensure the parser can deal with any kind of RPSL input. All tests need to pass before a PR can be merged.
 
 ```sh
-$ just test
+just test
 ```
 
 ## Performance
@@ -60,17 +56,17 @@ To release a new version of `rpsl-rs`, perform the following steps.
 - Checkout a new branch.
 
   ```sh
-  $ git switch -c bump-version-1-0-0
+  git switch -c bump-version-1-0-0
   ```
 
 - Use the just recipe to bump the version. This will create the necessary commits as well as a pull request using the GitHub CLI.
 
   ```sh
-  $ just bump-version 1.0.0
+  just bump-version 1.0.0
   ```
 
 - Once the branch is merged, a GitHub release for the new version containing the recent changes can be created automatically.
 
   ```sh
-  $ just release-latest-version 1.0.0
+  just release-latest-version 1.0.0
   ```
