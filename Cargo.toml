@@ -42,6 +42,14 @@ simd = ["winnow/simd"]
 serde = ["dep:serde"]
 json = ["serde", "dep:serde_json"]
 
+[lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[lints.clippy]
+pedantic = { priority = -1, level = "warn" }
+panic = "forbid"
+
 [[bench]]
 name = "parse_as3257"
 harness = false

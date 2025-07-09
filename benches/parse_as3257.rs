@@ -1,16 +1,18 @@
+#![allow(missing_docs)]
+#![allow(clippy::missing_panics_doc)]
 use codspeed_criterion_compat::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("parse AS3257", |b| {
-        b.iter(|| rpsl::parse_object(black_box(AS3257)))
+        b.iter(|| rpsl::parse_object(black_box(AS3257)));
     });
 }
 
 criterion_group!(benches, criterion_benchmark);
 criterion_main!(benches);
 
-const AS3257: &str = r#"aut-num:        AS3257
+const AS3257: &str = r"aut-num:        AS3257
 as-name:        GTT-BACKBONE
 descr:          GTT
 org:            ORG-GCI2-RIPE
@@ -9578,4 +9580,4 @@ created:        2002-09-20T10:45:34Z
 last-modified:  2023-07-21T10:03:34Z
 source:         RIPE
 
-"#;
+";

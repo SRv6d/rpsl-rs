@@ -1,7 +1,3 @@
-#![warn(clippy::pedantic)]
-#![warn(missing_docs)]
-#![forbid(unsafe_code)]
-#![forbid(clippy::panic)]
 #![doc = include_str!("../README.md")]
 #![cfg_attr(docsrs, feature(doc_cfg))]
 

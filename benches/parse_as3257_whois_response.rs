@@ -1,9 +1,11 @@
+#![allow(missing_docs)]
+#![allow(clippy::missing_panics_doc)]
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;
 
 pub fn criterion_benchmark(c: &mut Criterion) {
     c.bench_function("parse whois response for AS3257", |b| {
-        b.iter(|| rpsl::parse_whois_response(black_box(AS3257_WHOIS_RESPONSE)))
+        b.iter(|| rpsl::parse_whois_response(black_box(AS3257_WHOIS_RESPONSE)));
     });
 }
 

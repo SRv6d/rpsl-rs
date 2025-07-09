@@ -1,8 +1,9 @@
+//! Parse all objects in the WHOIS response for AS3257 and print them.
 use rpsl::{parse_whois_response, Object};
 
 fn main() {
     let parsed_objects: Vec<Object> = parse_whois_response(AS3257_WHOIS_RESPONSE).unwrap();
-    println!("{:#?}", parsed_objects);
+    println!("{parsed_objects:#?}");
 }
 
 const AS3257_WHOIS_RESPONSE: &str = r#"

@@ -1,11 +1,12 @@
+//! Parse and print the AS3257 aut-num object.
 use rpsl::{parse_object, Object};
 
 fn main() {
     let aut_num_gtt: Object = parse_object(AS3257).unwrap();
-    println!("{:#?}", aut_num_gtt);
+    println!("{aut_num_gtt:#?}");
 }
 
-const AS3257: &str = r#"aut-num:        AS3257
+const AS3257: &str = r"aut-num:        AS3257
 as-name:        GTT-BACKBONE
 descr:          GTT
 org:            ORG-GCI2-RIPE
@@ -9573,4 +9574,4 @@ created:        2002-09-20T10:45:34Z
 last-modified:  2023-07-21T10:03:34Z
 source:         RIPE
 
-"#;
+";
