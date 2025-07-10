@@ -9,6 +9,7 @@ targets = [
     "x86_64-pc-windows-msvc",
 ]
 all-features = true
+exclude-dev = true
 
 [advisories]
 version = 2
