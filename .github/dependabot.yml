@@ -13,8 +13,9 @@ updates:
     versioning-strategy: lockfile-only
     schedule:
       interval: monthly
-    allow:
-      - update-types: [minor, patch]
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       development-non-major:
         dependency-type: development
