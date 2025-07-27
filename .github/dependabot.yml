@@ -13,18 +13,11 @@ updates:
     versioning-strategy: lockfile-only
     schedule:
       interval: monthly
+    allow:
+      - update-types: [minor, patch]
     groups:
       development-non-major:
         dependency-type: development
-        update-types: [minor, patch]
-  # Major version updates in Cargo.toml every quarter
-  - package-ecosystem: cargo
-    directory: /
-    versioning-strategy: increase
-    schedule:
-      interval: quarterly
-    allow:
-      - update-types: [major]
   - package-ecosystem: devcontainers
     directory: /
     schedule:
