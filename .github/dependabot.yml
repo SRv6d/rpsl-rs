@@ -7,14 +7,24 @@ updates:
     groups:
       actions-non-major:
         update-types: [minor, patch]
+  # Minor version lockfile updates every month
   - package-ecosystem: cargo
     directory: /
+    versioning-strategy: lockfile-only
+    schedule:
+      interval: monthly
     groups:
       development-non-major:
         dependency-type: development
         update-types: [minor, patch]
+  # Major version updates in Cargo.toml every quarter
+  - package-ecosystem: cargo
+    directory: /
+    versioning-strategy: increase
     schedule:
-      interval: monthly
+      interval: quarterly
+    allow:
+      - update-types: [major]
   - package-ecosystem: devcontainers
     directory: /
     schedule:
