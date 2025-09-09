@@ -36,4 +36,4 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: check for typos
-        uses: crate-ci/typos@392b78fe18a52790c53f42456e46124f77346842
+        uses: crate-ci/typos@85f62a8a84f939ae994ab3763f01a0296d61a7ee
