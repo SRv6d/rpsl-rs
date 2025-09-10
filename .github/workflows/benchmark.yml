@@ -19,7 +19,7 @@ jobs:
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@98c8021b550208e191a6a3145459bfc9fb29c4c0
-      - uses: taiki-e/install-action@d31232495ad76f47aad66e3501e47780b49f0f3e
+      - uses: taiki-e/install-action@0c5db7f7f897c03b771660e91d065338615679f4
         with:
           tool: cargo-codspeed
 
