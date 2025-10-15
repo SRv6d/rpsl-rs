@@ -3,6 +3,7 @@ import "docs/benchmark/benchmark.just"
 export CI := env("CI", "false")
 CHANGELOG_FILE := "CHANGELOG.md"
 REPO_URL := "https://github.com/SRv6d/rpsl-rs"
+LCOV_FILE := "target/coverage/lcov.info"
 
 default: check-lockfile lint test
 
@@ -18,11 +19,9 @@ lint: lint-justfile
 lint-justfile:
     just --check --fmt --unstable
 
-cov_output := if CI == "true" { "--lcov --output-path lcov.info" } else { "--summary-only" }
-
 # Run tests
 test $COV=CI: (_install_llvm_cov COV) && doc-test
-    {{ if COV == "true" { "cargo llvm-cov --all-features" + " " + cov_output } else { "cargo test --lib --all-features" } }}
+    {{ if COV == "true" { "mkdir -p " + parent_directory(LCOV_FILE) + " && cargo llvm-cov --all-features --lcov --output-path " + LCOV_FILE } else { "cargo test --lib --all-features" } }}
 
 # Run documentation and example tests
 doc-test:

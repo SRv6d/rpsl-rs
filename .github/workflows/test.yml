@@ -36,7 +36,7 @@ jobs:
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
         with:
           name: Rust ${{ matrix.rust_version }}
-          files: lcov.info
+          files: target/coverage/lcov.info
           use_oidc: true
           fail_ci_if_error: true
   cargo-hack:
