@@ -24,7 +24,7 @@ jobs:
           toolchain: ${{ matrix.rust_version }}
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1
-      - uses: taiki-e/install-action@9f532f95f296500f5b271915a729663dcb585f98
+      - uses: taiki-e/install-action@47be02f2de8a32619316956f6117e150bdc6763f
         with:
           tool: cargo-llvm-cov
       - uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
@@ -47,7 +47,7 @@ jobs:
         with:
           toolchain: stable
       - uses: Swatinem/rust-cache@f13886b937689c021905a6b90929199931d60db1
-      - uses: taiki-e/install-action@9f532f95f296500f5b271915a729663dcb585f98
+      - uses: taiki-e/install-action@47be02f2de8a32619316956f6117e150bdc6763f
         with:
           tool: cargo-hack
       - uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
