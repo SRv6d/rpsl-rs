@@ -6,7 +6,7 @@ use winnow::{
     Parser,
 };
 
-use crate::{Attribute, Name, Object, Value};
+use crate::{Attribute, Name, Object, Value, spec::Raw};
 
 /// Generate an object block parser.
 /// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
@@ -123,7 +123,7 @@ where
     E: ParserError<&'s str>,
 {
     terminated(
-        take_while(0.., |c| Value::validate_char(c).is_ok()),
+        take_while(0.., |c| Value::<Raw>::validate_char(c).is_ok()),
         newline,
     )
 }
