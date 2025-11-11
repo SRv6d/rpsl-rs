@@ -17,7 +17,7 @@ where
 {
     terminated(repeat(1.., attribute()), newline)
         .with_taken()
-        .map(|(attributes, source)| Object::from_parsed(source, attributes))
+        .map(|(attributes, source)| Object::new_parsed(source, attributes))
 }
 
 /// Generate a parser that extends the given object block parser to consume optional padding
@@ -157,7 +157,7 @@ mod tests {
         ]
     )]
     fn object_block_valid(#[case] given: &mut &str, #[case] attributes: Vec<Attribute>) {
-        let expected = Object::from_parsed(given, attributes);
+        let expected = Object::new_parsed(given, attributes);
 
         let mut parser = object_block::<ContextError>();
         let parsed = parser.parse_next(given).unwrap();
@@ -206,7 +206,7 @@ mod tests {
         ]
     )]
     fn object_block_padded_valid(#[case] given: &mut &str, #[case] attributes: Vec<Attribute>) {
-        let expected = Object::from_parsed(given, attributes);
+        let expected = Object::new_parsed(given, attributes);
 
         let mut parser = object_block_padded::<_, ContextError>(object_block());
         let parsed = parser.parse_next(given).unwrap();

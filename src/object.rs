@@ -213,7 +213,7 @@ impl Object<'_> {
     }
 
     /// Create a new RPSL object from a text source and it's corresponding parsed attributes.
-    pub(crate) fn from_parsed<'a>(source: &'a str, attributes: Vec<Attribute<'a>>) -> Object<'a> {
+    pub(crate) fn new_parsed<'a>(source: &'a str, attributes: Vec<Attribute<'a>>) -> Object<'a> {
         Object {
             attributes,
             source: Some(source),
@@ -371,7 +371,7 @@ mod tests {
             Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
             Attribute::unchecked_single("source", "RIPE"),
         ]),
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -414,7 +414,7 @@ mod tests {
             Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
             Attribute::unchecked_single("source", "RIPE"),
         ]),
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -591,7 +591,7 @@ mod tests {
 
     #[rstest]
     #[case(
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -624,7 +624,7 @@ mod tests {
         )
     )]
     #[case(
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -657,7 +657,7 @@ mod tests {
         )
     )]
     #[case(
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -693,7 +693,7 @@ mod tests {
         )
     )]
     #[case(
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -831,7 +831,7 @@ mod tests {
             ]),
     )]
     #[case(
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
