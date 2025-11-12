@@ -394,6 +394,11 @@ mod tests {
             "* Equinix FR5, Kleyerstr, Frankfurt am Main",
             ""
         )]
+    #[case(
+            &mut "This is an example of Ć character\n",
+            "This is an example of Ć character",
+            ""
+        )]
     fn attribute_value_valid(
         #[case] given: &mut &str,
         #[case] expected: &str,
