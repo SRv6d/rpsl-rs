@@ -223,9 +223,7 @@ impl<'a> Value<'a> {
     /// (e.g. RIPE) do not enforce this so, to be useful in the real world, we don't either.
     #[inline]
     pub(crate) fn validate_char(c: char) -> Result<(), InvalidValueError> {
-        if !is_extended_ascii(c) {
-            return Err(InvalidValueError::NonExtendedAscii);
-        } else if c.is_ascii_control() {
+        if c.is_ascii_control() {
             return Err(InvalidValueError::ContainsControlChar);
         }
 
@@ -306,7 +304,7 @@ impl FromStr for Value<'_> {
 
     /// Create a new single line value from a string slice.
     ///
-    /// A valid value may consist of any ASCII character, excluding control characters.
+    /// A valid value may consist of any character, excluding ASCII control characters.
     ///
     /// # Errors
     /// Returns an error if the value contains invalid characters.
@@ -431,12 +429,6 @@ where
     } else {
         Some(value)
     }
-}
-
-/// Checks if the given char is part of the extended ASCII set.
-#[inline]
-fn is_extended_ascii(char: char) -> bool {
-    matches!(char, '\u{0000}'..='\u{00FF}')
 }
 
 #[cfg(test)]
