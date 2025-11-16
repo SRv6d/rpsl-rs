@@ -99,22 +99,6 @@ pub struct Name<'a, S: Specification = Raw> {
     _spec: PhantomData<S>,
 }
 
-impl<'a, S: Specification> Name<'a, S> {
-    fn validate(name: &str) -> Result<(), InvalidNameError> {
-        if name.trim().is_empty() {
-            return Err(InvalidNameError::Empty);
-        } else if !name.is_ascii() {
-            return Err(InvalidNameError::NonAscii);
-        } else if !name.chars().next().unwrap().is_ascii_alphabetic() {
-            return Err(InvalidNameError::NonAsciiAlphabeticFirstChar);
-        } else if !name.chars().last().unwrap().is_ascii_alphanumeric() {
-            return Err(InvalidNameError::NonAsciiAlphanumericLastChar);
-        }
-
-        Ok(())
-    }
-}
-
 impl<'a> Name<'a, Raw> {
     pub(crate) fn unchecked(name: &'a str) -> Self {
         Self {
@@ -135,11 +119,7 @@ impl<S: Specification> FromStr for Name<'_, S> {
     /// # Errors
     /// Returns an error if the name is empty or invalid.
     fn from_str(name: &str) -> Result<Self, Self::Err> {
-        Self::validate(name)?;
-        Ok(Self {
-            inner: Cow::Owned(name.to_string()),
-            _spec: PhantomData,
-        })
+        todo!()
     }
 }
 
@@ -214,23 +194,6 @@ pub enum Value<'a, S: Specification = Raw> {
 }
 
 impl<'a, S: Specification> Value<'a, S> {
-    fn validate(value: &str) -> Result<(), InvalidValueError> {
-        value.chars().try_for_each(Self::validate_char)
-    }
-
-    /// Even though RFC 2622 requires values to be ASCII, in practice some WHOIS databases
-    /// (e.g. RIPE) do not enforce this so, to be useful in the real world, we don't either.
-    #[inline]
-    pub(crate) fn validate_char(c: char) -> Result<(), InvalidValueError> {
-        if !is_extended_ascii(c) {
-            return Err(InvalidValueError::NonExtendedAscii);
-        } else if c.is_ascii_control() {
-            return Err(InvalidValueError::ContainsControlChar);
-        }
-
-        Ok(())
-    }
-
     /// The number of lines contained.
     ///
     /// # Examples
@@ -452,15 +415,8 @@ where
     }
 }
 
-/// Checks if the given char is part of the extended ASCII set.
-#[inline]
-fn is_extended_ascii(char: char) -> bool {
-    matches!(char, '\u{0000}'..='\u{00FF}')
-}
-
 #[cfg(test)]
 mod tests {
-    use proptest::prelude::*;
     use rstest::*;
     #[cfg(feature = "serde")]
     use serde_test::{assert_ser_tokens, Token};
@@ -585,34 +541,12 @@ mod tests {
         assert_eq!(*name, *s);
     }
 
-    // #[rstest]
-    // #[case("role")]
-    // #[case("person")]
-    // fn name_from_str(#[case] s: &str) {
-    //     assert_eq!(Name::from_str(s).unwrap(), Name(Cow::Owned(s.to_string())));
-    // }
-
-    // proptest! {
-    //     #[test]
-    //     fn name_from_str_space_only_is_err(n in r"\s") {
-    //         assert!(Name::from_str(&n).is_err());
-    //     }
-
-    //     #[test]
-    //     fn name_from_str_non_ascii_is_err(n in r"[^[[:ascii:]]]") {
-    //         assert!(Name::from_str(&n).is_err());
-    //     }
-
-    //     #[test]
-    //     fn name_from_str_non_letter_first_char_is_err(n in r"[^a-zA-Z][[:ascii:]]*") {
-    //         assert!(Name::from_str(&n).is_err());
-    //     }
-
-    //     #[test]
-    //     fn name_from_str_non_letter_or_digit_last_char_is_err(n in r"[[:ascii:]]*[^a-zA-Z0-9]") {
-    //         assert!(Name::from_str(&n).is_err());
-    //     }
-    // }
+    #[rstest]
+    #[case("role")]
+    #[case("person")]
+    fn name_from_str(#[case] s: &str) {
+        assert_eq!(Name::from_str(s).unwrap(), Name(Cow::Owned(s.to_string())));
+    }
 
     #[rstest]
     #[case(Name::unchecked("ASNumber"), Token::Str("ASNumber"))]
@@ -621,37 +555,20 @@ mod tests {
         assert_ser_tokens(&name, &[expected]);
     }
 
-    // #[rstest]
-    // #[case("This is a valid attribute value", Value::SingleLine(Some(Cow::Owned("This is a valid attribute value".to_string()))))]
-    // #[case("   ", Value::SingleLine(None))]
-    // fn value_from_str(#[case] s: &str, #[case] expected: Value) {
-    //     assert_eq!(Value::from_str(s).unwrap(), expected);
-    // }
+    #[rstest]
+    #[case("This is a valid attribute value", Value::SingleLine(Some(Cow::Owned("This is a valid attribute value".to_string()))))]
+    fn value_from_str(#[case] s: &str, #[case] expected: Value) {
+        assert_eq!(Value::from_str(s).unwrap(), expected);
+    }
 
-    // #[rstest]
-    // fn value_from_empty_str(#[values("", "   ")] s: &str) {
-    //     assert_eq!(Value::from_str(s).unwrap(), Value::SingleLine(None));
-    // }
-
-    // proptest! {
-    //     #[test]
-    //     fn value_validation_any_non_control_extended_ascii_valid(
-    //         s in r"[\x00-\xFF]+"
-    //             .prop_filter("Must not contain control chars", |s| !s.chars().any(|c| c.is_ascii_control())))
-    //         {
-    //             Value::validate(&s).unwrap();
-    //     }
-
-    //     #[test]
-    //     fn value_validation_any_non_extended_ascii_is_err(s in r"[^\x00-\xFF]+") {
-    //         matches!(Value::validate(&s).unwrap_err(), InvalidValueError::NonExtendedAscii);
-    //     }
-
-    //     #[test]
-    //     fn value_validation_any_ascii_control_is_err(s in r"[\x00-\x1F\x7F]+") {
-    //         matches!(Value::validate(&s).unwrap_err(), InvalidValueError::ContainsControlChar);
-    //     }
-    // }
+    #[rstest]
+    fn value_from_empty_str(#[values("", "   ")] s: &str) {
+        let expected = Value::SingleLine {
+            inner: None,
+            _spec: PhantomData,
+        };
+        assert_eq!(Value::from_str(s).unwrap(), expected);
+    }
 
     #[rstest]
     #[case(
@@ -918,17 +835,5 @@ mod tests {
     ) {
         let vec: Vec<Option<String>> = value.into();
         assert_eq!(vec, expected);
-    }
-
-    proptest! {
-        #[test]
-        fn value_from_str_non_ascii_is_err(v in r"[^[[:ascii:]]]") {
-            assert!(Value::from_str(&v).is_err());
-        }
-
-        #[test]
-        fn value_from_str_ascii_control_is_err(v in r"[[:cntrl:]]") {
-            assert!(Value::from_str(&v).is_err());
-        }
     }
 }
