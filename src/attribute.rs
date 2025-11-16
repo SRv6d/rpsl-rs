@@ -100,6 +100,16 @@ pub struct Name<'a, S: Specification = Raw> {
 }
 
 impl<'a> Name<'a, Raw> {
+    pub fn new<S>(name: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Self {
+            inner: Cow::Owned(name.into()),
+            _spec: PhantomData,
+        }
+    }
+
     pub(crate) fn unchecked(name: &'a str) -> Self {
         Self {
             inner: Cow::Borrowed(name),
@@ -264,6 +274,37 @@ impl<'a, S: Specification> Value<'a, S> {
 }
 
 impl<'a> Value<'a, Raw> {
+    /// Create a single line value. Empty values are coerced to [`None`].
+    pub fn new_single<V>(value: V) -> Self
+    where
+        V: Into<String>,
+    {
+        Self::SingleLine {
+            inner: coerce_empty_value(value.into()).map(Cow::Owned),
+            _spec: PhantomData,
+        }
+    }
+
+    /// Create a multi line value. Empty values are coerced to [`None`].
+    ///
+    /// # Panics
+    /// If the given iterator contains less than two values.
+    pub fn new_multi<I, V>(values: I) -> Self
+    where
+        I: IntoIterator<Item = V>,
+        V: Into<String>,
+    {
+        let s = Self::MultiLine {
+            inner: values
+                .into_iter()
+                .map(|v| coerce_empty_value(v.into()).map(Cow::Owned))
+                .collect(),
+            _spec: PhantomData,
+        };
+        assert!(s.lines() >= 2, "multi line values need at least two lines");
+        s
+    }
+
     /// Create a single line value without checking that characters conform to any specification
     /// while still coercing empty values to `None`.
     pub(crate) fn unchecked_single<V>(value: V) -> Self
@@ -290,7 +331,7 @@ impl<'a> Value<'a, Raw> {
                 .collect(),
             _spec: PhantomData,
         };
-        assert!(s.lines() > 1, "multi line values need at least two lines");
+        assert!(s.lines() >= 2, "multi line values need at least two lines");
         s
     }
 }
@@ -527,6 +568,13 @@ mod tests {
         assert_ser_tokens(&attribute, expected);
     }
 
+    #[rstest]
+    #[case("Ref", Name { inner: Cow::Owned("Ref".to_string()), _spec: PhantomData })]
+    fn name_new<S: Into<String>>(#[case] s: S, #[case] expected: Name<Raw>) {
+        let attribute = Name::new(s);
+        assert_eq!(attribute, expected);
+    }
+
     #[test]
     fn name_display() {
         let name_display = Name::unchecked("address").to_string();
@@ -556,7 +604,41 @@ mod tests {
     }
 
     #[rstest]
-    #[case("This is a valid attribute value", Value::SingleLine(Some(Cow::Owned("This is a valid attribute value".to_string()))))]
+    #[case(
+        "This is a valid attribute value",
+        Value::SingleLine {
+            inner: Some(Cow::Owned("This is a valid attribute value".to_string())),
+            _spec: PhantomData
+        }
+    )]
+    fn value_new_single<S: Into<String>>(#[case] s: S, #[case] expected: Value<Raw>) {
+        let attribute = Value::new_single(s);
+        assert_eq!(attribute, expected);
+    }
+
+    #[rstest]
+    #[case(
+        vec!["Packet Street 6", "128 Series of Tubes", "Internet"],
+        Value::MultiLine { 
+            inner: vec![
+                Some(Cow::Owned("Packet Street 6".to_string())),
+                Some(Cow::Owned("128 Series of Tubes".to_string())),
+                Some(Cow::Owned("Internet".to_string()))
+            ], 
+            _spec: PhantomData 
+        }
+    )]
+    fn value_new_multi<I, V>(#[case] i: I, #[case] expected: Value<Raw>) 
+    where 
+        I: IntoIterator<Item = V>,
+        V: Into<String>,
+    {
+        let attribute = Value::new_multi(i);
+        assert_eq!(attribute, expected);
+    }
+
+    #[rstest]
+    #[case("This is a valid attribute value", Value::new_single("This is a valid attribute value".to_string()))]
     fn value_from_str(#[case] s: &str, #[case] expected: Value) {
         assert_eq!(Value::from_str(s).unwrap(), expected);
     }
