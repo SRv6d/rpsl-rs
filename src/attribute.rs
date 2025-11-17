@@ -45,8 +45,11 @@ impl<'a> Attribute<'a, Raw> {
     where
         V: Into<Option<&'a str>>,
     {
-        let name = Name::unchecked(name);
-        let value = Value::unchecked_single(value);
+        let name = Name::new(name);
+        let value = match value.into() {
+            Some(value) => Value::new_single(value),
+            None => Value::new_single(String::new()),
+        };
         Self { name, value }
     }
 
@@ -56,8 +59,15 @@ impl<'a> Attribute<'a, Raw> {
         I: IntoIterator<Item = V>,
         V: Into<Option<&'a str>>,
     {
-        let name = Name::unchecked(name);
-        let value = Value::unchecked_multi(values);
+        let name = Name::new(name);
+        let collected: Vec<String> = values
+            .into_iter()
+            .map(|value| match value.into() {
+                Some(value) => value.to_string(),
+                None => String::new(),
+            })
+            .collect();
+        let value = Value::new_multi(collected);
         Self { name, value }
     }
 }
@@ -110,7 +120,8 @@ impl<'a> Name<'a, Raw> {
         }
     }
 
-    pub(crate) fn unchecked(name: &'a str) -> Self {
+    /// Create a name from parsed RPSL.
+    pub(crate) fn from_parsed(name: &'a str) -> Self {
         Self {
             inner: Cow::Borrowed(name),
             _spec: PhantomData,
@@ -305,29 +316,27 @@ impl<'a> Value<'a, Raw> {
         s
     }
 
-    /// Create a single line value without checking that characters conform to any specification
-    /// while still coercing empty values to `None`.
-    pub(crate) fn unchecked_single<V>(value: V) -> Self
-    where
-        V: Into<Option<&'a str>>,
+    /// Create a single line value from parsed RPSL. Empty values are coerced to [`None`].
+    pub(crate) fn from_parsed_single(value: &'a str) -> Self
     {
         Self::SingleLine {
-            inner: value.into().and_then(coerce_empty_value).map(Cow::Borrowed),
+            inner: coerce_empty_value(value).map(Cow::Borrowed),
             _spec: PhantomData,
         }
     }
 
-    /// Create a multi line value without checking that characters conform to any specification
-    /// while still coercing empty values to `None`.
-    pub(crate) fn unchecked_multi<I, V>(values: I) -> Self
+    /// Create a multi line value from parsed RPSL. Empty values are coerced to [`None`].
+    /// 
+    /// # Panics
+    /// If the given iterator contains less than two values.
+    pub(crate) fn from_parsed_multi<I>(values: I) -> Self
     where
-        I: IntoIterator<Item = V>,
-        V: Into<Option<&'a str>>,
+        I: IntoIterator<Item = &'a str>,
     {
         let s = Self::MultiLine {
             inner: values
                 .into_iter()
-                .map(|v| v.into().and_then(coerce_empty_value).map(Cow::Borrowed))
+                .map(|v| coerce_empty_value(v).map(Cow::Borrowed))
                 .collect(),
             _spec: PhantomData,
         };
@@ -577,7 +586,7 @@ mod tests {
 
     #[test]
     fn name_display() {
-        let name_display = Name::unchecked("address").to_string();
+        let name_display = Name::new("address").to_string();
         assert_eq!(name_display, "address");
     }
 
@@ -585,7 +594,7 @@ mod tests {
     #[case("role")]
     #[case("person")]
     fn name_deref(#[case] s: &str) {
-        let name = Name::unchecked(s);
+        let name = Name::new(s);
         assert_eq!(*name, *s);
     }
 
@@ -593,11 +602,11 @@ mod tests {
     #[case("role")]
     #[case("person")]
     fn name_from_str(#[case] s: &str) {
-        assert_eq!(Name::from_str(s).unwrap(), Name(Cow::Owned(s.to_string())));
+        assert_eq!(Name::from_str(s).unwrap(), Name::new(s));
     }
 
     #[rstest]
-    #[case(Name::unchecked("ASNumber"), Token::Str("ASNumber"))]
+    #[case(Name::new("ASNumber"), Token::Str("ASNumber"))]
     #[cfg(feature = "serde")]
     fn name_serialize(#[case] name: Name, #[case] expected: Token) {
         assert_ser_tokens(&name, &[expected]);
@@ -654,7 +663,7 @@ mod tests {
 
     #[rstest]
     #[case(
-        Value::unchecked_single("32934"),
+        Value::new_single("32934"),
         &[
             Token::Seq { len: Some(1) },
             Token::Some,
@@ -663,7 +672,7 @@ mod tests {
         ],
     )]
     #[case(
-        Value::unchecked_single(""),
+        Value::new_single(""),
         &[
             Token::Seq { len: Some(1) },
             Token::None,
@@ -671,7 +680,7 @@ mod tests {
         ],
     )]
     #[case(
-        Value::unchecked_multi(["Packet Street 6", "128 Series of Tubes", "Internet"]),
+        Value::new_multi(["Packet Street 6", "128 Series of Tubes", "Internet"]),
         &[
             Token::Seq { len: Some(3) },
             Token::Some,
@@ -689,19 +698,37 @@ mod tests {
     }
 
     #[rstest]
-    #[case(Value::unchecked_single(""), Value::unchecked_single(None))]
-    #[case(Value::unchecked_single("   "), Value::unchecked_single(None))]
-    #[case(Value::unchecked_multi(["", " ", "   "]), Value::unchecked_multi([None, None, None]))]
-    /// Creating unchecked values from empty strings results in None values.
-    fn value_unchecked_empty_is_none(#[case] value: Value, #[case] expected: Value) {
+    #[case(
+        Value::new_single(""),
+        Value::SingleLine {
+            inner: None,
+            _spec: PhantomData
+        }
+    )]
+    #[case(
+        Value::new_single("   "),
+        Value::SingleLine {
+            inner: None,
+            _spec: PhantomData
+        }
+    )]
+    #[case(
+        Value::new_multi(["", " ", "   "]),
+        Value::MultiLine {
+            inner: vec![None, None, None],
+            _spec: PhantomData
+        }
+    )]
+    /// Creating values from empty strings results in None values.
+    fn value_new_empty_is_none(#[case] value: Value, #[case] expected: Value) {
         assert_eq!(value, expected);
     }
 
     #[test]
     #[should_panic(expected = "multi line values need at least two lines")]
-    /// Unchecked multi line attributes cannot be created with only a single value.
-    fn value_unchecked_multi_with_singe_value_panics() {
-        Value::unchecked_multi(["just one"]);
+    /// Multi line attributes cannot be created with only a single value.
+    fn value_new_multi_with_single_value_panics() {
+        Value::new_multi(["just one"]);
     }
 
     // #[rstest]
@@ -746,28 +773,14 @@ mod tests {
     }
 
     #[rstest]
+    #[case(Value::new_single(""), vec![])]
+    #[case(Value::new_single("single value"), vec!["single value"])]
     #[case(
-        Value::unchecked_single(None),
-        vec![]
-    )]
-    #[case(
-        Value::unchecked_single("single value"),
-        vec!["single value"]
-    )]
-    #[case(
-        Value::unchecked_multi(vec![
-            None,
-            Some("128 Series of Tubes"),
-            Some("Internet"),
-        ]),
+        Value::new_multi(["", "128 Series of Tubes", "Internet"]),
         vec!["128 Series of Tubes", "Internet"]
     )]
     #[case(
-        Value::unchecked_multi([
-            "Packet Street 6",
-            "128 Series of Tubes",
-            "Internet"
-        ]),
+        Value::new_multi(["Packet Street 6", "128 Series of Tubes", "Internet"]),
         vec!["Packet Street 6", "128 Series of Tubes", "Internet"]
     )]
     fn value_with_content(#[case] value: Value, #[case] expected: Vec<&str>) {
@@ -780,14 +793,14 @@ mod tests {
     #[case("single value")]
     /// A value and &str evaluate as equal if the contents match.
     fn value_partialeq_str_eq_is_eq(#[case] s: &str) {
-        let value = Value::unchecked_single(s);
+        let value = Value::new_single(s);
         assert_eq!(value, s);
     }
 
     #[rstest]
-    #[case(Value::unchecked_single("a value"), "a different value")]
+    #[case(Value::new_single("a value"), "a different value")]
     #[case(
-        Value::unchecked_multi([
+        Value::new_multi([
             "multi",
             "value"
         ]),
@@ -800,15 +813,15 @@ mod tests {
 
     #[rstest]
     #[case(
-        Value::unchecked_single("single value"),
+        Value::new_single("single value"),
         vec!["single value"]
     )]
     #[case(
-        Value::unchecked_single(None),
+        Value::new_single(""),
         vec!["     "]
     )]
     #[case(
-        Value::unchecked_multi([
+        Value::new_multi([
             "multi",
             "value",
             "attribute"
@@ -816,11 +829,7 @@ mod tests {
         vec!["multi", "value", "attribute"]
     )]
     #[case(
-        Value::unchecked_multi([
-            Some("multi"),
-            None,
-            Some("attribute")
-        ]),
+        Value::new_multi(["multi", "", "attribute"]),
         vec!["multi", "     ", "attribute"]
     )]
     /// A value and a Vec<&str> evaluate as equal if the contents match.
@@ -829,20 +838,13 @@ mod tests {
     }
 
     #[rstest]
+    #[case(Value::new_single("single value"), vec!["multi", "value"])]
     #[case(
-        Value::unchecked_single("single value"),
-        vec!["multi", "value"]
-    )]
-    #[case(
-        Value::unchecked_single("single value"),
+        Value::new_single("single value"),
         vec!["other single value"]
     )]
     #[case(
-        Value::unchecked_multi([
-            "multi",
-            "value",
-            "attribute"
-        ]),
+        Value::new_multi(["multi", "value", "attribute"]),
         vec!["different", "multi", "value", "attribute"]
     )]
     /// A value and a Vec<&str> do not evaluate as equal if the contents differ.
@@ -851,20 +853,13 @@ mod tests {
     }
 
     #[rstest]
+    #[case(Value::new_single("single value"), vec![Some("single value")])]
     #[case(
-        Value::unchecked_single("single value"),
-        vec![Some("single value")]
-    )]
-    #[case(
-        Value::unchecked_multi([
-            "multi",
-            "value",
-            "attribute"
-        ]),
+        Value::new_multi(["multi", "value", "attribute"]),
         vec![Some("multi"), Some("value"), Some("attribute")]
     )]
     #[case(
-        Value::unchecked_multi([Some("multi"), None, Some("attribute")]),
+        Value::new_multi(["multi", "", "attribute"]),
         vec![Some("multi"), None, Some("attribute")]
     )]
     /// A value and a Vec<Option<&str>> evaluate as equal if the contents match.
@@ -874,23 +869,16 @@ mod tests {
 
     #[rstest]
     #[case(
-        Value::unchecked_single("single value"),
+        Value::new_single("single value"),
         vec![Some("multi"), Some("value")]
     )]
     #[case(
-        Value::unchecked_single("single value"),
+        Value::new_single("single value"),
         vec![Some("other single value")]
     )]
+    #[case(Value::new_single(""), vec![Some("     ")])]
     #[case(
-        Value::unchecked_single(None),
-        vec![Some("     ")]
-    )]
-    #[case(
-        Value::unchecked_multi([
-            "multi",
-            "value",
-            "attribute"
-        ]),
+        Value::new_multi(["multi", "value", "attribute"]),
         vec![Some("different"), Some("multi"), Some("value"), Some("attribute")]
     )]
     /// A value and a Vec<Option<&str>> do not evaluate as equal if the contents differ.
@@ -900,16 +888,21 @@ mod tests {
 
     #[rstest]
     #[case(
-        Value::unchecked_single("single value"),
+        Value::new_single("single value"),
         vec![Some("single value".to_string())]
     )]
     #[case(
-        Value::unchecked_multi(["multiple",  "values"]),
-        vec![Some("multiple".to_string()),  Some("values".to_string())]
+        Value::new_multi(["multiple", "values"]),
+        vec![Some("multiple".to_string()), Some("values".to_string())]
     )]
     #[case(
-        Value::unchecked_multi(["multiple", "", "separated",  "values"]),
-        vec![Some("multiple".to_string()), None, Some("separated".to_string()),  Some("values".to_string())]
+        Value::new_multi(["multiple", "", "separated", "values"]),
+        vec![
+            Some("multiple".to_string()),
+            None,
+            Some("separated".to_string()),
+            Some("values".to_string())
+        ]
     )]
     fn value_into_vec_of_option_string(
         #[case] value: Value,

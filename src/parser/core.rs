@@ -63,7 +63,7 @@ where
 {
     move |input: &mut &'s str| {
         let name: Name<'s> = take_till(1.., |c| c == ':')
-            .map(Name::unchecked)
+            .map(Name::from_parsed)
             .context(StrContext::Label("attribute name"))
             .parse_next(input)?;
 
@@ -99,9 +99,9 @@ where
             )
             .parse_next(input)?;
             continuation.insert(0, first);
-            Ok(Value::unchecked_multi(continuation))
+            Ok(Value::from_parsed_multi(continuation))
         } else {
-            Ok(Value::unchecked_single(first))
+            Ok(Value::from_parsed_single(first))
         }
     }
 }
