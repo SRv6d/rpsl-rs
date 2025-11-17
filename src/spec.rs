@@ -1,25 +1,24 @@
-use std::{convert::Infallible, fmt::Debug};
+use super::{attribute::Attribute, error::AttributeError};
+use std::fmt::Debug;
 
 pub trait Specification: Debug + Clone + Copy {
-    type NameError;
-    type ValueError;
-
-    fn validate_name(name: &str) -> Result<(), Self::NameError>;
-    fn validate_value(value: &str) -> Result<(), Self::ValueError>;
+    fn validate_attribute(attribute: &Attribute) -> Result<(), AttributeError>;
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Raw;
 
 impl Specification for Raw {
-    type NameError = Infallible;
-    type ValueError = Infallible;
-
-    fn validate_name(name: &str) -> Result<(), Self::NameError> {
+    fn validate_attribute(_attribute: &Attribute) -> Result<(), AttributeError> {
         Ok(())
     }
+}
 
-    fn validate_value(value: &str) -> Result<(), Self::ValueError> {
-        Ok(())
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct Rfc2622;
+
+impl Specification for Rfc2622 {
+    fn validate_attribute(_attribute: &Attribute) -> Result<(), AttributeError> {
+        todo!()
     }
 }
