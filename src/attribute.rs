@@ -131,18 +131,12 @@ impl<'a> Name<'a, Raw> {
     }
 }
 
-impl<S: Specification> FromStr for Name<'_, S> {
-    type Err = InvalidNameError;
+impl FromStr for Name<'_, Raw> {
+    type Err = Infallible;
 
-    /// Create a new `Name` from a string slice.
-    ///
-    /// A valid name may consist of ASCII letters, digits and the characters "-", "_",
-    /// while beginning with a letter and ending with a letter or a digit.
-    ///
-    /// # Errors
-    /// Returns an error if the name is empty or invalid.
+    /// Create a new [`Name`] from a string slice.
     fn from_str(name: &str) -> Result<Self, Self::Err> {
-        todo!()
+        Ok(Self::new(name))
     }
 }
 
