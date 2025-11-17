@@ -350,40 +350,31 @@ impl FromStr for Value<'_, Raw> {
 
     /// Create a new single line value from a string slice.
     fn from_str(value: &str) -> Result<Self, Self::Err> {
-        Ok(Self::SingleLine {
-            inner: coerce_empty_value(value).map(|value| Cow::Owned(value.to_string())),
-            _spec: PhantomData,
-        })
+        Ok(Self::new_single(value))
     }
 }
 
-// TODO: Turn into From<Vec<&str>>
-impl TryFrom<Vec<&str>> for Value<'_, Raw> {
-    type Error = Infallible;
+impl<S> From<Vec<S>> for Value<'_, Raw>
+where 
+    S: Into<String> 
+{
 
-    /// Create a new value from a vector of string slices, representing the values lines.
+    /// Create a new value from an iterator of value lines.
     ///
     /// # Example
     /// ```
     /// # use rpsl::Value;
-    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?;
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].into();
     /// assert_eq!(value.lines(), 3);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    fn try_from(values: Vec<&str>) -> Result<Self, Self::Error> {
-        if values.len() == 1 {
-            let value = values[0].parse()?;
-            return Ok(value);
-        }
-        let values = values
-            .into_iter()
-            .map(|v| Ok(coerce_empty_value(v).map(std::string::ToString::to_string)))
-            .collect::<Result<Vec<Option<String>>, Infallible>>()?;
+    fn from(values: Vec<S>) -> Self {
+        let v: Vec<String> = values.into_iter().map(Into::into).collect();
 
-        Ok(Self::MultiLine {
-            inner: values.into_iter().map(|v| v.map(Cow::Owned)).collect(),
-            _spec: PhantomData,
-        })
+        match v.len() {
+            0 => Value::new_single(String::new()),
+            1 => Value::new_single(v.into_iter().next().expect("vec has at least one value")),
+            _ => Value::new_multi(v),
+        }  
     }
 }
 
@@ -731,39 +722,39 @@ mod tests {
         Value::new_multi(["just one"]);
     }
 
-    // #[rstest]
-    // #[case(
-    //     vec!["Packet Street 6", "128 Series of Tubes", "Internet"],
-    //     Value::MultiLine(vec![
-    //         Some(Cow::Owned("Packet Street 6".to_string())),
-    //         Some(Cow::Owned("128 Series of Tubes".to_string())),
-    //         Some(Cow::Owned("Internet".to_string()))
-    //     ])
-    // )]
-    // #[case(
-    //     vec!["", "128 Series of Tubes", "Internet"],
-    //     Value::MultiLine(vec![
-    //         None,
-    //         Some(Cow::Owned("128 Series of Tubes".to_string())),
-    //         Some(Cow::Owned("Internet".to_string()))
-    //     ])
-    // )]
-    // #[case(
-    //     vec!["", " ", "   "],
-    //     Value::MultiLine(vec![None, None, None])
-    // )]
-    // fn value_from_vec_of_str(#[case] v: Vec<&str>, #[case] expected: Value) {
-    //     let value = Value::try_from(v).unwrap();
-    //     assert_eq!(value, expected);
-    // }
-
-    // #[test]
-    // fn value_from_vec_w_1_value_is_single_line() {
-    //     assert_eq!(
-    //         Value::try_from(vec!["Packet Street 6"]).unwrap(),
-    //         Value::SingleLine(Some(Cow::Owned("Packet Street 6".to_string())))
-    //     );
-    // }
+    #[rstest]
+    #[case(
+        vec!["Packet Street 6"],
+        Value::new_single("Packet Street 6")
+    )]
+    #[case(
+        vec![],
+        Value::new_single("")
+    )]
+    #[case(
+        vec!["Packet Street 6", "128 Series of Tubes", "Internet"],
+        Value::new_multi(vec![
+            "Packet Street 6",
+            "128 Series of Tubes",
+            "Internet"
+        ])
+    )]
+    #[case(
+        vec!["", "128 Series of Tubes", "Internet"],
+        Value::new_multi(vec![
+            "",
+            "128 Series of Tubes",
+            "Internet"
+        ])
+    )]
+    #[case(
+        vec!["", " ", "   "],
+        Value::new_multi(vec!["", "", ""])
+    )]
+    fn value_from_vec_of_str(#[case] v: Vec<&str>, #[case] expected: Value) {
+        let value = Value::from(v);
+        assert_eq!(value, expected);
+    }
 
     #[rstest]
     #[case("single value", 1)]
