@@ -110,7 +110,7 @@ pub struct Name<'a, S: Specification = Raw> {
     _spec: PhantomData<S>,
 }
 
-impl<'a> Name<'a, Raw> {
+impl Name<'static, Raw> {
     /// Create a [`Name`].
     pub fn new<S>(name: S) -> Self
     where
@@ -122,6 +122,9 @@ impl<'a> Name<'a, Raw> {
         }
     }
 
+}
+
+impl<'a> Name<'a, Raw> {
     /// Create a name from parsed RPSL.
     pub(crate) fn from_parsed(name: &'a str) -> Self {
         Self {
@@ -131,7 +134,7 @@ impl<'a> Name<'a, Raw> {
     }
 }
 
-impl FromStr for Name<'_, Raw> {
+impl FromStr for Name<'static, Raw> {
     type Err = Infallible;
 
     /// Create a new [`Name`] from a string slice.
@@ -284,7 +287,7 @@ impl<'a, S: Specification> Value<'a, S> {
     }
 }
 
-impl<'a> Value<'a, Raw> {
+impl Value<'static, Raw> {
     /// Create a single line value. Empty values are coerced to [`None`].
     pub fn new_single<V>(value: V) -> Self
     where
@@ -315,7 +318,9 @@ impl<'a> Value<'a, Raw> {
         assert!(s.lines() >= 2, "multi line values need at least two lines");
         s
     }
+}
 
+impl<'a> Value<'a, Raw> {
     /// Create a single line value from parsed RPSL. Empty values are coerced to [`None`].
     pub(crate) fn from_parsed_single(value: &'a str) -> Self
     {
@@ -345,7 +350,7 @@ impl<'a> Value<'a, Raw> {
     }
 }
 
-impl FromStr for Value<'_, Raw> {
+impl FromStr for Value<'static, Raw> {
     type Err = Infallible;
 
     /// Create a new single line value from a string slice.
@@ -354,7 +359,7 @@ impl FromStr for Value<'_, Raw> {
     }
 }
 
-impl<S> From<Vec<S>> for Value<'_, Raw>
+impl<S> From<Vec<S>> for Value<'static, Raw>
 where 
     S: Into<String> 
 {
