@@ -39,8 +39,9 @@ impl<'a, S: Specification> Attribute<'a, S> {
     }
 }
 
+#[cfg(test)]
 impl<'a> Attribute<'a, Raw> {
-    #[cfg(test)]
+    /// Test helper to create an attribute with a single line value.
     pub(crate) fn unchecked_single<V>(name: &'a str, value: V) -> Self
     where
         V: Into<Option<&'a str>>,
@@ -53,7 +54,7 @@ impl<'a> Attribute<'a, Raw> {
         Self { name, value }
     }
 
-    #[cfg(test)]
+    /// Test helper to create an attribute with a multi line value.
     pub(crate) fn unchecked_multi<I, V>(name: &'a str, values: I) -> Self
     where
         I: IntoIterator<Item = V>,
@@ -110,6 +111,7 @@ pub struct Name<'a, S: Specification = Raw> {
 }
 
 impl<'a> Name<'a, Raw> {
+    /// Create a [`Name`].
     pub fn new<S>(name: S) -> Self
     where
         S: Into<String>,
@@ -188,7 +190,9 @@ pub enum Value<'a, S: Specification = Raw> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     SingleLine {
+        /// The value.
         inner: Option<Cow<'a, str>>,
+        /// The values specification.
         #[cfg_attr(feature = "serde", serde(skip))]
         _spec: PhantomData<S>,
     },
@@ -208,7 +212,9 @@ pub enum Value<'a, S: Specification = Raw> {
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     MultiLine {
+        /// The value.
         inner: Vec<Option<Cow<'a, str>>>,
+        /// The values specification.
         #[cfg_attr(feature = "serde", serde(skip))]
         _spec: PhantomData<S>,
     },
