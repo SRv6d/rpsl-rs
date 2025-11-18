@@ -4,7 +4,6 @@ use std::{borrow::Cow, convert::Infallible, fmt, marker::PhantomData, ops::Deref
 use serde::Serialize;
 
 use crate::{
-    error::{InvalidNameError, InvalidValueError},
     spec::{Raw, Specification},
 };
 

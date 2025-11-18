@@ -1,4 +1,4 @@
-use super::{attribute::Attribute, error::AttributeError};
+use super::attribute::Attribute;
 use std::fmt::Debug;
 
 pub trait Specification: Debug + Clone + Copy {
@@ -20,5 +20,44 @@ pub struct Rfc2622;
 impl Specification for Rfc2622 {
     fn validate_attribute(_attribute: &Attribute) -> Result<(), AttributeError> {
         todo!()
+    }
+}
+
+#[derive(thiserror::Error, Debug)]
+/// An invalid attribute was encountered during validation.
+pub enum AttributeError {
+    /// The name of the attribute is invalid.
+    #[error("invalid attribute name {0}")]
+    InvalidName(#[from] InvalidNameError),
+    /// The value of the attribute is invalid.
+    #[error("invalid attribute value {0}")]
+    InvalidValue(#[from] InvalidValueError),
+}
+
+/// The attribute has an invalid name.
+#[derive(thiserror::Error, Debug)]
+#[error("`{name}`: {message}")]
+pub struct InvalidNameError {
+    name: String,
+    message: String,
+}
+
+impl InvalidNameError {
+    fn new(name: String, message: String) -> Self {
+        Self { name, message }
+    }
+}
+
+/// The attribute has an invalid value.
+#[derive(thiserror::Error, Debug)]
+#[error("`{name}`: {message}")]
+pub struct InvalidValueError {
+    name: String,
+    message: String,
+}
+
+impl InvalidValueError {
+    fn new(name: String, message: String) -> Self {
+        Self { name, message }
     }
 }
