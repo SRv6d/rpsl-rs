@@ -3,9 +3,7 @@ use std::{borrow::Cow, convert::Infallible, fmt, marker::PhantomData, ops::Deref
 #[cfg(feature = "serde")]
 use serde::Serialize;
 
-use crate::{
-    spec::{Raw, Specification},
-};
+use crate::spec::{AttributeError, Raw, Specification};
 
 /// An attribute of an [`Object`](crate::Object).
 ///
@@ -35,6 +33,23 @@ impl<'a, S: Specification> Attribute<'a, S> {
     #[must_use]
     pub fn new(name: Name<'a, S>, value: Value<'a, S>) -> Self {
         Self { name, value }
+    }
+
+    /// Validate that the attribute conforms to a target specification.
+    /// 
+    /// # Errors
+    /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
+    pub fn validate<Target: Specification>(&self) -> Result<(), AttributeError> {
+        Target::validate_attribute(self)
+    }
+
+    /// Convert the attribute into a target specification.
+    /// 
+    /// # Errors
+    /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
+    pub fn into_spec<Target: Specification>(self) -> Result<Attribute<'a, Target>, AttributeError> {
+        self.validate::<Target>()?;
+        Ok(Attribute { name: self.name.into_specification(), value: self.value.into_specification() })
     }
 }
 
@@ -71,6 +86,7 @@ impl<'a> Attribute<'a, Raw> {
         Self { name, value }
     }
 }
+
 
 impl<S: Specification> fmt::Display for Attribute<'_, S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -128,6 +144,15 @@ impl<'a> Name<'a, Raw> {
     pub(crate) fn from_parsed(name: &'a str) -> Self {
         Self {
             inner: Cow::Borrowed(name),
+            _spec: PhantomData,
+        }
+    }
+}
+
+impl<'a, S: Specification> Name<'a, S> {
+    fn into_specification<Target: Specification>(self) -> Name<'a, Target> {
+        Name {
+            inner: self.inner,
             _spec: PhantomData,
         }
     }
@@ -282,6 +307,19 @@ impl<'a, S: Specification> Value<'a, S> {
                 }
             }
             Self::MultiLine { inner, .. } => inner.iter().flatten().map(AsRef::as_ref).collect(),
+        }
+    }
+
+    fn into_specification<Target: Specification>(self) -> Value<'a, Target> {
+        match self {
+            Value::SingleLine { inner, .. } => Value::SingleLine {
+                inner,
+                _spec: PhantomData,
+            },
+            Value::MultiLine { inner, .. } => Value::MultiLine {
+                inner,
+                _spec: PhantomData,
+            },
         }
     }
 }

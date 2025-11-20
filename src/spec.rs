@@ -2,14 +2,18 @@ use super::attribute::Attribute;
 use std::fmt::Debug;
 
 pub trait Specification: Debug + Clone + Copy {
-    fn validate_attribute(attribute: &Attribute) -> Result<(), AttributeError>;
+    fn validate_attribute<S: Specification>(
+        attribute: &Attribute<'_, S>,
+    ) -> Result<(), AttributeError>;
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Raw;
 
 impl Specification for Raw {
-    fn validate_attribute(_attribute: &Attribute) -> Result<(), AttributeError> {
+    fn validate_attribute<S: Specification>(
+        _attribute: &Attribute<'_, S>,
+    ) -> Result<(), AttributeError> {
         Ok(())
     }
 }
@@ -18,7 +22,9 @@ impl Specification for Raw {
 pub struct Rfc2622;
 
 impl Specification for Rfc2622 {
-    fn validate_attribute(_attribute: &Attribute) -> Result<(), AttributeError> {
+    fn validate_attribute<S: Specification>(
+        _attribute: &Attribute<'_, S>,
+    ) -> Result<(), AttributeError> {
         todo!()
     }
 }
