@@ -1,4 +1,4 @@
-use super::attribute::Attribute;
+use super::attribute::{Attribute, Name, Value};
 use std::fmt::Debug;
 
 pub trait Specification: Debug + Clone + Copy {
@@ -44,26 +44,32 @@ pub enum AttributeError {
 #[derive(thiserror::Error, Debug)]
 #[error("`{name}`: {message}")]
 pub struct InvalidNameError {
-    name: String,
+    name: Name<'static>,
     message: String,
 }
 
 impl InvalidNameError {
-    fn new(name: String, message: String) -> Self {
-        Self { name, message }
+    fn new(name: &Name, message: String) -> Self {
+        Self {
+            name: name.clone().into_owned(),
+            message,
+        }
     }
 }
 
 /// The attribute has an invalid value.
 #[derive(thiserror::Error, Debug)]
-#[error("`{name}`: {message}")]
+#[error("`{value:?}`: {message}")]
 pub struct InvalidValueError {
-    name: String,
+    value: Value<'static>,
     message: String,
 }
 
 impl InvalidValueError {
-    fn new(name: String, message: String) -> Self {
-        Self { name, message }
+    fn new(value: &Value, message: String) -> Self {
+        Self {
+            value: value.clone().into_owned(),
+            message,
+        }
     }
 }
