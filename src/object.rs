@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     fmt,
     ops::{Deref, Index},
 };
@@ -7,6 +8,7 @@ use std::{
 use serde::Serialize;
 
 use super::Attribute;
+use crate::spec::{Raw, Specification};
 
 /// A RPSL object.
 ///
@@ -176,16 +178,16 @@ use super::Attribute;
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(Serialize))]
+#[cfg_attr(feature = "serde", derive(Serialize), serde(bound = ""))]
 #[allow(clippy::len_without_is_empty)]
-pub struct Object<'a> {
-    attributes: Vec<Attribute<'a>>,
+pub struct Object<'a, S: Specification = Raw> {
+    attributes: Vec<Attribute<'a, S>>,
     /// Contains the source if the object was created by parsing RPSL.
     #[cfg_attr(feature = "serde", serde(skip))]
-    source: Option<&'a str>,
+    source: Option<Cow<'a, str>>,
 }
 
-impl Object<'_> {
+impl<'a, S: Specification> Object<'a, S> {
     /// Create a new RPSL object from a vector of attributes.
     ///
     /// # Example
@@ -205,7 +207,7 @@ impl Object<'_> {
     /// # }
     /// ```
     #[must_use]
-    pub fn new(attributes: Vec<Attribute<'static>>) -> Object<'static> {
+    pub fn new(attributes: Vec<Attribute<'static, S>>) -> Object<'static, S> {
         Object {
             attributes,
             source: None,
@@ -213,10 +215,10 @@ impl Object<'_> {
     }
 
     /// Create a new RPSL object from a text source and it's corresponding parsed attributes.
-    pub(crate) fn new_parsed<'a>(source: &'a str, attributes: Vec<Attribute<'a>>) -> Object<'a> {
+    pub(crate) fn new_parsed(source: &'a str, attributes: Vec<Attribute<'a, S>>) -> Object<'a, S> {
         Object {
             attributes,
-            source: Some(source),
+            source: Some(Cow::Borrowed(source)),
         }
     }
 
@@ -248,28 +250,40 @@ impl Object<'_> {
     /// Access the source field for use in tests.
     #[cfg(test)]
     pub(crate) fn source(&self) -> Option<&str> {
-        self.source
+        self.source.as_deref()
+    }
+
+    /// Convert this object into an owned (`'static`) variant.
+    pub fn into_owned(self) -> Object<'static, S> {
+        Object {
+            attributes: self
+                .attributes
+                .into_iter()
+                .map(Attribute::into_owned)
+                .collect(),
+            source: self.source.map(|s| Cow::Owned(s.into_owned())),
+        }
     }
 }
 
-impl<'a> Index<usize> for Object<'a> {
-    type Output = Attribute<'a>;
+impl<'a, S: Specification> Index<usize> for Object<'a, S> {
+    type Output = Attribute<'a, S>;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.attributes[index]
     }
 }
 
-impl<'a> Deref for Object<'a> {
-    type Target = Vec<Attribute<'a>>;
+impl<'a, S: Specification> Deref for Object<'a, S> {
+    type Target = Vec<Attribute<'a, S>>;
 
     fn deref(&self) -> &Self::Target {
         &self.attributes
     }
 }
 
-impl<'a> IntoIterator for Object<'a> {
-    type Item = Attribute<'a>;
+impl<'a, S: Specification> IntoIterator for Object<'a, S> {
+    type Item = Attribute<'a, S>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -288,7 +302,7 @@ impl PartialEq for Object<'_> {
 impl fmt::Display for Object<'_> {
     /// Display the object as RPSL.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(source) = self.source {
+        if let Some(source) = &self.source {
             write!(f, "{source}")
         } else {
             for attribute in &self.attributes {
