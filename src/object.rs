@@ -33,13 +33,13 @@ use crate::spec::{Raw, Specification};
 /// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let role_acme = Object::new(vec![
-///     Attribute::new("role".parse()?, "ACME Company".parse()?),
-///     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-///     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-///     Attribute::new("address".parse()?, "Internet".parse()?),
-///     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-///     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-///     Attribute::new("source".parse()?, "RIPE".parse()?),
+///     Attribute::new("role", "ACME Company"),
+///     Attribute::new("address", "Packet Street 6"),
+///     Attribute::new("address", "128 Series of Tubes"),
+///     Attribute::new("address", "Internet"),
+///     Attribute::new("email", "rpsl-rs@github.com"),
+///     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+///     Attribute::new("source", "RIPE"),
 /// ]);
 /// # Ok(())
 /// # }
@@ -51,13 +51,13 @@ use crate::spec::{Raw, Specification};
 /// # use rpsl::{Attribute, Object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
-/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
-/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-/// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// #     Attribute::new("role", "ACME Company"),
+/// #     Attribute::new("address", "Packet Street 6"),
+/// #     Attribute::new("address", "128 Series of Tubes"),
+/// #     Attribute::new("address", "Internet"),
+/// #     Attribute::new("email", "rpsl-rs@github.com"),
+/// #     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+/// #     Attribute::new("source", "RIPE"),
 /// # ]);
 /// assert_eq!(
 ///     role_acme,
@@ -80,16 +80,16 @@ use crate::spec::{Raw, Specification};
 /// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
-/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
-/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-/// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// #     Attribute::new("role", "ACME Company"),
+/// #     Attribute::new("address", "Packet Street 6"),
+/// #     Attribute::new("address", "128 Series of Tubes"),
+/// #     Attribute::new("address", "Internet"),
+/// #     Attribute::new("email", "rpsl-rs@github.com"),
+/// #     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+/// #     Attribute::new("source", "RIPE"),
 /// # ]);
-/// assert_eq!(role_acme[0], Attribute::new("role".parse()?, "ACME Company".parse()?));
-/// assert_eq!(role_acme[6], Attribute::new("source".parse()?, "RIPE".parse()?));
+/// assert_eq!(role_acme[0], Attribute::new("role", "ACME Company"));
+/// assert_eq!(role_acme[6], Attribute::new("source", "RIPE"));
 /// # Ok(())
 /// # }
 /// ```
@@ -99,13 +99,13 @@ use crate::spec::{Raw, Specification};
 /// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
-/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
-/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-/// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// #     Attribute::new("role", "ACME Company"),
+/// #     Attribute::new("address", "Packet Street 6"),
+/// #     Attribute::new("address", "128 Series of Tubes"),
+/// #     Attribute::new("address", "Internet"),
+/// #     Attribute::new("email", "rpsl-rs@github.com"),
+/// #     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+/// #     Attribute::new("source", "RIPE"),
 /// # ]);
 /// assert_eq!(role_acme.get("role"), vec!["ACME Company"]);
 /// assert_eq!(role_acme.get("address"), vec!["Packet Street 6", "128 Series of Tubes", "Internet"]);
@@ -121,13 +121,13 @@ use crate::spec::{Raw, Specification};
 /// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
-/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
-/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-/// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// #     Attribute::new("role", "ACME Company"),
+/// #     Attribute::new("address", "Packet Street 6"),
+/// #     Attribute::new("address", "128 Series of Tubes"),
+/// #     Attribute::new("address", "Internet"),
+/// #     Attribute::new("email", "rpsl-rs@github.com"),
+/// #     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+/// #     Attribute::new("source", "RIPE"),
 /// # ]);
 /// assert_eq!(
 ///    role_acme.to_string(),
@@ -152,13 +152,13 @@ use crate::spec::{Raw, Specification};
 /// # #[cfg(feature = "json")]
 /// # use serde_json::json;
 /// # let role_acme = Object::new(vec![
-/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
-/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-/// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// #     Attribute::new("role", "ACME Company"),
+/// #     Attribute::new("address", "Packet Street 6"),
+/// #     Attribute::new("address", "128 Series of Tubes"),
+/// #     Attribute::new("address", "Internet"),
+/// #     Attribute::new("email", "rpsl-rs@github.com"),
+/// #     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+/// #     Attribute::new("source", "RIPE"),
 /// # ]);
 /// # #[cfg(feature = "json")]
 /// assert_eq!(
@@ -195,13 +195,13 @@ impl<'a, S: Specification> Object<'a, S> {
     /// # use rpsl::{Attribute, Object};
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let role_acme = Object::new(vec![
-    ///     Attribute::new("role".parse()?, "ACME Company".parse()?),
-    ///     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-    ///     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-    ///     Attribute::new("address".parse()?, "Internet".parse()?),
-    ///     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-    ///     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-    ///     Attribute::new("source".parse()?, "RIPE".parse()?),
+    ///     Attribute::new("role", "ACME Company"),
+    ///     Attribute::new("address", "Packet Street 6"),
+    ///     Attribute::new("address", "128 Series of Tubes"),
+    ///     Attribute::new("address", "Internet"),
+    ///     Attribute::new("email", "rpsl-rs@github.com"),
+    ///     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+    ///     Attribute::new("source", "RIPE"),
     /// ]);
     /// # Ok(())
     /// # }
@@ -360,7 +360,11 @@ macro_rules! object {
     ) => {
         $crate::Object::new(vec![
             $(
-                $crate::Attribute::new($name.parse().unwrap(), vec![$($value),+].try_into().unwrap()),
+                {
+                    let name = $crate::Name::new($name);
+                    let value: $crate::Value = vec![$($value),+].into();
+                    $crate::Attribute::new(name, value)
+                },
             )*
         ])
     };

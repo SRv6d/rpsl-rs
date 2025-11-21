@@ -14,9 +14,8 @@ use crate::spec::{AttributeError, Raw, Specification};
 /// name:           ACME Company
 ///
 /// ")?;
-/// let attribute = Attribute::new("name".parse()?, "ACME Company".parse()?);
+/// let attribute = Attribute::new("name", "ACME Company");
 /// assert_eq!(object[0], attribute);
-/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize), serde(bound = ""))]
@@ -197,6 +196,12 @@ impl From<&str> for Name<'static, Raw> {
     }
 }
 
+impl From<String> for Name<'static, Raw> {
+    fn from(name: String) -> Self {
+        Self::new(name)
+    }
+}
+
 impl<S: Specification> Deref for Name<'_, S> {
     type Target = str;
 
@@ -236,9 +241,8 @@ pub enum Value<'a, S: Specification = Raw> {
     /// name:           ACME Company
     ///
     /// ")?;
-    /// let value: Value = "ACME Company".parse()?;
+    /// let value = Value::new("ACME Company");
     /// assert_eq!(object[0].value, value);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     SingleLine {
         /// The value.
@@ -258,9 +262,8 @@ pub enum Value<'a, S: Specification = Raw> {
     ///                 Internet
     ///
     /// ")?;
-    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?;
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].into();
     /// assert_eq!(object[0].value, value);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     MultiLine {
         /// The value.
@@ -279,17 +282,15 @@ impl<'a, S: Specification> Value<'a, S> {
     /// A value with a single line.
     /// ```
     /// # use rpsl::Value;
-    /// let value: Value = "ACME Company".parse()?;
+    /// let value = Value::new("ACME Company");
     /// assert_eq!(value.lines(), 1);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     ///
     /// A value with multiple lines.
     /// ```
     /// # use rpsl::Value;
-    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?;
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].into();
     /// assert_eq!(value.lines(), 3);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[must_use]
     pub fn lines(&self) -> usize {
@@ -446,6 +447,12 @@ impl FromStr for Value<'static, Raw> {
 
 impl From<&str> for Value<'static, Raw> {
     fn from(value: &str) -> Self {
+        Self::new_single(value)
+    }
+}
+
+impl From<String> for Value<'static, Raw> {
+    fn from(value: String) -> Self {
         Self::new_single(value)
     }
 }
@@ -854,7 +861,7 @@ mod tests {
 
     #[rstest]
     #[case("single value", 1)]
-    #[case(vec!["multi", "value", "attribute"].try_into().unwrap(), 3)]
+    #[case(vec!["multi", "value", "attribute"].into(), 3)]
     fn value_lines(#[case] value: Value, #[case] expected: usize) {
         assert_eq!(value.lines(), expected);
     }

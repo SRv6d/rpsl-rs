@@ -27,6 +27,7 @@ mod strategies {
     use std::ops::RangeInclusive;
 
     use proptest::{prelude::*, strategy::BoxedStrategy};
+    use rpsl::Value;
 
     const CONTENT_LEN: RangeInclusive<usize> = 1..=80;
 
@@ -111,15 +112,10 @@ mod strategies {
         )
             .prop_map(|(name, space, cont_prefix, value)| {
                 let attribute = rpsl::Attribute::new(
-                    name.parse().unwrap(),
+                    name.clone(),
                     match &value {
-                        AttributeValue::Single(value) => value.parse().unwrap(),
-                        AttributeValue::Multi(values) => values
-                            .iter()
-                            .map(AsRef::as_ref)
-                            .collect::<Vec<&str>>()
-                            .try_into()
-                            .unwrap(),
+                        AttributeValue::Single(value) => Value::new_single(value),
+                        AttributeValue::Multi(values) => Value::new_multi(values),
                     },
                 );
 
