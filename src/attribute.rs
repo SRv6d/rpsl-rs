@@ -31,8 +31,15 @@ pub struct Attribute<'a, S: Specification = Raw> {
 impl<'a, S: Specification> Attribute<'a, S> {
     /// Create a new attribute.
     #[must_use]
-    pub fn new(name: Name<'a, S>, value: Value<'a, S>) -> Self {
-        Self { name, value }
+    pub fn new<N, V>(name: N, value: V) -> Self
+    where
+        N: Into<Name<'a, S>>,
+        V: Into<Value<'a, S>>,
+    {
+        Self {
+            name: name.into(),
+            value: value.into(),
+        }
     }
 
     /// Validate that the attribute conforms to a target specification.
@@ -164,6 +171,12 @@ impl FromStr for Name<'static, Raw> {
     /// Create a new [`Name`] from a string slice.
     fn from_str(name: &str) -> Result<Self, Self::Err> {
         Ok(Self::new(name))
+    }
+}
+
+impl From<&str> for Name<'static, Raw> {
+    fn from(name: &str) -> Self {
+        Self::new(name)
     }
 }
 
@@ -393,6 +406,12 @@ impl FromStr for Value<'static, Raw> {
     /// Create a new single line value from a string slice.
     fn from_str(value: &str) -> Result<Self, Self::Err> {
         Ok(Self::new_single(value))
+    }
+}
+
+impl From<&str> for Value<'static, Raw> {
+    fn from(value: &str) -> Self {
+        Self::new_single(value)
     }
 }
 
