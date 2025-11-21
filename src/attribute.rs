@@ -58,6 +58,14 @@ impl<'a, S: Specification> Attribute<'a, S> {
         self.validate::<Target>()?;
         Ok(Attribute { name: self.name.into_specification(), value: self.value.into_specification() })
     }
+
+    /// Convert this attribute into an owned (`'static`) variant.
+    pub fn into_owned(self) -> Attribute<'static, S> {
+        Attribute {
+            name: self.name.into_owned(),
+            value: self.value.into_owned(),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -160,6 +168,15 @@ impl<'a, S: Specification> Name<'a, S> {
     fn into_specification<Target: Specification>(self) -> Name<'a, Target> {
         Name {
             inner: self.inner,
+            _spec: PhantomData,
+        }
+    }
+
+    #[must_use]
+    /// Convert this name into an owned (`'static`) version.
+    pub fn into_owned(self) -> Name<'static, S> {
+        Name {
+            inner: Cow::Owned(self.inner.into_owned()),
             _spec: PhantomData,
         }
     }
@@ -331,6 +348,24 @@ impl<'a, S: Specification> Value<'a, S> {
             },
             Value::MultiLine { inner, .. } => Value::MultiLine {
                 inner,
+                _spec: PhantomData,
+            },
+        }
+    }
+
+    #[must_use]
+    /// Convert this value into an owned (`'static`) version.
+    pub fn into_owned(self) -> Value<'static, S> {
+        match self {
+            Value::SingleLine { inner, .. } => Value::SingleLine {
+                inner: inner.map(|v| Cow::Owned(v.into_owned())),
+                _spec: PhantomData,
+            },
+            Value::MultiLine { inner, .. } => Value::MultiLine {
+                inner: inner
+                    .into_iter()
+                    .map(|v| v.map(|v| Cow::Owned(v.into_owned())))
+                    .collect(),
                 _spec: PhantomData,
             },
         }
