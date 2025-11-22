@@ -16,6 +16,7 @@ use crate::spec::{AttributeError, Raw, Specification};
 /// ")?;
 /// let attribute = Attribute::new("name", "ACME Company");
 /// assert_eq!(object[0], attribute);
+/// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize), serde(bound = ""))]
@@ -241,8 +242,9 @@ pub enum Value<'a, S: Specification = Raw> {
     /// name:           ACME Company
     ///
     /// ")?;
-    /// let value = Value::new("ACME Company");
+    /// let value = Value::new_single("ACME Company");
     /// assert_eq!(object[0].value, value);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     SingleLine {
         /// The value.
@@ -264,6 +266,7 @@ pub enum Value<'a, S: Specification = Raw> {
     /// ")?;
     /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].into();
     /// assert_eq!(object[0].value, value);
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     MultiLine {
         /// The value.
@@ -282,7 +285,7 @@ impl<'a, S: Specification> Value<'a, S> {
     /// A value with a single line.
     /// ```
     /// # use rpsl::Value;
-    /// let value = Value::new("ACME Company");
+    /// let value = Value::new_single("ACME Company");
     /// assert_eq!(value.lines(), 1);
     /// ```
     ///
