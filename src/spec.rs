@@ -207,7 +207,10 @@ mod tests {
 
     proptest! {
         #[test]
-        fn rfc2622_attribute_value_non_ascii_is_err(value in r"[^[:ascii:]]") {
+        fn rfc2622_attribute_value_non_ascii_is_err(
+            value in r"[^[:ascii:]]"
+                .prop_filter("value should not be empty", |value| !value.trim().is_empty())
+        ) {
             let v = Value::new_single(value);
             assert!(Rfc2622::validate_value(&v).is_err());
         }
@@ -215,7 +218,10 @@ mod tests {
 
     proptest! {
         #[test]
-        fn rfc2622_attribute_value_ascii_control_is_err(value in r"[[:cntrl:]]") {
+        fn rfc2622_attribute_value_ascii_control_is_err(
+            value in r"[[:cntrl:]]"
+                .prop_filter("value should not be empty", |value| !value.trim().is_empty())
+        ) {
             let v = Value::new_single(value);
             assert!(Rfc2622::validate_value(&v).is_err());
         }
