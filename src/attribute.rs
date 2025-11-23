@@ -46,17 +46,25 @@ impl<'a, S: Specification> Attribute<'a, S> {
     /// 
     /// # Errors
     /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
-    pub fn validate<Target: Specification>(&self) -> Result<(), AttributeError> {
-        Target::validate_attribute(self)
+    pub fn validate<Target: Specification>(&self) -> Result<(), AttributeError<Target>> {
+        let candidate = Attribute {
+            name: self.name.clone().into_specification(),
+            value: self.value.clone().into_specification(),
+        };
+        Target::validate_attribute(&candidate)
     }
 
     /// Convert the attribute into a target specification.
     /// 
     /// # Errors
     /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
-    pub fn into_spec<Target: Specification>(self) -> Result<Attribute<'a, Target>, AttributeError> {
-        self.validate::<Target>()?;
-        Ok(Attribute { name: self.name.into_specification(), value: self.value.into_specification() })
+    pub fn into_spec<Target: Specification>(self) -> Result<Attribute<'a, Target>, AttributeError<Target>> {
+        let candidate = Attribute {
+            name: self.name.into_specification(),
+            value: self.value.into_specification(),
+        };
+        Target::validate_attribute(&candidate)?;
+        Ok(candidate)
     }
 
     /// Convert this attribute into an owned (`'static`) variant.

@@ -2,18 +2,14 @@ use super::attribute::{Attribute, Name, Value};
 use std::fmt::Debug;
 
 pub trait Specification: Debug + Clone + Copy {
-    fn validate_attribute<S: Specification>(
-        attribute: &Attribute<'_, S>,
-    ) -> Result<(), AttributeError>;
+    fn validate_attribute(attribute: &Attribute<'_, Self>) -> Result<(), AttributeError<Self>>;
 }
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Raw;
 
 impl Specification for Raw {
-    fn validate_attribute<S: Specification>(
-        _attribute: &Attribute<'_, S>,
-    ) -> Result<(), AttributeError> {
+    fn validate_attribute(_attribute: &Attribute<'_, Self>) -> Result<(), AttributeError<Self>> {
         Ok(())
     }
 }
@@ -22,19 +18,85 @@ impl Specification for Raw {
 pub struct Rfc2622;
 
 impl Rfc2622 {
-    fn validate_name<S: Specification>(name: &Name<'_, S>) -> Result<(), InvalidNameError> {
-        todo!()
+    fn validate_name<S: Specification>(name: &Name<S>) -> Result<(), InvalidNameError<S>> {
+        if name.len() < 2 {
+            return Err(InvalidNameError::new(
+                name,
+                "must be at least two characters long",
+            ));
+        }
+
+        if !name.is_ascii() {
+            return Err(InvalidNameError::new(
+                name,
+                "must contain only ASCII characters",
+            ));
+        }
+
+        let mut chars = name.chars();
+        let first = chars.next().expect("must have a first character");
+        let last = name.chars().last().expect("must have a last character");
+        if !first.is_ascii_alphabetic() {
+            return Err(InvalidNameError::new(
+                name,
+                "must start with an ASCII alphabetic character",
+            ));
+        }
+        if !last.is_ascii_alphanumeric() {
+            return Err(InvalidNameError::new(
+                name,
+                "must end with an ASCII alphanumeric character",
+            ));
+        }
+
+        if !name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+        {
+            return Err(InvalidNameError::new(
+                name,
+                "may only contain ASCII letters, digits, '-' or '_'",
+            ));
+        }
+
+        Ok(())
     }
 
-    fn validate_value<S: Specification>(value: &Value<'_, S>) -> Result<(), InvalidValueError> {
-        todo!()
+    fn validate_value<S: Specification>(value: &Value<S>) -> Result<(), InvalidValueError<S>> {
+        let validator = |v: &str| {
+            if !v.is_ascii() {
+                return Err(InvalidValueError::new(
+                    value,
+                    "must contain only ASCII characters",
+                ));
+            }
+
+            if v.chars().any(|c| c.is_ascii_control()) {
+                return Err(InvalidValueError::new(
+                    value,
+                    "must not contain ASCII control characters",
+                ));
+            }
+
+            if v.starts_with(|c: char| c.is_ascii_whitespace()) {
+                return Err(InvalidValueError::new(
+                    value,
+                    "must not start with whitespace",
+                ));
+            }
+
+            Ok(())
+        };
+        for v in value.with_content() {
+            validator(v)?;
+        }
+
+        Ok(())
     }
 }
 
 impl Specification for Rfc2622 {
-    fn validate_attribute<S: Specification>(
-        attribute: &Attribute<'_, S>,
-    ) -> Result<(), AttributeError> {
+    fn validate_attribute(attribute: &Attribute<'_, Self>) -> Result<(), AttributeError<Self>> {
         Self::validate_name(&attribute.name)?;
         Self::validate_value(&attribute.value)?;
         Ok(())
@@ -43,28 +105,28 @@ impl Specification for Rfc2622 {
 
 #[derive(thiserror::Error, Debug)]
 /// An invalid attribute was encountered during validation.
-pub enum AttributeError {
+pub enum AttributeError<S: Specification = Raw> {
     /// The name of the attribute is invalid.
     #[error("invalid attribute name {0}")]
-    InvalidName(#[from] InvalidNameError),
+    InvalidName(#[from] InvalidNameError<S>),
     /// The value of the attribute is invalid.
     #[error("invalid attribute value {0}")]
-    InvalidValue(#[from] InvalidValueError),
+    InvalidValue(#[from] InvalidValueError<S>),
 }
 
 /// The attribute has an invalid name.
 #[derive(thiserror::Error, Debug)]
 #[error("`{name}`: {message}")]
-pub struct InvalidNameError {
-    name: Name<'static>,
+pub struct InvalidNameError<S: Specification> {
+    name: Name<'static, S>,
     message: String,
 }
 
-impl InvalidNameError {
-    fn new(name: &Name, message: String) -> Self {
+impl<S: Specification> InvalidNameError<S> {
+    fn new(name: &Name<S>, message: impl Into<String>) -> Self {
         Self {
             name: name.clone().into_owned(),
-            message,
+            message: message.into(),
         }
     }
 }
@@ -72,16 +134,16 @@ impl InvalidNameError {
 /// The attribute has an invalid value.
 #[derive(thiserror::Error, Debug)]
 #[error("`{value:?}`: {message}")]
-pub struct InvalidValueError {
-    value: Value<'static>,
+pub struct InvalidValueError<S: Specification> {
+    value: Value<'static, S>,
     message: String,
 }
 
-impl InvalidValueError {
-    fn new(value: &Value, message: String) -> Self {
+impl<S: Specification> InvalidValueError<S> {
+    fn new(value: &Value<S>, message: impl Into<String>) -> Self {
         Self {
             value: value.clone().into_owned(),
-            message,
+            message: message.into(),
         }
     }
 }
