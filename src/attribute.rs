@@ -352,6 +352,25 @@ impl<'a, S: Specification> Value<'a, S> {
         }
     }
 
+    /// Returns `true` if the value is empty.
+    /// 
+    /// # Example
+    /// ```
+    /// # use rpsl::parse_object;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let remarks = parse_object("
+    /// remarks:
+    ///
+    /// ")?;
+    /// assert_eq!(remarks[0].value.is_empty(), true);
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.with_content().is_empty()
+    }
+
     fn into_specification<Target: Specification>(self) -> Value<'a, Target> {
         match self {
             Value::SingleLine { inner, .. } => Value::SingleLine {
