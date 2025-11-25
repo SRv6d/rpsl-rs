@@ -1,6 +1,6 @@
 use std::fmt;
 use winnow::{
-    ascii::{newline, space0},
+    ascii::{multispace0, newline, space0},
     combinator::{alt, delimited, peek, preceded, repeat, terminated},
     error::{AddContext, ContextError, ParserError, StrContext, StrContextValue},
     token::{one_of, take_till, take_while},
@@ -9,14 +9,19 @@ use winnow::{
 
 use crate::{Attribute, Name, Object, Value};
 
-/// Generate an object block parser.
-/// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
-/// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
+/// Parse a list of attributes that make up an object.
+///
+/// Consumes optional surrounding whitespace, then reads attributes
+/// until the mandatory blank line that terminates the object.
 pub fn object_block<'s, E>() -> impl Parser<&'s str, Object<'s>, E>
 where
     E: ParserError<&'s str> + AddContext<&'s str, StrContext>,
 {
-    terminated(repeat(1.., attribute()), newline)
+    // a list of attributes that ends when a blank line is encountered, as per RFC 2622.
+    let object = terminated(repeat(1.., attribute()), newline);
+
+    // allow for some optional padding
+    delimited(multispace0, object, multispace0)
         .with_taken()
         .map(|(attributes, source)| Object::new_parsed(source, attributes))
 }
@@ -35,7 +40,7 @@ where
     )
 }
 
-/// Generate a parser that consumes optional messages or newlines.
+/// Consume optional messages or newlines.
 fn consume_opt_messages_or_newlines<'s, E>() -> impl Parser<&'s str, (), E>
 where
     E: ParserError<&'s str>,
@@ -56,8 +61,7 @@ where
     )
 }
 
-// Generate an attribute parser.
-// The attributes name and value are separated by a colon and optional spaces.
+/// Parse an attribute value pair.
 fn attribute<'s, E>() -> impl Parser<&'s str, Attribute<'s>, E>
 where
     E: ParserError<&'s str> + AddContext<&'s str, StrContext>,
@@ -68,10 +72,11 @@ where
             .context(StrContext::Label("attribute name"))
             .parse_next(input)?;
 
-        // consume the separator and optionally any following spaces
+        // consume the separator
         ':'.context(StrContext::Label("separator"))
             .context(StrContext::Expected(StrContextValue::StringLiteral(":")))
             .parse_next(input)?;
+        // and optionally any following spaces
         space0.parse_next(input)?;
 
         let value = attribute_value().parse_next(input)?;
@@ -80,7 +85,7 @@ where
     }
 }
 
-/// Generate an attribute value parser that includes continuation lines.
+/// Parse an attribute value with optional continuation lines.
 fn attribute_value<'s, E>() -> impl Parser<&'s str, Value<'s>, E>
 where
     E: ParserError<&'s str>,
@@ -107,7 +112,7 @@ where
     }
 }
 
-/// Generate a parser for a single continuation character.
+/// Parse a single continuation character.
 fn continuation_char<'s, E>() -> impl Parser<&'s str, char, E>
 where
     E: ParserError<&'s str>,
