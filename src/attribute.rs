@@ -43,7 +43,7 @@ impl<'a, S: Specification> Attribute<'a, S> {
     }
 
     /// Validate that the attribute conforms to a target specification.
-    /// 
+    ///
     /// # Errors
     /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
     pub fn validate<Target: Specification>(&self) -> Result<(), AttributeError<Target>> {
@@ -55,10 +55,12 @@ impl<'a, S: Specification> Attribute<'a, S> {
     }
 
     /// Convert the attribute into a target specification.
-    /// 
+    ///
     /// # Errors
     /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
-    pub fn into_spec<Target: Specification>(self) -> Result<Attribute<'a, Target>, AttributeError<Target>> {
+    pub fn into_spec<Target: Specification>(
+        self,
+    ) -> Result<Attribute<'a, Target>, AttributeError<Target>> {
         let candidate = Attribute {
             name: self.name.into_specification(),
             value: self.value.into_specification(),
@@ -110,7 +112,6 @@ impl<'a> Attribute<'a, Raw> {
     }
 }
 
-
 impl<S: Specification> fmt::Display for Attribute<'_, S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let values = self.value.values();
@@ -159,7 +160,6 @@ impl Name<'static, Raw> {
             _spec: PhantomData,
         }
     }
-
 }
 
 impl<'a> Name<'a, Raw> {
@@ -353,7 +353,7 @@ impl<'a, S: Specification> Value<'a, S> {
     }
 
     /// Returns `true` if the value is empty.
-    /// 
+    ///
     /// # Example
     /// ```
     /// # use rpsl::parse_object;
@@ -438,8 +438,7 @@ impl Value<'static, Raw> {
 
 impl<'a> Value<'a, Raw> {
     /// Create a single line value from parsed RPSL. Empty values are coerced to [`None`].
-    pub(crate) fn from_parsed_single(value: &'a str) -> Self
-    {
+    pub(crate) fn from_parsed_single(value: &'a str) -> Self {
         Self::SingleLine {
             inner: coerce_empty_value(value).map(Cow::Borrowed),
             _spec: PhantomData,
@@ -447,7 +446,7 @@ impl<'a> Value<'a, Raw> {
     }
 
     /// Create a multi line value from parsed RPSL. Empty values are coerced to [`None`].
-    /// 
+    ///
     /// # Panics
     /// If the given iterator contains less than two values.
     pub(crate) fn from_parsed_multi<I>(values: I) -> Self
@@ -488,10 +487,9 @@ impl From<String> for Value<'static, Raw> {
 }
 
 impl<S> From<Vec<S>> for Value<'static, Raw>
-where 
-    S: Into<String> 
+where
+    S: Into<String>,
 {
-
     /// Create a new value from an iterator of value lines.
     ///
     /// # Example
@@ -507,7 +505,7 @@ where
             0 => Value::new_single(String::new()),
             1 => Value::new_single(v.into_iter().next().expect("vec has at least one value")),
             _ => Value::new_multi(v),
-        }  
+        }
     }
 }
 
@@ -752,17 +750,17 @@ mod tests {
     #[rstest]
     #[case(
         vec!["Packet Street 6", "128 Series of Tubes", "Internet"],
-        Value::MultiLine { 
+        Value::MultiLine {
             inner: vec![
                 Some(Cow::Owned("Packet Street 6".to_string())),
                 Some(Cow::Owned("128 Series of Tubes".to_string())),
                 Some(Cow::Owned("Internet".to_string()))
-            ], 
-            _spec: PhantomData 
+            ],
+            _spec: PhantomData
         }
     )]
-    fn value_new_multi<I, V>(#[case] i: I, #[case] expected: Value<Raw>) 
-    where 
+    fn value_new_multi<I, V>(#[case] i: I, #[case] expected: Value<Raw>)
+    where
         I: IntoIterator<Item = V>,
         V: Into<String>,
     {
