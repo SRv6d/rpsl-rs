@@ -67,7 +67,7 @@ where
     E: ParserError<&'s str> + AddContext<&'s str, StrContext>,
 {
     move |input: &mut &'s str| {
-        let name: Name<'s> = take_till(1.., |c| c == ':')
+        let name: Name<'s> = take_till(1.., |c| c == ':' || c == '\n')
             .map(Name::from_parsed)
             .context(StrContext::Label("attribute name"))
             .parse_next(input)?;
