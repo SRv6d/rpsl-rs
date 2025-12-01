@@ -1,9 +1,4 @@
-use winnow::{
-    ascii::multispace0,
-    combinator::{delimited, repeat},
-    error::ContextError,
-    Parser,
-};
+use winnow::{combinator::repeat, error::ContextError, Parser};
 
 use super::core::{object_block, object_block_padded};
 use crate::{Object, ParseError};
@@ -126,10 +121,9 @@ use crate::{Object, ParseError};
 /// # Ok(())
 /// # }
 /// ```
-pub fn parse_object(rpsl: &str) -> Result<Object, ParseError> {
-    let block_parser = object_block::<ContextError>();
-    let object = delimited(multispace0, block_parser, multispace0).parse(rpsl)?;
-    Ok(object)
+pub fn parse_object(rpsl: &str) -> Result<Object<'_>, ParseError> {
+    let o = object_block::<ContextError>().parse(rpsl)?;
+    Ok(o)
 }
 
 /// Parse a WHOIS server response into [`Object`]s contained within.
@@ -192,7 +186,7 @@ pub fn parse_object(rpsl: &str) -> Result<Object, ParseError> {
 /// );
 /// # Ok(())
 /// # }
-pub fn parse_whois_response(response: &str) -> Result<Vec<Object>, ParseError> {
+pub fn parse_whois_response(response: &str) -> Result<Vec<Object<'_>>, ParseError> {
     let block_parser = object_block_padded(object_block::<ContextError>());
     let objects = repeat(1.., block_parser).parse(response)?;
     Ok(objects)
