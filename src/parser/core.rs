@@ -121,24 +121,6 @@ where
 }
 
 /// An error that can occur when parsing RPSL text.
-///
-/// # Example
-/// ```
-/// # use rpsl::parse_object;
-/// let rpsl = "\
-/// role;        ACME Company
-///
-/// ";
-/// let err = parse_object(rpsl).unwrap_err();
-/// let message = "\
-/// parse error at line 1, column 5
-///   |
-/// 1 | role;        ACME Company
-///   |     ^
-/// invalid separator
-/// expected `:`";
-/// assert_eq!(err.to_string(), message);
-/// ```
 #[derive(thiserror::Error, Debug)]
 pub struct ParseError(String);
 
@@ -349,5 +331,25 @@ mod tests {
         let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
+    }
+
+    #[rstest]
+    #[case(
+        &mut "OrgName;        Facebook, Inc.\n",
+        "\
+parse error at line 1, column 8
+  |
+1 | OrgName;        Facebook, Inc.
+  |        ^
+invalid separator
+expected `:`"
+    )]
+    fn attribute_invalid_separator_is_expected_err_msg(
+        #[case] given: &mut &str,
+        #[case] expected_msg: &str,
+    ) {
+        let mut parser = attribute::<ContextError>();
+        let err = parser.parse(given).unwrap_err();
+        assert_eq!(err.to_string(), expected_msg);
     }
 }
