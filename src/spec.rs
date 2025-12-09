@@ -1,10 +1,21 @@
+//! Specifications and validation rules for RPSL objects.
+//!
+//! This module defines specifications that values can optionally be validated into after parsing.
+
 use super::attribute::{Attribute, Name, Value};
 use std::fmt::Debug;
 
+/// Defines how parsed attributes should be validated for a given specification.
 pub trait Specification: Debug + Clone + Copy {
+    /// Validate a single attribute according to the specification.
+    ///
+    /// # Errors
+    /// Returns an [`AttributeError`] when the attribute name or value does not satisfy
+    /// the specification's rules.
     fn validate_attribute(attribute: &Attribute<'_, Self>) -> Result<(), AttributeError<Self>>;
 }
 
+/// Default specification after parsing, does not perform any validation.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Raw;
 
@@ -14,6 +25,7 @@ impl Specification for Raw {
     }
 }
 
+/// Validation rules matching RFC 2622.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Rfc2622;
 

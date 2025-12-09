@@ -9,4 +9,4 @@ pub use spec::{AttributeError, Specification};
 mod attribute;
 mod object;
 mod parser;
-mod spec;
+pub mod spec;
