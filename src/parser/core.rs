@@ -1,8 +1,8 @@
 use std::fmt;
 use winnow::{
     ascii::{multispace0, newline, space0},
-    combinator::{alt, delimited, peek, preceded, repeat, terminated},
-    error::{AddContext, ContextError, ParserError, StrContext, StrContextValue},
+    combinator::{alt, cut_err, delimited, peek, preceded, repeat, terminated},
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
     token::{one_of, take_till, take_while},
     Parser,
 };
@@ -13,10 +13,7 @@ use crate::{Attribute, Name, Object, Value};
 ///
 /// Consumes optional surrounding whitespace, then reads attributes
 /// until the mandatory blank line that terminates the object.
-pub fn object_block<'s, E>() -> impl Parser<&'s str, Object<'s>, E>
-where
-    E: ParserError<&'s str> + AddContext<&'s str, StrContext>,
-{
+pub fn object_block<'s>() -> impl Parser<&'s str, Object<'s>, ErrMode<ContextError>> {
     // a list of attributes that ends when a blank line is encountered, as per RFC 2622.
     let object = terminated(repeat(1.., attribute()), newline);
 
@@ -28,10 +25,11 @@ where
 
 /// Generate a parser that extends the given object block parser to consume optional padding
 /// server messages or newlines.
-pub fn object_block_padded<'s, P, E>(block_parser: P) -> impl Parser<&'s str, Object<'s>, E>
+pub fn object_block_padded<'s, P>(
+    block_parser: P,
+) -> impl Parser<&'s str, Object<'s>, ErrMode<ContextError>>
 where
-    P: Parser<&'s str, Object<'s>, E>,
-    E: ParserError<&'s str>,
+    P: Parser<&'s str, Object<'s>, ErrMode<ContextError>>,
 {
     delimited(
         consume_opt_messages_or_newlines(),
@@ -41,19 +39,13 @@ where
 }
 
 /// Consume optional messages or newlines.
-fn consume_opt_messages_or_newlines<'s, E>() -> impl Parser<&'s str, (), E>
-where
-    E: ParserError<&'s str>,
-{
+fn consume_opt_messages_or_newlines<'s>() -> impl Parser<&'s str, (), ErrMode<ContextError>> {
     repeat(0.., alt((newline.void(), server_message().void())))
 }
 
 // A response code or message sent by the whois server.
 // Starts with the "%" character and extends until the end of the line.
-fn server_message<'s, E>() -> impl Parser<&'s str, &'s str, E>
-where
-    E: ParserError<&'s str>,
-{
+fn server_message<'s>() -> impl Parser<&'s str, &'s str, ErrMode<ContextError>> {
     delimited(
         ('%', space0),
         take_while(0.., |c: char| !c.is_control()),
@@ -62,20 +54,19 @@ where
 }
 
 /// Parse an attribute value pair.
-fn attribute<'s, E>() -> impl Parser<&'s str, Attribute<'s>, E>
-where
-    E: ParserError<&'s str> + AddContext<&'s str, StrContext>,
-{
+fn attribute<'s>() -> impl Parser<&'s str, Attribute<'s>, ErrMode<ContextError>> {
     move |input: &mut &'s str| {
-        let name: Name<'s> = take_till(1.., |c| c == ':' || c == '\n')
+        let name: Name<'s> = take_till(1.., |c| c == ':' || c == ';' || c == '\n')
             .map(Name::from_parsed)
             .context(StrContext::Label("attribute name"))
             .parse_next(input)?;
 
         // consume the separator
-        ':'.context(StrContext::Label("separator"))
-            .context(StrContext::Expected(StrContextValue::StringLiteral(":")))
-            .parse_next(input)?;
+        cut_err(
+            ':'.context(StrContext::Label("separator"))
+                .context(StrContext::Expected(StrContextValue::StringLiteral(":"))),
+        )
+        .parse_next(input)?;
         // and optionally any following spaces
         space0.parse_next(input)?;
 
@@ -86,19 +77,13 @@ where
 }
 
 /// Parse an attribute value with optional continuation lines.
-fn attribute_value<'s, E>() -> impl Parser<&'s str, Value<'s>, E>
-where
-    E: ParserError<&'s str>,
-{
+fn attribute_value<'s>() -> impl Parser<&'s str, Value<'s>, ErrMode<ContextError>> {
     move |input: &mut &'s str| {
         let value = || terminated(take_till(0.., |c| c == '\n'), newline);
 
         let first = value().parse_next(input)?;
 
-        if peek(continuation_char::<ContextError>())
-            .parse_next(input)
-            .is_ok()
-        {
+        if peek(continuation_char()).parse_next(input).is_ok() {
             let mut continuation: Vec<&str> = repeat(
                 1..,
                 preceded(continuation_char(), preceded(space0, value())),
@@ -113,10 +98,7 @@ where
 }
 
 /// Parse a single continuation character.
-fn continuation_char<'s, E>() -> impl Parser<&'s str, char, E>
-where
-    E: ParserError<&'s str>,
-{
+fn continuation_char<'s>() -> impl Parser<&'s str, char, ErrMode<ContextError>> {
     one_of([' ', '\t', '+'])
 }
 
@@ -139,7 +121,6 @@ impl From<winnow::error::ParseError<&str, winnow::error::ContextError>> for Pars
 #[cfg(test)]
 mod tests {
     use rstest::*;
-    use winnow::error::ContextError;
 
     use super::*;
 
@@ -158,7 +139,7 @@ mod tests {
     fn object_block_valid(#[case] given: &mut &str, #[case] attributes: Vec<Attribute>) {
         let expected = Object::new_parsed(given, attributes);
 
-        let mut parser = object_block::<ContextError>();
+        let mut parser = object_block();
         let parsed = parser.parse_next(given).unwrap();
 
         assert_eq!(parsed, expected);
@@ -174,7 +155,7 @@ mod tests {
         );
         let source = *rpsl;
 
-        let mut parser = object_block::<ContextError>();
+        let mut parser = object_block();
         let parsed = parser.parse_next(rpsl).unwrap();
 
         assert_eq!(parsed.source().unwrap(), source);
@@ -186,7 +167,7 @@ mod tests {
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
         );
-        let mut parser = object_block::<ContextError>();
+        let mut parser = object_block();
         assert!(parser.parse_next(object).is_err());
     }
 
@@ -207,7 +188,7 @@ mod tests {
     fn object_block_padded_valid(#[case] given: &mut &str, #[case] attributes: Vec<Attribute>) {
         let expected = Object::new_parsed(given, attributes);
 
-        let mut parser = object_block_padded::<_, ContextError>(object_block());
+        let mut parser = object_block_padded(object_block());
         let parsed = parser.parse_next(given).unwrap();
 
         assert_eq!(parsed, expected);
@@ -231,14 +212,14 @@ mod tests {
         )
     )]
     fn optional_comment_or_newlines_consumed(#[case] given: &mut &str) {
-        let mut parser = consume_opt_messages_or_newlines::<ContextError>();
+        let mut parser = consume_opt_messages_or_newlines();
         parser.parse_next(given).unwrap();
         assert_eq!(*given, "");
     }
 
     #[test]
     fn optional_comment_or_newlines_optional() {
-        let mut parser = consume_opt_messages_or_newlines::<ContextError>();
+        let mut parser = consume_opt_messages_or_newlines();
         assert_eq!(parser.parse_next(&mut ""), Ok(()));
     }
 
@@ -263,7 +244,7 @@ mod tests {
         #[case] expected: &str,
         #[case] remaining: &str,
     ) {
-        let mut parser = server_message::<ContextError>();
+        let mut parser = server_message();
         let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
@@ -280,7 +261,7 @@ mod tests {
         #[case] expected: Attribute,
         #[case] remaining: &str,
     ) {
-        let mut parser = attribute::<ContextError>();
+        let mut parser = attribute();
         let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
@@ -327,7 +308,7 @@ mod tests {
         #[case] expected: Attribute,
         #[case] remaining: &str,
     ) {
-        let mut parser = attribute::<ContextError>();
+        let mut parser = attribute();
         let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
@@ -348,7 +329,7 @@ expected `:`"
         #[case] given: &mut &str,
         #[case] expected_msg: &str,
     ) {
-        let mut parser = attribute::<ContextError>();
+        let mut parser = attribute();
         let err = parser.parse(given).unwrap_err();
         assert_eq!(err.to_string(), expected_msg);
     }

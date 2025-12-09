@@ -1,4 +1,4 @@
-use winnow::{combinator::repeat, error::ContextError, Parser};
+use winnow::{combinator::repeat, Parser};
 
 use super::core::{object_block, object_block_padded};
 use crate::{Object, ParseError};
@@ -122,7 +122,7 @@ use crate::{Object, ParseError};
 /// # }
 /// ```
 pub fn parse_object(rpsl: &str) -> Result<Object<'_>, ParseError> {
-    let o = object_block::<ContextError>().parse(rpsl)?;
+    let o = object_block().parse(rpsl)?;
     Ok(o)
 }
 
@@ -187,7 +187,7 @@ pub fn parse_object(rpsl: &str) -> Result<Object<'_>, ParseError> {
 /// # Ok(())
 /// # }
 pub fn parse_whois_response(response: &str) -> Result<Vec<Object<'_>>, ParseError> {
-    let block_parser = object_block_padded(object_block::<ContextError>());
+    let block_parser = object_block_padded(object_block());
     let objects = repeat(1.., block_parser).parse(response)?;
     Ok(objects)
 }
