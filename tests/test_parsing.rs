@@ -24,7 +24,7 @@ proptest! {
 }
 
 mod strategies {
-    use std::ops::RangeInclusive;
+    use std::{fmt::Write as _, ops::RangeInclusive};
 
     use proptest::{prelude::*, strategy::BoxedStrategy};
     use rpsl::Value;
@@ -134,7 +134,7 @@ mod strategies {
                         if value.trim().is_empty() {
                             rpsl.push(char::from_u32(0x002B).unwrap()); // Add a "+", since entirely empty lines are not allowed in multi-line attributes.
                         } else {
-                            rpsl.push_str(&format!("{cont_prefix}{space}{value}"));
+                            write!(rpsl, "{cont_prefix}{space}{value}").unwrap();
                         }
                     }
                 }

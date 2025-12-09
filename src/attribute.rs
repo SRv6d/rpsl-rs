@@ -70,6 +70,7 @@ impl<'a, S: Specification> Attribute<'a, S> {
     }
 
     /// Convert this attribute into an owned (`'static`) variant.
+    #[must_use]
     pub fn into_owned(self) -> Attribute<'static, S> {
         Attribute {
             name: self.name.into_owned(),
