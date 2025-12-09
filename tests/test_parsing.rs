@@ -10,6 +10,7 @@ proptest! {
     ) {
         let parsed = parse_object(&rpsl).unwrap();
         prop_assert_eq!(parsed, object);
+        // TODO: Ensure object validates correctly against spec.
     }
 }
 

@@ -188,6 +188,8 @@ pub struct Object<'a, S: Specification = Raw> {
 }
 
 impl<'a, S: Specification> Object<'a, S> {
+    // TODO: Allow validating object into a concrete spec.
+
     /// Create a new RPSL object from a vector of attributes.
     ///
     /// # Example
