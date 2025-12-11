@@ -60,47 +60,8 @@ source:      RIPE
 let parsed = parse_object(role_acme).unwrap();
 ```
 
-The returned [Object] allows access to the attributes contained within in form of [Attribute]s.
-
-```rust,ignore
-println!("{:#?}", parsed);
-
-Object(
-    [
-        Attribute {
-            name: Name("role"),
-            value: SingleLine(Some("ACME Company")),
-        },
-        Attribute {
-            name: Name("address"),
-            value: SingleLine(Some("Packet Street 6")),
-        },
-        Attribute {
-            name: Name("address"),
-            value: SingleLine(Some("128 Series of Tubes")),
-        },
-        Attribute {
-            name: Name("address"),
-            value: SingleLine(Some("Internet")),
-        },
-        Attribute {
-            name: Name("email"),
-            value: SingleLine(Some("rpsl-rs@github.com")),
-        },
-        Attribute {
-            name: Name("nic-hdl"),
-            value: SingleLine(Some("RPSL1-RIPE")),
-        },
-        Attribute {
-            name: Name("source"),
-            value: SingleLine(Some("RIPE")),
-        },
-    ]
-)
-```
-
-[Object]s created from RPSL text use string references that point to attributes and their values
-instead of copying them.
+This returns an [Object], a sorted collection of [Attributes] that contain string references
+pointing to attributes and their values from the parsed text.
 
 ```text
 role:           ACME Company ◀─────────────── &"role":      &"ACME Company"

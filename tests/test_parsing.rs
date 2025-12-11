@@ -3,42 +3,64 @@ use proptest::prelude::*;
 use rpsl::parse_object;
 
 proptest! {
-    /// Property based test to ensure any kind of valid RPSL is parsed correctly.
+    /// Ensure RFC 2622 conformant RPSL is parsed correctly.
     #[test]
-    fn rpsl_parsed_to_object((object, rpsl) in strategies::object_w_rpsl()) {
+    fn rfc_2622_rpsl_parsed_to_object(
+        (object, rpsl) in strategies::rfc_2622_object_w_rpsl()
+    ) {
+        let parsed = parse_object(&rpsl).unwrap();
+        prop_assert_eq!(parsed, object);
+        // TODO: Ensure object validates correctly against spec.
+    }
+}
+
+proptest! {
+    #[test]
+    fn permissive_rpsl_parsed_to_object(
+        (object, rpsl) in strategies::permissive_object_w_rpsl()
+    ) {
         let parsed = parse_object(&rpsl).unwrap();
         prop_assert_eq!(parsed, object);
     }
 }
 
 mod strategies {
-    use proptest::prelude::*;
+    use std::{fmt::Write as _, ops::RangeInclusive};
 
-    /// A valid attribute name.
+    use proptest::{prelude::*, strategy::BoxedStrategy};
+    use rpsl::Value;
+
+    const CONTENT_LEN: RangeInclusive<usize> = 1..=80;
+
+    /// An attribute name conforming to RFC 2622.
     ///
-    /// According to RFC 2622, an "<object-name>" is made up of letters, digits, the character underscore "_",
+    /// According to the RFC, an "<object-name>" is made up of letters, digits, the character underscore "_",
     /// and the character hyphen "-"; the first character of a name must be a letter, and
     /// the last character of a name must be a letter or a digit.
     ///
     /// Creates a string of ASCII characters including letters, digits, underscore and hyphen,
     /// where the first character is a letter and the last character is a letter or a digit.
-    fn attribute_name() -> impl Strategy<Value = String> {
+    fn rfc_2622_attribute_name() -> impl Strategy<Value = String> {
         proptest::string::string_regex("[a-zA-Z][a-zA-Z0-9_-]*[a-zA-Z0-9]").unwrap()
     }
 
-    /// A valid attribute value.
+    /// An attribute value conforming to RFC 2622.
     ///
-    /// Creates a string of extended ASCII characters while excluding control and not
-    /// starting with, or consisting entirely of whitespace.
-    fn attribute_value_content() -> impl Strategy<Value = String> {
-        proptest::string::string_regex(r"[\x20-\x7E\x80-\xFF]+")
+    /// According to the RFC, an attribute value may consist of any ASCII characters excluding control and
+    /// must not start with, or consist entirely of whitespace.
+    fn rfc_2622_attribute_value_content() -> BoxedStrategy<String> {
+        let ascii_range = (0x21u8..=0x7Eu8).prop_map(|b| b as char);
+        prop::collection::vec(ascii_range, CONTENT_LEN)
+            .prop_map(|chars| chars.into_iter().collect::<String>())
+            .boxed()
+    }
+
+    /// An attribute value that can contain arbitrary Unicode scalars excluding newlines.
+    fn permissive_attribute_value_content() -> BoxedStrategy<String> {
+        let max_tail = CONTENT_LEN.end().saturating_sub(1);
+        proptest::string::string_regex(&format!(r"[^\s][^\n]{{0,{max_tail}}}"))
             .unwrap()
-            .prop_filter("Cannot start with whitespace", |s| {
-                !s.starts_with(|c: char| c.is_whitespace())
-            })
-            .prop_filter("Cannot consist of whitespace only", |s| {
-                !s.trim().is_empty()
-            })
+            .boxed()
     }
 
     /// An empty attribute value.
@@ -66,37 +88,35 @@ mod strategies {
     }
 
     /// An attribute value. Either a single value or a multi-line value where value(s) may be empty.
-    fn attribute_value() -> impl Strategy<Value = AttributeValue> {
-        prop_oneof![
-            prop_oneof![attribute_value_empty(), attribute_value_content()]
-                .prop_map(AttributeValue::Single),
-            proptest::collection::vec(
-                prop_oneof![attribute_value_empty(), attribute_value_content()],
-                2..20
-            )
-            .prop_map(AttributeValue::Multi)
-        ]
+    fn attribute_value<C>(content: C) -> BoxedStrategy<AttributeValue>
+    where
+        C: Strategy<Value = String> + 'static,
+    {
+        let value = prop_oneof![attribute_value_empty(), content].boxed();
+
+        let single = value.clone().prop_map(AttributeValue::Single);
+        let multi = proptest::collection::vec(value.clone(), 2..20).prop_map(AttributeValue::Multi);
+
+        prop_oneof![single, multi].boxed()
     }
 
     /// An attribute and its corresponding RPSL representation.
-    fn attribute_w_rpsl() -> impl Strategy<Value = (rpsl::Attribute<'static>, String)> {
+    fn attribute_w_rpsl<C>(content: C) -> BoxedStrategy<(rpsl::Attribute<'static>, String)>
+    where
+        C: Strategy<Value = String> + 'static,
+    {
         (
-            attribute_name(),
+            rfc_2622_attribute_name(),
             space_separator(),
             multiline_continuation_prefix(),
-            attribute_value(),
+            attribute_value(content),
         )
             .prop_map(|(name, space, cont_prefix, value)| {
                 let attribute = rpsl::Attribute::new(
-                    name.parse().unwrap(),
+                    name.clone(),
                     match &value {
-                        AttributeValue::Single(value) => value.parse().unwrap(),
-                        AttributeValue::Multi(values) => values
-                            .iter()
-                            .map(AsRef::as_ref)
-                            .collect::<Vec<&str>>()
-                            .try_into()
-                            .unwrap(),
+                        AttributeValue::Single(value) => Value::new_single(value),
+                        AttributeValue::Multi(values) => Value::new_multi(values),
                     },
                 );
 
@@ -115,29 +135,43 @@ mod strategies {
                         if value.trim().is_empty() {
                             rpsl.push(char::from_u32(0x002B).unwrap()); // Add a "+", since entirely empty lines are not allowed in multi-line attributes.
                         } else {
-                            rpsl.push_str(&format!("{cont_prefix}{space}{value}"));
+                            write!(rpsl, "{cont_prefix}{space}{value}").unwrap();
                         }
                     }
                 }
 
                 (attribute, rpsl)
             })
+            .boxed()
     }
 
     /// An object and its corresponding RPSL representation.
-    pub fn object_w_rpsl() -> impl Strategy<Value = (rpsl::Object<'static>, String)> {
-        prop::collection::vec(attribute_w_rpsl(), 2..300).prop_flat_map(|attrs_w_rpsl| {
-            let mut attributes: Vec<rpsl::Attribute> = Vec::new();
-            let mut rpsl = String::new();
+    fn object_w_rpsl<C>(content: C) -> BoxedStrategy<(rpsl::Object<'static>, String)>
+    where
+        C: Strategy<Value = String> + 'static,
+    {
+        prop::collection::vec(attribute_w_rpsl(content), 2..300)
+            .prop_flat_map(|attrs_w_rpsl| {
+                let mut attributes: Vec<rpsl::Attribute> = Vec::new();
+                let mut rpsl = String::new();
 
-            for (a, r) in attrs_w_rpsl {
-                attributes.push(a);
-                rpsl.push_str(&r);
+                for (a, r) in attrs_w_rpsl {
+                    attributes.push(a);
+                    rpsl.push_str(&r);
+                    rpsl.push('\n');
+                }
                 rpsl.push('\n');
-            }
-            rpsl.push('\n');
 
-            (Just(rpsl::Object::new(attributes)), Just(rpsl))
-        })
+                (Just(rpsl::Object::new(attributes)), Just(rpsl))
+            })
+            .boxed()
+    }
+
+    pub fn rfc_2622_object_w_rpsl() -> BoxedStrategy<(rpsl::Object<'static>, String)> {
+        object_w_rpsl(rfc_2622_attribute_value_content())
+    }
+
+    pub fn permissive_object_w_rpsl() -> BoxedStrategy<(rpsl::Object<'static>, String)> {
+        object_w_rpsl(permissive_attribute_value_content())
     }
 }

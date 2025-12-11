@@ -1,31 +1,35 @@
+use std::fmt;
 use winnow::{
-    ascii::{newline, space0},
-    combinator::{alt, delimited, peek, preceded, repeat, separated_pair, terminated},
-    error::{AddContext, ContextError, ParserError, StrContext, StrContextValue},
-    token::{one_of, take_while},
+    ascii::{multispace0, newline, space0},
+    combinator::{alt, cut_err, delimited, peek, preceded, repeat, terminated},
+    error::{ContextError, ErrMode, StrContext, StrContextValue},
+    token::{one_of, take_till, take_while},
     Parser,
 };
 
 use crate::{Attribute, Name, Object, Value};
 
-/// Generate an object block parser.
-/// As per [RFC 2622](https://datatracker.ietf.org/doc/html/rfc2622#section-2), an RPSL object
-/// is textually represented as a list of attribute-value pairs that ends when a blank line is encountered.
-pub fn object_block<'s, E>() -> impl Parser<&'s str, Object<'s>, E>
-where
-    E: ParserError<&'s str> + AddContext<&'s str, StrContext>,
-{
-    terminated(repeat(1.., attribute()), newline)
+/// Parse a list of attributes that make up an object.
+///
+/// Consumes optional surrounding whitespace, then reads attributes
+/// until the mandatory blank line that terminates the object.
+pub fn object_block<'s>() -> impl Parser<&'s str, Object<'s>, ErrMode<ContextError>> {
+    // a list of attributes that ends when a blank line is encountered, as per RFC 2622.
+    let object = terminated(repeat(1.., attribute()), newline);
+
+    // allow for some optional padding
+    delimited(multispace0, object, multispace0)
         .with_taken()
-        .map(|(attributes, source)| Object::from_parsed(source, attributes))
+        .map(|(attributes, source)| Object::new_parsed(source, attributes))
 }
 
 /// Generate a parser that extends the given object block parser to consume optional padding
 /// server messages or newlines.
-pub fn object_block_padded<'s, P, E>(block_parser: P) -> impl Parser<&'s str, Object<'s>, E>
+pub fn object_block_padded<'s, P>(
+    block_parser: P,
+) -> impl Parser<&'s str, Object<'s>, ErrMode<ContextError>>
 where
-    P: Parser<&'s str, Object<'s>, E>,
-    E: ParserError<&'s str>,
+    P: Parser<&'s str, Object<'s>, ErrMode<ContextError>>,
 {
     delimited(
         consume_opt_messages_or_newlines(),
@@ -34,21 +38,14 @@ where
     )
 }
 
-/// Generate a parser that consumes optional messages or newlines.
-fn consume_opt_messages_or_newlines<'s, E>() -> impl Parser<&'s str, (), E>
-where
-    E: ParserError<&'s str>,
-{
+/// Consume optional messages or newlines.
+fn consume_opt_messages_or_newlines<'s>() -> impl Parser<&'s str, (), ErrMode<ContextError>> {
     repeat(0.., alt((newline.void(), server_message().void())))
 }
 
 // A response code or message sent by the whois server.
 // Starts with the "%" character and extends until the end of the line.
-// In contrast to RPSL, characters are not limited to ASCII.
-fn server_message<'s, E>() -> impl Parser<&'s str, &'s str, E>
-where
-    E: ParserError<&'s str>,
-{
+fn server_message<'s>() -> impl Parser<&'s str, &'s str, ErrMode<ContextError>> {
     delimited(
         ('%', space0),
         take_while(0.., |c: char| !c.is_control()),
@@ -56,91 +53,74 @@ where
     )
 }
 
-// Generate an attribute parser.
-// The attributes name and value are separated by a colon and optional spaces.
-fn attribute<'s, E>() -> impl Parser<&'s str, Attribute<'s>, E>
-where
-    E: ParserError<&'s str> + AddContext<&'s str, StrContext>,
-{
-    separated_pair(
-        attribute_name(),
-        (
+/// Parse an attribute value pair.
+fn attribute<'s>() -> impl Parser<&'s str, Attribute<'s>, ErrMode<ContextError>> {
+    move |input: &mut &'s str| {
+        let name: Name<'s> = take_till(1.., |c| c == ':' || c == ';' || c == '\n')
+            .map(Name::from_parsed)
+            .context(StrContext::Label("attribute name"))
+            .parse_next(input)?;
+
+        // consume the separator
+        cut_err(
             ':'.context(StrContext::Label("separator"))
                 .context(StrContext::Expected(StrContextValue::StringLiteral(":"))),
-            space0,
-        ),
-        attribute_value(),
-    )
-    .map(|(name, value)| Attribute::new(name, value))
-}
+        )
+        .parse_next(input)?;
+        // and optionally any following spaces
+        space0.parse_next(input)?;
 
-/// Generate an attribute value parser that parses an ASCII sequence of letters,
-/// digits and the characters "-", "_". The first character must be a letter,
-/// while the last character may be a letter or a digit.
-fn attribute_name<'s, E>() -> impl Parser<&'s str, Name<'s>, E>
-where
-    E: ParserError<&'s str>,
-{
-    take_while(2.., ('A'..='Z', 'a'..='z', '0'..='9', '-', '_'))
-        .verify(|s: &str| {
-            s.starts_with(|c: char| c.is_ascii_alphabetic())
-                && s.ends_with(|c: char| c.is_ascii_alphanumeric())
-        })
-        .map(Name::unchecked)
-}
+        let value = attribute_value().parse_next(input)?;
 
-/// Generate an attribute value parser that includes continuation lines.
-fn attribute_value<'s, E>() -> impl Parser<&'s str, Value<'s>, E>
-where
-    E: ParserError<&'s str>,
-{
-    move |input: &mut &'s str| {
-        let first_value = single_attribute_value().parse_next(input)?;
-
-        if peek(continuation_char::<ContextError>())
-            .parse_next(input)
-            .is_ok()
-        {
-            let mut continuation_values: Vec<&str> = repeat(
-                1..,
-                preceded(
-                    continuation_char(),
-                    preceded(space0, single_attribute_value()),
-                ),
-            )
-            .parse_next(input)?;
-            continuation_values.insert(0, first_value);
-            return Ok(Value::unchecked_multi(continuation_values));
-        }
-
-        Ok(Value::unchecked_single(first_value))
+        Ok(Attribute::new(name, value))
     }
 }
 
-/// Generate a parser for a singular attribute value without continuation.
-fn single_attribute_value<'s, E>() -> impl Parser<&'s str, &'s str, E>
-where
-    E: ParserError<&'s str>,
-{
-    terminated(
-        take_while(0.., |c| Value::validate_char(c).is_ok()),
-        newline,
-    )
+/// Parse an attribute value with optional continuation lines.
+fn attribute_value<'s>() -> impl Parser<&'s str, Value<'s>, ErrMode<ContextError>> {
+    move |input: &mut &'s str| {
+        let value = || terminated(take_till(0.., |c| c == '\n'), newline);
+
+        let first = value().parse_next(input)?;
+
+        if peek(continuation_char()).parse_next(input).is_ok() {
+            let mut continuation: Vec<&str> = repeat(
+                1..,
+                preceded(continuation_char(), preceded(space0, value())),
+            )
+            .parse_next(input)?;
+            continuation.insert(0, first);
+            Ok(Value::from_parsed_multi(continuation))
+        } else {
+            Ok(Value::from_parsed_single(first))
+        }
+    }
 }
 
-/// Generate a parser for a single continuation character.
-fn continuation_char<'s, E>() -> impl Parser<&'s str, char, E>
-where
-    E: ParserError<&'s str>,
-{
+/// Parse a single continuation character.
+fn continuation_char<'s>() -> impl Parser<&'s str, char, ErrMode<ContextError>> {
     one_of([' ', '\t', '+'])
+}
+
+/// An error that can occur when parsing RPSL text.
+#[derive(thiserror::Error, Debug)]
+pub struct ParseError(String);
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl From<winnow::error::ParseError<&str, winnow::error::ContextError>> for ParseError {
+    fn from(value: winnow::error::ParseError<&str, winnow::error::ContextError>) -> Self {
+        Self(value.to_string())
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use proptest::prelude::*;
     use rstest::*;
-    use winnow::error::ContextError;
 
     use super::*;
 
@@ -157,9 +137,9 @@ mod tests {
         ]
     )]
     fn object_block_valid(#[case] given: &mut &str, #[case] attributes: Vec<Attribute>) {
-        let expected = Object::from_parsed(given, attributes);
+        let expected = Object::new_parsed(given, attributes);
 
-        let mut parser = object_block::<ContextError>();
+        let mut parser = object_block();
         let parsed = parser.parse_next(given).unwrap();
 
         assert_eq!(parsed, expected);
@@ -175,7 +155,7 @@ mod tests {
         );
         let source = *rpsl;
 
-        let mut parser = object_block::<ContextError>();
+        let mut parser = object_block();
         let parsed = parser.parse_next(rpsl).unwrap();
 
         assert_eq!(parsed.source().unwrap(), source);
@@ -187,7 +167,7 @@ mod tests {
             "email:       rpsl-rs@github.com\n",
             "nic-hdl:     RPSL1-RIPE\n",
         );
-        let mut parser = object_block::<ContextError>();
+        let mut parser = object_block();
         assert!(parser.parse_next(object).is_err());
     }
 
@@ -206,9 +186,9 @@ mod tests {
         ]
     )]
     fn object_block_padded_valid(#[case] given: &mut &str, #[case] attributes: Vec<Attribute>) {
-        let expected = Object::from_parsed(given, attributes);
+        let expected = Object::new_parsed(given, attributes);
 
-        let mut parser = object_block_padded::<_, ContextError>(object_block());
+        let mut parser = object_block_padded(object_block());
         let parsed = parser.parse_next(given).unwrap();
 
         assert_eq!(parsed, expected);
@@ -232,14 +212,14 @@ mod tests {
         )
     )]
     fn optional_comment_or_newlines_consumed(#[case] given: &mut &str) {
-        let mut parser = consume_opt_messages_or_newlines::<ContextError>();
+        let mut parser = consume_opt_messages_or_newlines();
         parser.parse_next(given).unwrap();
         assert_eq!(*given, "");
     }
 
     #[test]
     fn optional_comment_or_newlines_optional() {
-        let mut parser = consume_opt_messages_or_newlines::<ContextError>();
+        let mut parser = consume_opt_messages_or_newlines();
         assert_eq!(parser.parse_next(&mut ""), Ok(()));
     }
 
@@ -264,7 +244,7 @@ mod tests {
         #[case] expected: &str,
         #[case] remaining: &str,
     ) {
-        let mut parser = server_message::<ContextError>();
+        let mut parser = server_message();
         let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
@@ -281,7 +261,7 @@ mod tests {
         #[case] expected: Attribute,
         #[case] remaining: &str,
     ) {
-        let mut parser = attribute::<ContextError>();
+        let mut parser = attribute();
         let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
@@ -328,89 +308,29 @@ mod tests {
         #[case] expected: Attribute,
         #[case] remaining: &str,
     ) {
-        let mut parser = attribute::<ContextError>();
+        let mut parser = attribute();
         let parsed = parser.parse_next(given).unwrap();
         assert_eq!(parsed, expected);
         assert_eq!(*given, remaining);
     }
 
     #[rstest]
-    #[case(&mut "remarks:", "remarks", ":")]
-    #[case(&mut "aut-num:", "aut-num", ":")]
-    #[case(&mut "ASNumber:", "ASNumber", ":")]
-    #[case(&mut "route6:", "route6", ":")]
-    fn attribute_name_valid(
+    #[case(
+        &mut "OrgName;        Facebook, Inc.\n",
+        "\
+parse error at line 1, column 8
+  |
+1 | OrgName;        Facebook, Inc.
+  |        ^
+invalid separator
+expected `:`"
+    )]
+    fn attribute_invalid_separator_is_expected_err_msg(
         #[case] given: &mut &str,
-        #[case] expected: &str,
-        #[case] remaining: &str,
+        #[case] expected_msg: &str,
     ) {
-        let mut parser = attribute_name::<ContextError>();
-        let parsed = parser.parse_next(given).unwrap();
-        assert_eq!(parsed, expected);
-        assert_eq!(*given, remaining);
-    }
-
-    #[rstest]
-    #[case(&mut "1remarks:")]
-    #[case(&mut "-remarks:")]
-    #[case(&mut "_remarks:")]
-    fn attribute_name_non_letter_first_char_is_error(#[case] given: &mut &str) {
-        let mut parser = attribute_name::<ContextError>();
-        assert!(parser.parse_next(given).is_err());
-    }
-
-    #[rstest]
-    #[case(&mut "remarks-:")]
-    #[case(&mut "remarks_:")]
-    fn attribute_name_non_letter_or_digit_last_char_is_error(#[case] given: &mut &str) {
-        let mut parser = attribute_name::<ContextError>();
-        assert!(parser.parse_next(given).is_err());
-    }
-
-    #[test]
-    fn attribute_name_single_letter_is_error() {
-        let mut parser = attribute_name::<ContextError>();
-        assert!(parser.parse_next(&mut "a").is_err());
-    }
-
-    #[rstest]
-    #[case(
-            &mut "This is an example remark\n",
-            "This is an example remark",
-            ""
-        )]
-    #[case(
-            &mut "Concerning abuse and spam ... mailto: abuse@asn.net\n",
-            "Concerning abuse and spam ... mailto: abuse@asn.net",
-            ""
-        )]
-    #[case(
-            &mut "+49 176 07071964\n",
-            "+49 176 07071964",
-            ""
-        )]
-    #[case(
-            &mut "* Equinix FR5, Kleyerstr, Frankfurt am Main\n",
-            "* Equinix FR5, Kleyerstr, Frankfurt am Main",
-            ""
-        )]
-    fn attribute_value_valid(
-        #[case] given: &mut &str,
-        #[case] expected: &str,
-        #[case] remaining: &str,
-    ) {
-        let mut parser = single_attribute_value::<ContextError>();
-        let parsed = parser.parse_next(given).unwrap();
-        assert_eq!(parsed, expected);
-        assert_eq!(*given, remaining);
-    }
-
-    proptest! {
-        /// Parsing any non extended ASCII returns an error.
-        #[test]
-        fn attribute_value_non_extended_ascii_is_err(s in r"[^\x00-\xFF]+") {
-            let mut parser = single_attribute_value::<ContextError>();
-            assert!(parser.parse_next(&mut s.as_str()).is_err());
-        }
+        let mut parser = attribute();
+        let err = parser.parse(given).unwrap_err();
+        assert_eq!(err.to_string(), expected_msg);
     }
 }
