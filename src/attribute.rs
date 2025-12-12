@@ -1,9 +1,9 @@
-use std::{borrow::Cow, fmt, ops::Deref, str::FromStr};
+use std::{borrow::Cow, convert::Infallible, fmt, marker::PhantomData, ops::Deref, str::FromStr};
 
 #[cfg(feature = "serde")]
 use serde::Serialize;
 
-use crate::error::{InvalidNameError, InvalidValueError};
+use crate::spec::{AttributeError, Raw, Specification};
 
 /// An attribute of an [`Object`](crate::Object).
 ///
@@ -14,50 +14,106 @@ use crate::error::{InvalidNameError, InvalidValueError};
 /// name:           ACME Company
 ///
 /// ")?;
-/// let attribute = Attribute::new("name".parse()?, "ACME Company".parse()?);
+/// let attribute = Attribute::new("name", "ACME Company");
 /// assert_eq!(object[0], attribute);
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
-#[cfg_attr(feature = "serde", derive(Serialize))]
-pub struct Attribute<'a> {
+#[cfg_attr(feature = "serde", derive(Serialize), serde(bound = ""))]
+pub struct Attribute<'a, S: Specification = Raw> {
     /// The name of the attribute.
-    pub name: Name<'a>,
+    pub name: Name<'a, S>,
     /// The value of the attribute.
     #[cfg_attr(feature = "serde", serde(rename = "values"))]
-    pub value: Value<'a>,
+    pub value: Value<'a, S>,
 }
 
-impl<'a> Attribute<'a> {
+impl<'a, S: Specification> Attribute<'a, S> {
     /// Create a new attribute.
     #[must_use]
-    pub fn new(name: Name<'a>, value: Value<'a>) -> Self {
-        Self { name, value }
+    pub fn new<N, V>(name: N, value: V) -> Self
+    where
+        N: Into<Name<'a, S>>,
+        V: Into<Value<'a, S>>,
+    {
+        Self {
+            name: name.into(),
+            value: value.into(),
+        }
     }
 
-    #[cfg(test)]
+    /// Validate that the attribute conforms to a target specification.
+    ///
+    /// # Errors
+    /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
+    pub fn validate<Target: Specification>(&self) -> Result<(), AttributeError<Target>> {
+        let candidate = Attribute {
+            name: self.name.clone().into_specification(),
+            value: self.value.clone().into_specification(),
+        };
+        Target::validate_attribute(&candidate)
+    }
+
+    /// Convert the attribute into a target specification.
+    ///
+    /// # Errors
+    /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
+    pub fn into_spec<Target: Specification>(
+        self,
+    ) -> Result<Attribute<'a, Target>, AttributeError<Target>> {
+        let candidate = Attribute {
+            name: self.name.into_specification(),
+            value: self.value.into_specification(),
+        };
+        Target::validate_attribute(&candidate)?;
+        Ok(candidate)
+    }
+
+    /// Convert this attribute into an owned (`'static`) variant.
+    #[must_use]
+    pub fn into_owned(self) -> Attribute<'static, S> {
+        Attribute {
+            name: self.name.into_owned(),
+            value: self.value.into_owned(),
+        }
+    }
+}
+
+#[cfg(test)]
+impl<'a> Attribute<'a, Raw> {
+    /// Test helper to create an attribute with a single line value.
     pub(crate) fn unchecked_single<V>(name: &'a str, value: V) -> Self
     where
         V: Into<Option<&'a str>>,
     {
-        let name = Name::unchecked(name);
-        let value = Value::unchecked_single(value);
+        let name = Name::new(name);
+        let value = match value.into() {
+            Some(value) => Value::new_single(value),
+            None => Value::new_single(String::new()),
+        };
         Self { name, value }
     }
 
-    #[cfg(test)]
+    /// Test helper to create an attribute with a multi line value.
     pub(crate) fn unchecked_multi<I, V>(name: &'a str, values: I) -> Self
     where
         I: IntoIterator<Item = V>,
         V: Into<Option<&'a str>>,
     {
-        let name = Name::unchecked(name);
-        let value = Value::unchecked_multi(values);
+        let name = Name::new(name);
+        let collected: Vec<String> = values
+            .into_iter()
+            .map(|value| match value.into() {
+                Some(value) => value.to_string(),
+                None => String::new(),
+            })
+            .collect();
+        let value = Value::new_multi(collected);
         Self { name, value }
     }
 }
 
-impl fmt::Display for Attribute<'_> {
+impl<S: Specification> fmt::Display for Attribute<'_, S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let values = self.value.values();
 
@@ -88,61 +144,91 @@ impl fmt::Display for Attribute<'_> {
 /// The name of an [`Attribute`].
 #[derive(Debug, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize), serde(transparent))]
-pub struct Name<'a>(Cow<'a, str>);
+pub struct Name<'a, S: Specification = Raw> {
+    inner: Cow<'a, str>,
+    #[cfg_attr(feature = "serde", serde(skip))]
+    _spec: PhantomData<S>,
+}
 
-impl<'a> Name<'a> {
-    pub(crate) fn unchecked(name: &'a str) -> Self {
-        Self(Cow::Borrowed(name))
-    }
-
-    fn validate(name: &str) -> Result<(), InvalidNameError> {
-        if name.trim().is_empty() {
-            return Err(InvalidNameError::Empty);
-        } else if !name.is_ascii() {
-            return Err(InvalidNameError::NonAscii);
-        } else if !name.chars().next().unwrap().is_ascii_alphabetic() {
-            return Err(InvalidNameError::NonAsciiAlphabeticFirstChar);
-        } else if !name.chars().last().unwrap().is_ascii_alphanumeric() {
-            return Err(InvalidNameError::NonAsciiAlphanumericLastChar);
+impl Name<'static, Raw> {
+    /// Create a [`Name`].
+    pub fn new<S>(name: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Self {
+            inner: Cow::Owned(name.into()),
+            _spec: PhantomData,
         }
-
-        Ok(())
     }
 }
 
-impl FromStr for Name<'_> {
-    type Err = InvalidNameError;
+impl<'a> Name<'a, Raw> {
+    /// Create a name from parsed RPSL.
+    pub(crate) fn from_parsed(name: &'a str) -> Self {
+        Self {
+            inner: Cow::Borrowed(name),
+            _spec: PhantomData,
+        }
+    }
+}
 
-    /// Create a new `Name` from a string slice.
-    ///
-    /// A valid name may consist of ASCII letters, digits and the characters "-", "_",
-    /// while beginning with a letter and ending with a letter or a digit.
-    ///
-    /// # Errors
-    /// Returns an error if the name is empty or invalid.
+impl<'a, S: Specification> Name<'a, S> {
+    fn into_specification<Target: Specification>(self) -> Name<'a, Target> {
+        Name {
+            inner: self.inner,
+            _spec: PhantomData,
+        }
+    }
+
+    #[must_use]
+    /// Convert this name into an owned (`'static`) version.
+    pub fn into_owned(self) -> Name<'static, S> {
+        Name {
+            inner: Cow::Owned(self.inner.into_owned()),
+            _spec: PhantomData,
+        }
+    }
+}
+
+impl FromStr for Name<'static, Raw> {
+    type Err = Infallible;
+
+    /// Create a new [`Name`] from a string slice.
     fn from_str(name: &str) -> Result<Self, Self::Err> {
-        Self::validate(name)?;
-        Ok(Self(Cow::Owned(name.to_string())))
+        Ok(Self::new(name))
     }
 }
 
-impl Deref for Name<'_> {
+impl From<&str> for Name<'static, Raw> {
+    fn from(name: &str) -> Self {
+        Self::new(name)
+    }
+}
+
+impl From<String> for Name<'static, Raw> {
+    fn from(name: String) -> Self {
+        Self::new(name)
+    }
+}
+
+impl<S: Specification> Deref for Name<'_, S> {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
-        self.0.as_ref()
+        self.inner.as_ref()
     }
 }
 
-impl PartialEq<&str> for Name<'_> {
+impl<S: Specification> PartialEq<&str> for Name<'_, S> {
     fn eq(&self, other: &&str) -> bool {
-        self.0 == *other
+        self.inner == *other
     }
 }
 
-impl fmt::Display for Name<'_> {
+impl<S: Specification> fmt::Display for Name<'_, S> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
+        write!(f, "{}", self.inner)
     }
 }
 
@@ -155,7 +241,7 @@ impl fmt::Display for Name<'_> {
     derive(Serialize),
     serde(into = "Vec<Option<String>>")
 )]
-pub enum Value<'a> {
+pub enum Value<'a, S: Specification = Raw> {
     /// A single line value.
     ///
     /// # Example
@@ -165,11 +251,17 @@ pub enum Value<'a> {
     /// name:           ACME Company
     ///
     /// ")?;
-    /// let value: Value = "ACME Company".parse()?;
+    /// let value = Value::new_single("ACME Company");
     /// assert_eq!(object[0].value, value);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    SingleLine(Option<Cow<'a, str>>),
+    SingleLine {
+        /// The value.
+        inner: Option<Cow<'a, str>>,
+        /// The values specification.
+        #[cfg_attr(feature = "serde", serde(skip))]
+        _spec: PhantomData<S>,
+    },
     /// A value spanning over multiple lines.
     ///
     /// # Example
@@ -181,57 +273,20 @@ pub enum Value<'a> {
     ///                 Internet
     ///
     /// ")?;
-    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?;
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].into();
     /// assert_eq!(object[0].value, value);
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    MultiLine(Vec<Option<Cow<'a, str>>>),
+    MultiLine {
+        /// The value.
+        inner: Vec<Option<Cow<'a, str>>>,
+        /// The values specification.
+        #[cfg_attr(feature = "serde", serde(skip))]
+        _spec: PhantomData<S>,
+    },
 }
 
-impl<'a> Value<'a> {
-    /// Create a single line value without checking that characters conform to any specification
-    /// while still coercing empty values to `None`.
-    pub(crate) fn unchecked_single<V>(value: V) -> Self
-    where
-        V: Into<Option<&'a str>>,
-    {
-        Self::SingleLine(value.into().and_then(coerce_empty_value).map(Cow::Borrowed))
-    }
-
-    /// Create a multi line value without checking that characters conform to any specification
-    /// while still coercing empty values to `None`.
-    pub(crate) fn unchecked_multi<I, V>(values: I) -> Self
-    where
-        I: IntoIterator<Item = V>,
-        V: Into<Option<&'a str>>,
-    {
-        let s = Self::MultiLine(
-            values
-                .into_iter()
-                .map(|v| v.into().and_then(coerce_empty_value).map(Cow::Borrowed))
-                .collect(),
-        );
-        assert!(s.lines() > 1, "multi line values need at least two lines");
-        s
-    }
-
-    fn validate(value: &str) -> Result<(), InvalidValueError> {
-        value.chars().try_for_each(Self::validate_char)
-    }
-
-    /// Even though RFC 2622 requires values to be ASCII, in practice some WHOIS databases
-    /// (e.g. RIPE) do not enforce this so, to be useful in the real world, we don't either.
-    #[inline]
-    pub(crate) fn validate_char(c: char) -> Result<(), InvalidValueError> {
-        if !is_extended_ascii(c) {
-            return Err(InvalidValueError::NonExtendedAscii);
-        } else if c.is_ascii_control() {
-            return Err(InvalidValueError::ContainsControlChar);
-        }
-
-        Ok(())
-    }
-
+impl<'a, S: Specification> Value<'a, S> {
     /// The number of lines contained.
     ///
     /// # Examples
@@ -239,32 +294,30 @@ impl<'a> Value<'a> {
     /// A value with a single line.
     /// ```
     /// # use rpsl::Value;
-    /// let value: Value = "ACME Company".parse()?;
+    /// let value = Value::new_single("ACME Company");
     /// assert_eq!(value.lines(), 1);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     ///
     /// A value with multiple lines.
     /// ```
     /// # use rpsl::Value;
-    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?;
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].into();
     /// assert_eq!(value.lines(), 3);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     #[must_use]
     pub fn lines(&self) -> usize {
         match &self {
-            Self::SingleLine(_) => 1,
-            Self::MultiLine(values) => values.len(),
+            Self::SingleLine { .. } => 1,
+            Self::MultiLine { inner, .. } => inner.len(),
         }
     }
 
     fn values(&'a self) -> Vec<Option<&'a str>> {
         match self {
-            Value::SingleLine(value) => {
-                vec![value.as_ref().map(std::convert::AsRef::as_ref)]
+            Value::SingleLine { inner, .. } => {
+                vec![inner.as_ref().map(std::convert::AsRef::as_ref)]
             }
-            Value::MultiLine(values) => values
+            Value::MultiLine { inner, .. } => inner
                 .iter()
                 .map(|v| v.as_ref().map(std::convert::AsRef::as_ref))
                 .collect(),
@@ -289,77 +342,179 @@ impl<'a> Value<'a> {
     /// ```
     pub fn with_content(&self) -> Vec<&str> {
         match self {
-            Self::SingleLine(v) => {
-                if let Some(v) = v {
-                    vec![v]
+            Self::SingleLine { inner, .. } => {
+                if let Some(inner) = inner {
+                    vec![inner]
                 } else {
                     vec![]
                 }
             }
-            Self::MultiLine(v) => v.iter().flatten().map(AsRef::as_ref).collect(),
+            Self::MultiLine { inner, .. } => inner.iter().flatten().map(AsRef::as_ref).collect(),
+        }
+    }
+
+    /// Returns `true` if the value is empty.
+    ///
+    /// # Example
+    /// ```
+    /// # use rpsl::parse_object;
+    /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// let remarks = parse_object("
+    /// remarks:
+    ///
+    /// ")?;
+    /// assert_eq!(remarks[0].value.is_empty(), true);
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.with_content().is_empty()
+    }
+
+    fn into_specification<Target: Specification>(self) -> Value<'a, Target> {
+        match self {
+            Value::SingleLine { inner, .. } => Value::SingleLine {
+                inner,
+                _spec: PhantomData,
+            },
+            Value::MultiLine { inner, .. } => Value::MultiLine {
+                inner,
+                _spec: PhantomData,
+            },
+        }
+    }
+
+    #[must_use]
+    /// Convert this value into an owned (`'static`) version.
+    pub fn into_owned(self) -> Value<'static, S> {
+        match self {
+            Value::SingleLine { inner, .. } => Value::SingleLine {
+                inner: inner.map(|v| Cow::Owned(v.into_owned())),
+                _spec: PhantomData,
+            },
+            Value::MultiLine { inner, .. } => Value::MultiLine {
+                inner: inner
+                    .into_iter()
+                    .map(|v| v.map(|v| Cow::Owned(v.into_owned())))
+                    .collect(),
+                _spec: PhantomData,
+            },
         }
     }
 }
 
-impl FromStr for Value<'_> {
-    type Err = InvalidValueError;
+impl Value<'static, Raw> {
+    /// Create a single line value. Empty values are coerced to [`None`].
+    pub fn new_single<V>(value: V) -> Self
+    where
+        V: Into<String>,
+    {
+        Self::SingleLine {
+            inner: coerce_empty_value(value.into()).map(Cow::Owned),
+            _spec: PhantomData,
+        }
+    }
 
-    /// Create a new single line value from a string slice.
+    /// Create a multi line value. Empty values are coerced to [`None`].
     ///
-    /// A valid value may consist of any ASCII character, excluding control characters.
-    ///
-    /// # Errors
-    /// Returns an error if the value contains invalid characters.
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-        Self::validate(value)?;
-        Ok(Self::SingleLine(
-            coerce_empty_value(value).map(|value| Cow::Owned(value.to_string())),
-        ))
+    /// # Panics
+    /// If the given iterator contains less than two values.
+    pub fn new_multi<I, V>(values: I) -> Self
+    where
+        I: IntoIterator<Item = V>,
+        V: Into<String>,
+    {
+        let s = Self::MultiLine {
+            inner: values
+                .into_iter()
+                .map(|v| coerce_empty_value(v.into()).map(Cow::Owned))
+                .collect(),
+            _spec: PhantomData,
+        };
+        assert!(s.lines() >= 2, "multi line values need at least two lines");
+        s
     }
 }
 
-impl TryFrom<Vec<&str>> for Value<'_> {
-    type Error = InvalidValueError;
+impl<'a> Value<'a, Raw> {
+    /// Create a single line value from parsed RPSL. Empty values are coerced to [`None`].
+    pub(crate) fn from_parsed_single(value: &'a str) -> Self {
+        Self::SingleLine {
+            inner: coerce_empty_value(value).map(Cow::Borrowed),
+            _spec: PhantomData,
+        }
+    }
 
-    /// Create a new value from a vector of string slices, representing the values lines.
+    /// Create a multi line value from parsed RPSL. Empty values are coerced to [`None`].
     ///
-    /// # Errors
-    /// Returns an error if a value contains invalid characters.
+    /// # Panics
+    /// If the given iterator contains less than two values.
+    pub(crate) fn from_parsed_multi<I>(values: I) -> Self
+    where
+        I: IntoIterator<Item = &'a str>,
+    {
+        let s = Self::MultiLine {
+            inner: values
+                .into_iter()
+                .map(|v| coerce_empty_value(v).map(Cow::Borrowed))
+                .collect(),
+            _spec: PhantomData,
+        };
+        assert!(s.lines() >= 2, "multi line values need at least two lines");
+        s
+    }
+}
+
+impl FromStr for Value<'static, Raw> {
+    type Err = Infallible;
+
+    /// Create a new single line value from a string slice.
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
+        Ok(Self::new_single(value))
+    }
+}
+
+impl From<&str> for Value<'static, Raw> {
+    fn from(value: &str) -> Self {
+        Self::new_single(value)
+    }
+}
+
+impl From<String> for Value<'static, Raw> {
+    fn from(value: String) -> Self {
+        Self::new_single(value)
+    }
+}
+
+impl<S> From<Vec<S>> for Value<'static, Raw>
+where
+    S: Into<String>,
+{
+    /// Create a new value from an iterator of value lines.
     ///
     /// # Example
     /// ```
     /// # use rpsl::Value;
-    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].try_into()?;
+    /// let value: Value = vec!["Packet Street 6", "128 Series of Tubes", "Internet"].into();
     /// assert_eq!(value.lines(), 3);
-    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    fn try_from(values: Vec<&str>) -> Result<Self, Self::Error> {
-        if values.len() == 1 {
-            let value = values[0].parse()?;
-            return Ok(value);
-        }
-        let values = values
-            .into_iter()
-            .map(|v| {
-                Self::validate(v)?;
-                Ok(coerce_empty_value(v).map(std::string::ToString::to_string))
-            })
-            .collect::<Result<Vec<Option<String>>, InvalidValueError>>()?;
+    fn from(values: Vec<S>) -> Self {
+        let v: Vec<String> = values.into_iter().map(Into::into).collect();
 
-        Ok(Self::MultiLine(
-            values.into_iter().map(|v| v.map(Cow::Owned)).collect(),
-        ))
+        match v.len() {
+            0 => Value::new_single(String::new()),
+            1 => Value::new_single(v.into_iter().next().expect("vec has at least one value")),
+            _ => Value::new_multi(v),
+        }
     }
 }
 
-#[allow(clippy::from_over_into)]
-impl Into<Vec<Option<String>>> for Value<'_> {
-    fn into(self) -> Vec<Option<String>> {
-        match self {
-            Self::SingleLine(value) => {
-                vec![value.map(|v| v.to_string())]
-            }
-            Self::MultiLine(values) => values
+impl<'a, S: Specification> From<Value<'a, S>> for Vec<Option<String>> {
+    fn from(value: Value<'a, S>) -> Self {
+        match value {
+            Value::SingleLine { inner, .. } => vec![inner.map(|v| v.to_string())],
+            Value::MultiLine { inner, .. } => inner
                 .into_iter()
                 .map(|v| v.map(|v| v.to_string()))
                 .collect(),
@@ -367,11 +522,11 @@ impl Into<Vec<Option<String>>> for Value<'_> {
     }
 }
 
-impl PartialEq<&str> for Value<'_> {
+impl<S: Specification> PartialEq<&str> for Value<'_, S> {
     fn eq(&self, other: &&str) -> bool {
         match &self {
-            Self::MultiLine(_) => false,
-            Self::SingleLine(value) => match value {
+            Self::MultiLine { .. } => false,
+            Self::SingleLine { inner, .. } => match inner {
                 Some(value) => value == *other,
                 None => coerce_empty_value(other).is_none(),
             },
@@ -379,20 +534,20 @@ impl PartialEq<&str> for Value<'_> {
     }
 }
 
-impl PartialEq<Vec<&str>> for Value<'_> {
+impl<S: Specification> PartialEq<Vec<&str>> for Value<'_, S> {
     fn eq(&self, other: &Vec<&str>) -> bool {
         if self.lines() != other.len() {
             return false;
         }
 
         match &self {
-            Self::SingleLine(value) => {
-                let s = value.as_deref();
+            Self::SingleLine { inner, .. } => {
+                let s = inner.as_deref();
                 let other_coerced = coerce_empty_value(other[0]);
                 s == other_coerced
             }
-            Self::MultiLine(values) => {
-                let s = values.iter().map(|v| v.as_deref());
+            Self::MultiLine { inner, .. } => {
+                let s = inner.iter().map(|v| v.as_deref());
                 let other_coerced = other.iter().map(|&v| coerce_empty_value(v));
                 s.eq(other_coerced)
             }
@@ -400,20 +555,20 @@ impl PartialEq<Vec<&str>> for Value<'_> {
     }
 }
 
-impl PartialEq<Vec<Option<&str>>> for Value<'_> {
+impl<S: Specification> PartialEq<Vec<Option<&str>>> for Value<'_, S> {
     fn eq(&self, other: &Vec<Option<&str>>) -> bool {
         if self.lines() != other.len() {
             return false;
         }
 
         match &self {
-            Self::SingleLine(value) => {
-                let s = value.as_deref();
+            Self::SingleLine { inner, .. } => {
+                let s = inner.as_deref();
                 let other = other[0];
                 s == other
             }
-            Self::MultiLine(values) => {
-                let s = values.iter().map(|v| v.as_deref());
+            Self::MultiLine { inner, .. } => {
+                let s = inner.iter().map(|v| v.as_deref());
                 let other = other.iter().map(|v| v.as_deref());
                 s.eq(other)
             }
@@ -433,15 +588,8 @@ where
     }
 }
 
-/// Checks if the given char is part of the extended ASCII set.
-#[inline]
-fn is_extended_ascii(char: char) -> bool {
-    matches!(char, '\u{0000}'..='\u{00FF}')
-}
-
 #[cfg(test)]
 mod tests {
-    use proptest::prelude::*;
     use rstest::*;
     #[cfg(feature = "serde")]
     use serde_test::{assert_ser_tokens, Token};
@@ -466,7 +614,10 @@ mod tests {
         Attribute::unchecked_single("Ref", "https://rdap.arin.net/registry/autnum/32934"),
         "Ref:            https://rdap.arin.net/registry/autnum/32934\n"
     )]
-    fn attribute_display_single_line(#[case] attribute: Attribute, #[case] expected: &str) {
+    fn attribute_display_single_line<S: Specification>(
+        #[case] attribute: Attribute<S>,
+        #[case] expected: &str,
+    ) {
         assert_eq!(attribute.to_string(), expected);
     }
 
@@ -498,7 +649,10 @@ mod tests {
             " \n",
         )
     )]
-    fn attribute_display_multi_line(#[case] attribute: Attribute, #[case] expected: &str) {
+    fn attribute_display_multi_line<S: Specification>(
+        #[case] attribute: Attribute<S>,
+        #[case] expected: &str,
+    ) {
         assert_eq!(attribute.to_string(), expected);
     }
 
@@ -539,13 +693,23 @@ mod tests {
         ],
     )]
     #[cfg(feature = "serde")]
-    fn attribute_serialize(#[case] attribute: Attribute, #[case] expected: &[Token]) {
+    fn attribute_serialize<S: Specification>(
+        #[case] attribute: Attribute<S>,
+        #[case] expected: &[Token],
+    ) {
         assert_ser_tokens(&attribute, expected);
+    }
+
+    #[rstest]
+    #[case("Ref", Name { inner: Cow::Owned("Ref".to_string()), _spec: PhantomData })]
+    fn name_new<S: Into<String>>(#[case] s: S, #[case] expected: Name<Raw>) {
+        let attribute = Name::new(s);
+        assert_eq!(attribute, expected);
     }
 
     #[test]
     fn name_display() {
-        let name_display = Name::unchecked("address").to_string();
+        let name_display = Name::new("address").to_string();
         assert_eq!(name_display, "address");
     }
 
@@ -553,7 +717,7 @@ mod tests {
     #[case("role")]
     #[case("person")]
     fn name_deref(#[case] s: &str) {
-        let name = Name::unchecked(s);
+        let name = Name::new(s);
         assert_eq!(*name, *s);
     }
 
@@ -561,73 +725,68 @@ mod tests {
     #[case("role")]
     #[case("person")]
     fn name_from_str(#[case] s: &str) {
-        assert_eq!(Name::from_str(s).unwrap(), Name(Cow::Owned(s.to_string())));
-    }
-
-    proptest! {
-        #[test]
-        fn name_from_str_space_only_is_err(n in r"\s") {
-            assert!(Name::from_str(&n).is_err());
-        }
-
-        #[test]
-        fn name_from_str_non_ascii_is_err(n in r"[^[[:ascii:]]]") {
-            assert!(Name::from_str(&n).is_err());
-        }
-
-        #[test]
-        fn name_from_str_non_letter_first_char_is_err(n in r"[^a-zA-Z][[:ascii:]]*") {
-            assert!(Name::from_str(&n).is_err());
-        }
-
-        #[test]
-        fn name_from_str_non_letter_or_digit_last_char_is_err(n in r"[[:ascii:]]*[^a-zA-Z0-9]") {
-            assert!(Name::from_str(&n).is_err());
-        }
+        assert_eq!(Name::from_str(s).unwrap(), Name::new(s));
     }
 
     #[rstest]
-    #[case(Name::unchecked("ASNumber"), Token::Str("ASNumber"))]
+    #[case(Name::new("ASNumber"), Token::Str("ASNumber"))]
     #[cfg(feature = "serde")]
     fn name_serialize(#[case] name: Name, #[case] expected: Token) {
         assert_ser_tokens(&name, &[expected]);
     }
 
     #[rstest]
-    #[case("This is a valid attribute value", Value::SingleLine(Some(Cow::Owned("This is a valid attribute value".to_string()))))]
-    #[case("   ", Value::SingleLine(None))]
+    #[case(
+        "This is a valid attribute value",
+        Value::SingleLine {
+            inner: Some(Cow::Owned("This is a valid attribute value".to_string())),
+            _spec: PhantomData
+        }
+    )]
+    fn value_new_single<S: Into<String>>(#[case] s: S, #[case] expected: Value<Raw>) {
+        let attribute = Value::new_single(s);
+        assert_eq!(attribute, expected);
+    }
+
+    #[rstest]
+    #[case(
+        vec!["Packet Street 6", "128 Series of Tubes", "Internet"],
+        Value::MultiLine {
+            inner: vec![
+                Some(Cow::Owned("Packet Street 6".to_string())),
+                Some(Cow::Owned("128 Series of Tubes".to_string())),
+                Some(Cow::Owned("Internet".to_string()))
+            ],
+            _spec: PhantomData
+        }
+    )]
+    fn value_new_multi<I, V>(#[case] i: I, #[case] expected: Value<Raw>)
+    where
+        I: IntoIterator<Item = V>,
+        V: Into<String>,
+    {
+        let attribute = Value::new_multi(i);
+        assert_eq!(attribute, expected);
+    }
+
+    #[rstest]
+    #[case("This is a valid attribute value", Value::new_single("This is a valid attribute value".to_string()))]
     fn value_from_str(#[case] s: &str, #[case] expected: Value) {
         assert_eq!(Value::from_str(s).unwrap(), expected);
     }
 
     #[rstest]
     fn value_from_empty_str(#[values("", "   ")] s: &str) {
-        assert_eq!(Value::from_str(s).unwrap(), Value::SingleLine(None));
-    }
-
-    proptest! {
-        #[test]
-        fn value_validation_any_non_control_extended_ascii_valid(
-            s in r"[\x00-\xFF]+"
-                .prop_filter("Must not contain control chars", |s| !s.chars().any(|c| c.is_ascii_control())))
-            {
-                Value::validate(&s).unwrap();
-        }
-
-        #[test]
-        fn value_validation_any_non_extended_ascii_is_err(s in r"[^\x00-\xFF]+") {
-            matches!(Value::validate(&s).unwrap_err(), InvalidValueError::NonExtendedAscii);
-        }
-
-        #[test]
-        fn value_validation_any_ascii_control_is_err(s in r"[\x00-\x1F\x7F]+") {
-            matches!(Value::validate(&s).unwrap_err(), InvalidValueError::ContainsControlChar);
-        }
+        let expected = Value::SingleLine {
+            inner: None,
+            _spec: PhantomData,
+        };
+        assert_eq!(Value::from_str(s).unwrap(), expected);
     }
 
     #[rstest]
     #[case(
-        Value::unchecked_single("32934"),
+        Value::new_single("32934"),
         &[
             Token::Seq { len: Some(1) },
             Token::Some,
@@ -636,7 +795,7 @@ mod tests {
         ],
     )]
     #[case(
-        Value::unchecked_single(""),
+        Value::new_single(""),
         &[
             Token::Seq { len: Some(1) },
             Token::None,
@@ -644,7 +803,7 @@ mod tests {
         ],
     )]
     #[case(
-        Value::unchecked_multi(["Packet Street 6", "128 Series of Tubes", "Internet"]),
+        Value::new_multi(["Packet Street 6", "128 Series of Tubes", "Internet"]),
         &[
             Token::Seq { len: Some(3) },
             Token::Some,
@@ -662,85 +821,89 @@ mod tests {
     }
 
     #[rstest]
-    #[case(Value::unchecked_single(""), Value::unchecked_single(None))]
-    #[case(Value::unchecked_single("   "), Value::unchecked_single(None))]
-    #[case(Value::unchecked_multi(["", " ", "   "]), Value::unchecked_multi([None, None, None]))]
-    /// Creating unchecked values from empty strings results in None values.
-    fn value_unchecked_empty_is_none(#[case] value: Value, #[case] expected: Value) {
+    #[case(
+        Value::new_single(""),
+        Value::SingleLine {
+            inner: None,
+            _spec: PhantomData
+        }
+    )]
+    #[case(
+        Value::new_single("   "),
+        Value::SingleLine {
+            inner: None,
+            _spec: PhantomData
+        }
+    )]
+    #[case(
+        Value::new_multi(["", " ", "   "]),
+        Value::MultiLine {
+            inner: vec![None, None, None],
+            _spec: PhantomData
+        }
+    )]
+    /// Creating values from empty strings results in None values.
+    fn value_new_empty_is_none(#[case] value: Value, #[case] expected: Value) {
         assert_eq!(value, expected);
     }
 
     #[test]
     #[should_panic(expected = "multi line values need at least two lines")]
-    /// Unchecked multi line attributes cannot be created with only a single value.
-    fn value_unchecked_multi_with_singe_value_panics() {
-        Value::unchecked_multi(["just one"]);
+    /// Multi line attributes cannot be created with only a single value.
+    fn value_new_multi_with_single_value_panics() {
+        Value::new_multi(["just one"]);
     }
 
     #[rstest]
     #[case(
+        vec!["Packet Street 6"],
+        Value::new_single("Packet Street 6")
+    )]
+    #[case(
+        vec![],
+        Value::new_single("")
+    )]
+    #[case(
         vec!["Packet Street 6", "128 Series of Tubes", "Internet"],
-        Value::MultiLine(vec![
-            Some(Cow::Owned("Packet Street 6".to_string())),
-            Some(Cow::Owned("128 Series of Tubes".to_string())),
-            Some(Cow::Owned("Internet".to_string()))
+        Value::new_multi(vec![
+            "Packet Street 6",
+            "128 Series of Tubes",
+            "Internet"
         ])
     )]
     #[case(
         vec!["", "128 Series of Tubes", "Internet"],
-        Value::MultiLine(vec![
-            None,
-            Some(Cow::Owned("128 Series of Tubes".to_string())),
-            Some(Cow::Owned("Internet".to_string()))
+        Value::new_multi(vec![
+            "",
+            "128 Series of Tubes",
+            "Internet"
         ])
     )]
     #[case(
         vec!["", " ", "   "],
-        Value::MultiLine(vec![None, None, None])
+        Value::new_multi(vec!["", "", ""])
     )]
     fn value_from_vec_of_str(#[case] v: Vec<&str>, #[case] expected: Value) {
-        let value = Value::try_from(v).unwrap();
+        let value = Value::from(v);
         assert_eq!(value, expected);
-    }
-
-    #[test]
-    fn value_from_vec_w_1_value_is_single_line() {
-        assert_eq!(
-            Value::try_from(vec!["Packet Street 6"]).unwrap(),
-            Value::SingleLine(Some(Cow::Owned("Packet Street 6".to_string())))
-        );
     }
 
     #[rstest]
     #[case("single value", 1)]
-    #[case(vec!["multi", "value", "attribute"].try_into().unwrap(), 3)]
+    #[case(vec!["multi", "value", "attribute"].into(), 3)]
     fn value_lines(#[case] value: Value, #[case] expected: usize) {
         assert_eq!(value.lines(), expected);
     }
 
     #[rstest]
+    #[case(Value::new_single(""), vec![])]
+    #[case(Value::new_single("single value"), vec!["single value"])]
     #[case(
-        Value::unchecked_single(None),
-        vec![]
-    )]
-    #[case(
-        Value::unchecked_single("single value"),
-        vec!["single value"]
-    )]
-    #[case(
-        Value::unchecked_multi(vec![
-            None,
-            Some("128 Series of Tubes"),
-            Some("Internet"),
-        ]),
+        Value::new_multi(["", "128 Series of Tubes", "Internet"]),
         vec!["128 Series of Tubes", "Internet"]
     )]
     #[case(
-        Value::unchecked_multi([
-            "Packet Street 6",
-            "128 Series of Tubes",
-            "Internet"
-        ]),
+        Value::new_multi(["Packet Street 6", "128 Series of Tubes", "Internet"]),
         vec!["Packet Street 6", "128 Series of Tubes", "Internet"]
     )]
     fn value_with_content(#[case] value: Value, #[case] expected: Vec<&str>) {
@@ -753,14 +916,14 @@ mod tests {
     #[case("single value")]
     /// A value and &str evaluate as equal if the contents match.
     fn value_partialeq_str_eq_is_eq(#[case] s: &str) {
-        let value = Value::unchecked_single(s);
+        let value = Value::new_single(s);
         assert_eq!(value, s);
     }
 
     #[rstest]
-    #[case(Value::unchecked_single("a value"), "a different value")]
+    #[case(Value::new_single("a value"), "a different value")]
     #[case(
-        Value::unchecked_multi([
+        Value::new_multi([
             "multi",
             "value"
         ]),
@@ -773,15 +936,15 @@ mod tests {
 
     #[rstest]
     #[case(
-        Value::unchecked_single("single value"),
+        Value::new_single("single value"),
         vec!["single value"]
     )]
     #[case(
-        Value::unchecked_single(None),
+        Value::new_single(""),
         vec!["     "]
     )]
     #[case(
-        Value::unchecked_multi([
+        Value::new_multi([
             "multi",
             "value",
             "attribute"
@@ -789,11 +952,7 @@ mod tests {
         vec!["multi", "value", "attribute"]
     )]
     #[case(
-        Value::unchecked_multi([
-            Some("multi"),
-            None,
-            Some("attribute")
-        ]),
+        Value::new_multi(["multi", "", "attribute"]),
         vec!["multi", "     ", "attribute"]
     )]
     /// A value and a Vec<&str> evaluate as equal if the contents match.
@@ -802,20 +961,13 @@ mod tests {
     }
 
     #[rstest]
+    #[case(Value::new_single("single value"), vec!["multi", "value"])]
     #[case(
-        Value::unchecked_single("single value"),
-        vec!["multi", "value"]
-    )]
-    #[case(
-        Value::unchecked_single("single value"),
+        Value::new_single("single value"),
         vec!["other single value"]
     )]
     #[case(
-        Value::unchecked_multi([
-            "multi",
-            "value",
-            "attribute"
-        ]),
+        Value::new_multi(["multi", "value", "attribute"]),
         vec!["different", "multi", "value", "attribute"]
     )]
     /// A value and a Vec<&str> do not evaluate as equal if the contents differ.
@@ -824,20 +976,13 @@ mod tests {
     }
 
     #[rstest]
+    #[case(Value::new_single("single value"), vec![Some("single value")])]
     #[case(
-        Value::unchecked_single("single value"),
-        vec![Some("single value")]
-    )]
-    #[case(
-        Value::unchecked_multi([
-            "multi",
-            "value",
-            "attribute"
-        ]),
+        Value::new_multi(["multi", "value", "attribute"]),
         vec![Some("multi"), Some("value"), Some("attribute")]
     )]
     #[case(
-        Value::unchecked_multi([Some("multi"), None, Some("attribute")]),
+        Value::new_multi(["multi", "", "attribute"]),
         vec![Some("multi"), None, Some("attribute")]
     )]
     /// A value and a Vec<Option<&str>> evaluate as equal if the contents match.
@@ -847,23 +992,16 @@ mod tests {
 
     #[rstest]
     #[case(
-        Value::unchecked_single("single value"),
+        Value::new_single("single value"),
         vec![Some("multi"), Some("value")]
     )]
     #[case(
-        Value::unchecked_single("single value"),
+        Value::new_single("single value"),
         vec![Some("other single value")]
     )]
+    #[case(Value::new_single(""), vec![Some("     ")])]
     #[case(
-        Value::unchecked_single(None),
-        vec![Some("     ")]
-    )]
-    #[case(
-        Value::unchecked_multi([
-            "multi",
-            "value",
-            "attribute"
-        ]),
+        Value::new_multi(["multi", "value", "attribute"]),
         vec![Some("different"), Some("multi"), Some("value"), Some("attribute")]
     )]
     /// A value and a Vec<Option<&str>> do not evaluate as equal if the contents differ.
@@ -873,16 +1011,21 @@ mod tests {
 
     #[rstest]
     #[case(
-        Value::unchecked_single("single value"),
+        Value::new_single("single value"),
         vec![Some("single value".to_string())]
     )]
     #[case(
-        Value::unchecked_multi(["multiple",  "values"]),
-        vec![Some("multiple".to_string()),  Some("values".to_string())]
+        Value::new_multi(["multiple", "values"]),
+        vec![Some("multiple".to_string()), Some("values".to_string())]
     )]
     #[case(
-        Value::unchecked_multi(["multiple", "", "separated",  "values"]),
-        vec![Some("multiple".to_string()), None, Some("separated".to_string()),  Some("values".to_string())]
+        Value::new_multi(["multiple", "", "separated", "values"]),
+        vec![
+            Some("multiple".to_string()),
+            None,
+            Some("separated".to_string()),
+            Some("values".to_string())
+        ]
     )]
     fn value_into_vec_of_option_string(
         #[case] value: Value,
@@ -890,17 +1033,5 @@ mod tests {
     ) {
         let vec: Vec<Option<String>> = value.into();
         assert_eq!(vec, expected);
-    }
-
-    proptest! {
-        #[test]
-        fn value_from_str_non_ascii_is_err(v in r"[^[[:ascii:]]]") {
-            assert!(Name::from_str(&v).is_err());
-        }
-
-        #[test]
-        fn value_from_str_ascii_control_is_err(v in r"[[:cntrl:]]") {
-            assert!(Name::from_str(&v).is_err());
-        }
     }
 }

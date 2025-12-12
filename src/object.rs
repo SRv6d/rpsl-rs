@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     fmt,
     ops::{Deref, Index},
 };
@@ -7,6 +8,7 @@ use std::{
 use serde::Serialize;
 
 use super::Attribute;
+use crate::spec::{Raw, Specification};
 
 /// A RPSL object.
 ///
@@ -31,13 +33,13 @@ use super::Attribute;
 /// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// let role_acme = Object::new(vec![
-///     Attribute::new("role".parse()?, "ACME Company".parse()?),
-///     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-///     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-///     Attribute::new("address".parse()?, "Internet".parse()?),
-///     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-///     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-///     Attribute::new("source".parse()?, "RIPE".parse()?),
+///     Attribute::new("role", "ACME Company"),
+///     Attribute::new("address", "Packet Street 6"),
+///     Attribute::new("address", "128 Series of Tubes"),
+///     Attribute::new("address", "Internet"),
+///     Attribute::new("email", "rpsl-rs@github.com"),
+///     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+///     Attribute::new("source", "RIPE"),
 /// ]);
 /// # Ok(())
 /// # }
@@ -49,13 +51,13 @@ use super::Attribute;
 /// # use rpsl::{Attribute, Object, object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
-/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
-/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-/// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// #     Attribute::new("role", "ACME Company"),
+/// #     Attribute::new("address", "Packet Street 6"),
+/// #     Attribute::new("address", "128 Series of Tubes"),
+/// #     Attribute::new("address", "Internet"),
+/// #     Attribute::new("email", "rpsl-rs@github.com"),
+/// #     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+/// #     Attribute::new("source", "RIPE"),
 /// # ]);
 /// assert_eq!(
 ///     role_acme,
@@ -78,16 +80,16 @@ use super::Attribute;
 /// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
-/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
-/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-/// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// #     Attribute::new("role", "ACME Company"),
+/// #     Attribute::new("address", "Packet Street 6"),
+/// #     Attribute::new("address", "128 Series of Tubes"),
+/// #     Attribute::new("address", "Internet"),
+/// #     Attribute::new("email", "rpsl-rs@github.com"),
+/// #     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+/// #     Attribute::new("source", "RIPE"),
 /// # ]);
-/// assert_eq!(role_acme[0], Attribute::new("role".parse()?, "ACME Company".parse()?));
-/// assert_eq!(role_acme[6], Attribute::new("source".parse()?, "RIPE".parse()?));
+/// assert_eq!(role_acme[0], Attribute::new("role", "ACME Company"));
+/// assert_eq!(role_acme[6], Attribute::new("source", "RIPE"));
 /// # Ok(())
 /// # }
 /// ```
@@ -97,13 +99,13 @@ use super::Attribute;
 /// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
-/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
-/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-/// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// #     Attribute::new("role", "ACME Company"),
+/// #     Attribute::new("address", "Packet Street 6"),
+/// #     Attribute::new("address", "128 Series of Tubes"),
+/// #     Attribute::new("address", "Internet"),
+/// #     Attribute::new("email", "rpsl-rs@github.com"),
+/// #     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+/// #     Attribute::new("source", "RIPE"),
 /// # ]);
 /// assert_eq!(role_acme.get("role"), vec!["ACME Company"]);
 /// assert_eq!(role_acme.get("address"), vec!["Packet Street 6", "128 Series of Tubes", "Internet"]);
@@ -119,13 +121,13 @@ use super::Attribute;
 /// # use rpsl::{Attribute, Object};
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// # let role_acme = Object::new(vec![
-/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
-/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-/// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// #     Attribute::new("role", "ACME Company"),
+/// #     Attribute::new("address", "Packet Street 6"),
+/// #     Attribute::new("address", "128 Series of Tubes"),
+/// #     Attribute::new("address", "Internet"),
+/// #     Attribute::new("email", "rpsl-rs@github.com"),
+/// #     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+/// #     Attribute::new("source", "RIPE"),
 /// # ]);
 /// assert_eq!(
 ///    role_acme.to_string(),
@@ -150,13 +152,13 @@ use super::Attribute;
 /// # #[cfg(feature = "json")]
 /// # use serde_json::json;
 /// # let role_acme = Object::new(vec![
-/// #     Attribute::new("role".parse()?, "ACME Company".parse()?),
-/// #     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-/// #     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-/// #     Attribute::new("address".parse()?, "Internet".parse()?),
-/// #     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-/// #     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-/// #     Attribute::new("source".parse()?, "RIPE".parse()?),
+/// #     Attribute::new("role", "ACME Company"),
+/// #     Attribute::new("address", "Packet Street 6"),
+/// #     Attribute::new("address", "128 Series of Tubes"),
+/// #     Attribute::new("address", "Internet"),
+/// #     Attribute::new("email", "rpsl-rs@github.com"),
+/// #     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+/// #     Attribute::new("source", "RIPE"),
 /// # ]);
 /// # #[cfg(feature = "json")]
 /// assert_eq!(
@@ -176,16 +178,18 @@ use super::Attribute;
 /// # Ok::<(), Box<dyn std::error::Error>>(())
 /// ```
 #[derive(Debug, Clone)]
-#[cfg_attr(feature = "serde", derive(Serialize))]
+#[cfg_attr(feature = "serde", derive(Serialize), serde(bound = ""))]
 #[allow(clippy::len_without_is_empty)]
-pub struct Object<'a> {
-    attributes: Vec<Attribute<'a>>,
+pub struct Object<'a, S: Specification = Raw> {
+    attributes: Vec<Attribute<'a, S>>,
     /// Contains the source if the object was created by parsing RPSL.
     #[cfg_attr(feature = "serde", serde(skip))]
-    source: Option<&'a str>,
+    source: Option<Cow<'a, str>>,
 }
 
-impl Object<'_> {
+impl<'a, S: Specification> Object<'a, S> {
+    // TODO: Allow validating object into a concrete spec.
+
     /// Create a new RPSL object from a vector of attributes.
     ///
     /// # Example
@@ -193,19 +197,19 @@ impl Object<'_> {
     /// # use rpsl::{Attribute, Object};
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
     /// let role_acme = Object::new(vec![
-    ///     Attribute::new("role".parse()?, "ACME Company".parse()?),
-    ///     Attribute::new("address".parse()?, "Packet Street 6".parse()?),
-    ///     Attribute::new("address".parse()?, "128 Series of Tubes".parse()?),
-    ///     Attribute::new("address".parse()?, "Internet".parse()?),
-    ///     Attribute::new("email".parse()?, "rpsl-rs@github.com".parse()?),
-    ///     Attribute::new("nic-hdl".parse()?, "RPSL1-RIPE".parse()?),
-    ///     Attribute::new("source".parse()?, "RIPE".parse()?),
+    ///     Attribute::new("role", "ACME Company"),
+    ///     Attribute::new("address", "Packet Street 6"),
+    ///     Attribute::new("address", "128 Series of Tubes"),
+    ///     Attribute::new("address", "Internet"),
+    ///     Attribute::new("email", "rpsl-rs@github.com"),
+    ///     Attribute::new("nic-hdl", "RPSL1-RIPE"),
+    ///     Attribute::new("source", "RIPE"),
     /// ]);
     /// # Ok(())
     /// # }
     /// ```
     #[must_use]
-    pub fn new(attributes: Vec<Attribute<'static>>) -> Object<'static> {
+    pub fn new(attributes: Vec<Attribute<'static, S>>) -> Object<'static, S> {
         Object {
             attributes,
             source: None,
@@ -213,10 +217,10 @@ impl Object<'_> {
     }
 
     /// Create a new RPSL object from a text source and it's corresponding parsed attributes.
-    pub(crate) fn from_parsed<'a>(source: &'a str, attributes: Vec<Attribute<'a>>) -> Object<'a> {
+    pub(crate) fn new_parsed(source: &'a str, attributes: Vec<Attribute<'a, S>>) -> Object<'a, S> {
         Object {
             attributes,
-            source: Some(source),
+            source: Some(Cow::Borrowed(source)),
         }
     }
 
@@ -248,28 +252,40 @@ impl Object<'_> {
     /// Access the source field for use in tests.
     #[cfg(test)]
     pub(crate) fn source(&self) -> Option<&str> {
-        self.source
+        self.source.as_deref()
+    }
+
+    /// Convert this object into an owned (`'static`) variant.
+    pub fn into_owned(self) -> Object<'static, S> {
+        Object {
+            attributes: self
+                .attributes
+                .into_iter()
+                .map(Attribute::into_owned)
+                .collect(),
+            source: self.source.map(|s| Cow::Owned(s.into_owned())),
+        }
     }
 }
 
-impl<'a> Index<usize> for Object<'a> {
-    type Output = Attribute<'a>;
+impl<'a, S: Specification> Index<usize> for Object<'a, S> {
+    type Output = Attribute<'a, S>;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.attributes[index]
     }
 }
 
-impl<'a> Deref for Object<'a> {
-    type Target = Vec<Attribute<'a>>;
+impl<'a, S: Specification> Deref for Object<'a, S> {
+    type Target = Vec<Attribute<'a, S>>;
 
     fn deref(&self) -> &Self::Target {
         &self.attributes
     }
 }
 
-impl<'a> IntoIterator for Object<'a> {
-    type Item = Attribute<'a>;
+impl<'a, S: Specification> IntoIterator for Object<'a, S> {
+    type Item = Attribute<'a, S>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -288,7 +304,7 @@ impl PartialEq for Object<'_> {
 impl fmt::Display for Object<'_> {
     /// Display the object as RPSL.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(source) = self.source {
+        if let Some(source) = &self.source {
             write!(f, "{source}")
         } else {
             for attribute in &self.attributes {
@@ -346,7 +362,11 @@ macro_rules! object {
     ) => {
         $crate::Object::new(vec![
             $(
-                $crate::Attribute::new($name.parse().unwrap(), vec![$($value),+].try_into().unwrap()),
+                {
+                    let name = $crate::Name::new($name);
+                    let value: $crate::Value = vec![$($value),+].into();
+                    $crate::Attribute::new(name, value)
+                },
             )*
         ])
     };
@@ -371,7 +391,7 @@ mod tests {
             Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
             Attribute::unchecked_single("source", "RIPE"),
         ]),
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -414,7 +434,7 @@ mod tests {
             Attribute::unchecked_single("nic-hdl", "RPSL1-RIPE"),
             Attribute::unchecked_single("source", "RIPE"),
         ]),
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -591,7 +611,7 @@ mod tests {
 
     #[rstest]
     #[case(
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -624,7 +644,7 @@ mod tests {
         )
     )]
     #[case(
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -657,7 +677,7 @@ mod tests {
         )
     )]
     #[case(
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -693,7 +713,7 @@ mod tests {
         )
     )]
     #[case(
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
@@ -831,7 +851,7 @@ mod tests {
             ]),
     )]
     #[case(
-        Object::from_parsed(
+        Object::new_parsed(
             concat!(
                 "role:           ACME Company\n",
                 "address:        Packet Street 6\n",
