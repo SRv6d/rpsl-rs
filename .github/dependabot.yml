@@ -19,6 +19,10 @@ updates:
     groups:
       development-non-major:
         dependency-type: development
+  - package-ecosystem: rust-toolchain
+    directory: /
+    schedule:
+      interval: quarterly
   - package-ecosystem: devcontainers
     directory: /
     schedule:
