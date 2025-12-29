@@ -7,9 +7,9 @@ LCOV_FILE := "target/coverage/lcov.info"
 
 default: check-lockfile lint test
 
-# Check if the lockfile is up to date
+# Check if the lockfile is in sync with Cargo.toml
 check-lockfile:
-    cargo update -w --locked
+    cargo metadata --locked --format-version=1 > /dev/null
 
 # Lint code and check formatting
 lint: lint-justfile
