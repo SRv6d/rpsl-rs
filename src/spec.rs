@@ -30,7 +30,7 @@ impl Specification for Raw {
 pub struct Rfc2622;
 
 impl Rfc2622 {
-    fn validate_name<S: Specification>(name: &Name<S>) -> Result<(), InvalidNameError> {
+    fn validate_name<Spec: Specification>(name: &Name<Spec>) -> Result<(), InvalidNameError> {
         if name.len() < 2 {
             return Err(InvalidNameError::new(
                 name,
@@ -74,7 +74,7 @@ impl Rfc2622 {
         Ok(())
     }
 
-    fn validate_value<S: Specification>(value: &Value<S>) -> Result<(), InvalidValueError> {
+    fn validate_value<Spec: Specification>(value: &Value<Spec>) -> Result<(), InvalidValueError> {
         let validator = |v: &str| {
             if !v.is_ascii() {
                 return Err(InvalidValueError::new(
@@ -156,7 +156,7 @@ pub struct InvalidValueError {
 }
 
 impl InvalidValueError {
-    fn new<S: Specification>(value: &Value<S>, message: impl Into<String>) -> Self {
+    fn new<Spec: Specification>(value: &Value<Spec>, message: impl Into<String>) -> Self {
         Self {
             value: value.clone().into_owned().into_raw(),
             message: message.into(),

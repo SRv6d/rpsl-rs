@@ -180,14 +180,14 @@ use crate::spec::{AttributeError, Raw, Specification};
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize), serde(bound = ""))]
 #[allow(clippy::len_without_is_empty)]
-pub struct Object<'a, S: Specification = Raw> {
-    attributes: Vec<Attribute<'a, S>>,
+pub struct Object<'a, Spec: Specification = Raw> {
+    attributes: Vec<Attribute<'a, Spec>>,
     /// Contains the source if the object was created by parsing RPSL.
     #[cfg_attr(feature = "serde", serde(skip))]
     source: Option<Cow<'a, str>>,
 }
 
-impl<'a, S: Specification> Object<'a, S> {
+impl<'a, Spec: Specification> Object<'a, Spec> {
     /// Validate that all attributes of this object conform to a target specification.
     ///
     /// # Errors
@@ -203,10 +203,10 @@ impl<'a, S: Specification> Object<'a, S> {
     /// obj.validate::<Rfc2622>()?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn validate<Target: Specification>(&self) -> Result<(), ObjectValidationError> {
+    pub fn validate<TargetSpec: Specification>(&self) -> Result<(), ObjectValidationError> {
         let mut errors = Vec::new();
         for (index, attribute) in self.attributes.iter().enumerate() {
-            if let Err(error) = attribute.validate::<Target>() {
+            if let Err(error) = attribute.validate::<TargetSpec>() {
                 errors.push((index, error));
             }
         }
@@ -233,12 +233,12 @@ impl<'a, S: Specification> Object<'a, S> {
     /// let validated: Object<Rfc2622> = obj.into_spec()?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn into_spec<Target: Specification>(self) -> Result<Object<'a, Target>, AttributeError> {
+    pub fn into_spec<TargetSpec: Specification>(self) -> Result<Object<'a, TargetSpec>, AttributeError> {
         let Object { attributes, source } = self;
 
         let mut converted = Vec::with_capacity(attributes.len());
         for attribute in attributes {
-            converted.push(attribute.into_spec::<Target>()?);
+            converted.push(attribute.into_spec::<TargetSpec>()?);
         }
 
         Ok(Object {
@@ -266,7 +266,7 @@ impl<'a, S: Specification> Object<'a, S> {
     /// # }
     /// ```
     #[must_use]
-    pub fn new(attributes: Vec<Attribute<'static, S>>) -> Object<'static, S> {
+    pub fn new(attributes: Vec<Attribute<'static, Spec>>) -> Object<'static, Spec> {
         Object {
             attributes,
             source: None,
@@ -274,7 +274,7 @@ impl<'a, S: Specification> Object<'a, S> {
     }
 
     /// Create a new RPSL object from a text source and it's corresponding parsed attributes.
-    pub(crate) fn new_parsed(source: &'a str, attributes: Vec<Attribute<'a, S>>) -> Object<'a, S> {
+    pub(crate) fn new_parsed(source: &'a str, attributes: Vec<Attribute<'a, Spec>>) -> Object<'a, Spec> {
         Object {
             attributes,
             source: Some(Cow::Borrowed(source)),
@@ -313,7 +313,7 @@ impl<'a, S: Specification> Object<'a, S> {
     }
 
     /// Convert this object into an owned (`'static`) variant.
-    pub fn into_owned(self) -> Object<'static, S> {
+    pub fn into_owned(self) -> Object<'static, Spec> {
         Object {
             attributes: self
                 .attributes
@@ -325,24 +325,24 @@ impl<'a, S: Specification> Object<'a, S> {
     }
 }
 
-impl<'a, S: Specification> Index<usize> for Object<'a, S> {
-    type Output = Attribute<'a, S>;
+impl<'a, Spec: Specification> Index<usize> for Object<'a, Spec> {
+    type Output = Attribute<'a, Spec>;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.attributes[index]
     }
 }
 
-impl<'a, S: Specification> Deref for Object<'a, S> {
-    type Target = Vec<Attribute<'a, S>>;
+impl<'a, Spec: Specification> Deref for Object<'a, Spec> {
+    type Target = Vec<Attribute<'a, Spec>>;
 
     fn deref(&self) -> &Self::Target {
         &self.attributes
     }
 }
 
-impl<'a, S: Specification> IntoIterator for Object<'a, S> {
-    type Item = Attribute<'a, S>;
+impl<'a, Spec: Specification> IntoIterator for Object<'a, Spec> {
+    type Item = Attribute<'a, Spec>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
