@@ -233,7 +233,9 @@ impl<'a, Spec: Specification> Object<'a, Spec> {
     /// let validated: Object<Rfc2622> = obj.into_spec()?;
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn into_spec<TargetSpec: Specification>(self) -> Result<Object<'a, TargetSpec>, AttributeError> {
+    pub fn into_spec<TargetSpec: Specification>(
+        self,
+    ) -> Result<Object<'a, TargetSpec>, AttributeError> {
         let Object { attributes, source } = self;
 
         let mut converted = Vec::with_capacity(attributes.len());
@@ -274,7 +276,10 @@ impl<'a, Spec: Specification> Object<'a, Spec> {
     }
 
     /// Create a new RPSL object from a text source and it's corresponding parsed attributes.
-    pub(crate) fn new_parsed(source: &'a str, attributes: Vec<Attribute<'a, Spec>>) -> Object<'a, Spec> {
+    pub(crate) fn new_parsed(
+        source: &'a str,
+        attributes: Vec<Attribute<'a, Spec>>,
+    ) -> Object<'a, Spec> {
         Object {
             attributes,
             source: Some(Cow::Borrowed(source)),
@@ -919,15 +924,14 @@ mod tests {
         ]
     )]
     #[allow(clippy::used_underscore_binding)]
-    fn object_validate_invalid_object_returns_expected_errors<TargetSpec: Specification + PartialEq>(
+    fn object_validate_invalid_object_returns_expected_errors<
+        TargetSpec: Specification + PartialEq,
+    >(
         #[case] object: Object,
         #[case] _target: TargetSpec,
         #[case] expected: Vec<(usize, AttributeError)>,
     ) {
-        let errors = object
-            .validate::<TargetSpec>()
-            .unwrap_err()
-            .into_errors();
+        let errors = object.validate::<TargetSpec>().unwrap_err().into_errors();
         assert_eq!(errors, expected);
     }
 

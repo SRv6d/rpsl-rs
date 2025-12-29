@@ -58,7 +58,9 @@ impl<'a, Spec: Specification> Attribute<'a, Spec> {
     ///
     /// # Errors
     /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
-    pub fn into_spec<TargetSpec: Specification>(self) -> Result<Attribute<'a, TargetSpec>, AttributeError> {
+    pub fn into_spec<TargetSpec: Specification>(
+        self,
+    ) -> Result<Attribute<'a, TargetSpec>, AttributeError> {
         let candidate = Attribute {
             name: self.name.into_specification(),
             value: self.value.into_specification(),
