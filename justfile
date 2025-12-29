@@ -7,9 +7,9 @@ LCOV_FILE := "target/coverage/lcov.info"
 
 default: check-lockfile lint test
 
-# Check if the lockfile is up to date
+# Check if the lockfile is in sync with Cargo.toml
 check-lockfile:
-    cargo update -w --locked
+    cargo metadata --locked --format-version=1 > /dev/null
 
 # Lint code and check formatting
 lint: lint-justfile
@@ -21,12 +21,12 @@ lint-justfile:
 
 # Run tests
 test $COV=CI: (_install_llvm_cov COV) && doc-test
-    {{ if COV == "true" { "mkdir -p " + parent_directory(LCOV_FILE) + " && cargo llvm-cov --all-features --lcov --output-path " + LCOV_FILE } else { "cargo test --lib --all-features" } }}
+    {{ if COV == "true" { "mkdir -p " + parent_directory(LCOV_FILE) + " && cargo llvm-cov --all-features --lcov --output-path " + LCOV_FILE } else { "cargo test --all-features --locked --lib" } }}
 
 # Run documentation and example tests
 doc-test:
-    cargo test --all-features --doc
-    cargo test --all-features --examples
+    cargo test --all-features --locked --doc
+    cargo test --all-features --locked --examples
 
 # Alias to run tests with coverage
 coverage: (test "true")
