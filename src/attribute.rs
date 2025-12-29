@@ -46,7 +46,7 @@ impl<'a, S: Specification> Attribute<'a, S> {
     ///
     /// # Errors
     /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
-    pub fn validate<Target: Specification>(&self) -> Result<(), AttributeError<Target>> {
+    pub fn validate<Target: Specification>(&self) -> Result<(), AttributeError> {
         let candidate = Attribute {
             name: self.name.clone().into_specification(),
             value: self.value.clone().into_specification(),
@@ -58,9 +58,7 @@ impl<'a, S: Specification> Attribute<'a, S> {
     ///
     /// # Errors
     /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
-    pub fn into_spec<Target: Specification>(
-        self,
-    ) -> Result<Attribute<'a, Target>, AttributeError<Target>> {
+    pub fn into_spec<Target: Specification>(self) -> Result<Attribute<'a, Target>, AttributeError> {
         let candidate = Attribute {
             name: self.name.into_specification(),
             value: self.value.into_specification(),
@@ -173,7 +171,8 @@ impl<'a> Name<'a, Raw> {
     }
 }
 
-impl<'a, S: Specification> Name<'a, S> {
+impl<'a, Spec: Specification> Name<'a, Spec> {
+    /// Convert this name into a different specification after validation.
     fn into_specification<Target: Specification>(self) -> Name<'a, Target> {
         Name {
             inner: self.inner,
@@ -181,9 +180,14 @@ impl<'a, S: Specification> Name<'a, S> {
         }
     }
 
+    /// Convert this name into the [`Raw`] specification.
+    pub(crate) fn into_raw(self) -> Name<'a> {
+        self.into_specification::<Raw>()
+    }
+
     #[must_use]
     /// Convert this name into an owned (`'static`) version.
-    pub fn into_owned(self) -> Name<'static, S> {
+    pub fn into_owned(self) -> Name<'static, Spec> {
         Name {
             inner: Cow::Owned(self.inner.into_owned()),
             _spec: PhantomData,
@@ -286,7 +290,7 @@ pub enum Value<'a, S: Specification = Raw> {
     },
 }
 
-impl<'a, S: Specification> Value<'a, S> {
+impl<'a, Spec: Specification> Value<'a, Spec> {
     /// The number of lines contained.
     ///
     /// # Examples
@@ -372,6 +376,7 @@ impl<'a, S: Specification> Value<'a, S> {
         self.with_content().is_empty()
     }
 
+    /// Convert this value into a different specification after passing validation.
     fn into_specification<Target: Specification>(self) -> Value<'a, Target> {
         match self {
             Value::SingleLine { inner, .. } => Value::SingleLine {
@@ -385,9 +390,14 @@ impl<'a, S: Specification> Value<'a, S> {
         }
     }
 
+    /// Convert this value into the [`Raw`] specification.
+    pub(crate) fn into_raw(self) -> Value<'a> {
+        self.into_specification::<Raw>()
+    }
+
     #[must_use]
     /// Convert this value into an owned (`'static`) version.
-    pub fn into_owned(self) -> Value<'static, S> {
+    pub fn into_owned(self) -> Value<'static, Spec> {
         match self {
             Value::SingleLine { inner, .. } => Value::SingleLine {
                 inner: inner.map(|v| Cow::Owned(v.into_owned())),
