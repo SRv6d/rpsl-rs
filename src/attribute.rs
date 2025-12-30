@@ -20,21 +20,21 @@ use crate::spec::{AttributeError, Raw, Specification};
 /// ```
 #[derive(Debug, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize), serde(bound = ""))]
-pub struct Attribute<'a, S: Specification = Raw> {
+pub struct Attribute<'a, Spec: Specification = Raw> {
     /// The name of the attribute.
-    pub name: Name<'a, S>,
+    pub name: Name<'a, Spec>,
     /// The value of the attribute.
     #[cfg_attr(feature = "serde", serde(rename = "values"))]
-    pub value: Value<'a, S>,
+    pub value: Value<'a, Spec>,
 }
 
-impl<'a, S: Specification> Attribute<'a, S> {
+impl<'a, Spec: Specification> Attribute<'a, Spec> {
     /// Create a new attribute.
     #[must_use]
     pub fn new<N, V>(name: N, value: V) -> Self
     where
-        N: Into<Name<'a, S>>,
-        V: Into<Value<'a, S>>,
+        N: Into<Name<'a, Spec>>,
+        V: Into<Value<'a, Spec>>,
     {
         Self {
             name: name.into(),
@@ -46,32 +46,32 @@ impl<'a, S: Specification> Attribute<'a, S> {
     ///
     /// # Errors
     /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
-    pub fn validate<Target: Specification>(&self) -> Result<(), AttributeError<Target>> {
+    pub fn validate<TargetSpec: Specification>(&self) -> Result<(), AttributeError> {
         let candidate = Attribute {
             name: self.name.clone().into_specification(),
             value: self.value.clone().into_specification(),
         };
-        Target::validate_attribute(&candidate)
+        TargetSpec::validate_attribute(&candidate)
     }
 
     /// Convert the attribute into a target specification.
     ///
     /// # Errors
     /// Returns an [`AttributeError`] if the attribute does not conform to the target specification.
-    pub fn into_spec<Target: Specification>(
+    pub fn into_spec<TargetSpec: Specification>(
         self,
-    ) -> Result<Attribute<'a, Target>, AttributeError<Target>> {
+    ) -> Result<Attribute<'a, TargetSpec>, AttributeError> {
         let candidate = Attribute {
             name: self.name.into_specification(),
             value: self.value.into_specification(),
         };
-        Target::validate_attribute(&candidate)?;
+        TargetSpec::validate_attribute(&candidate)?;
         Ok(candidate)
     }
 
     /// Convert this attribute into an owned (`'static`) variant.
     #[must_use]
-    pub fn into_owned(self) -> Attribute<'static, S> {
+    pub fn into_owned(self) -> Attribute<'static, Spec> {
         Attribute {
             name: self.name.into_owned(),
             value: self.value.into_owned(),
@@ -113,7 +113,7 @@ impl<'a> Attribute<'a, Raw> {
     }
 }
 
-impl<S: Specification> fmt::Display for Attribute<'_, S> {
+impl<Spec: Specification> fmt::Display for Attribute<'_, Spec> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let values = self.value.values();
 
@@ -144,10 +144,10 @@ impl<S: Specification> fmt::Display for Attribute<'_, S> {
 /// The name of an [`Attribute`].
 #[derive(Debug, PartialEq, Eq, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize), serde(transparent))]
-pub struct Name<'a, S: Specification = Raw> {
+pub struct Name<'a, Spec: Specification = Raw> {
     inner: Cow<'a, str>,
     #[cfg_attr(feature = "serde", serde(skip))]
-    _spec: PhantomData<S>,
+    _spec: PhantomData<Spec>,
 }
 
 impl Name<'static, Raw> {
@@ -173,17 +173,23 @@ impl<'a> Name<'a, Raw> {
     }
 }
 
-impl<'a, S: Specification> Name<'a, S> {
-    fn into_specification<Target: Specification>(self) -> Name<'a, Target> {
+impl<'a, Spec: Specification> Name<'a, Spec> {
+    /// Convert this name into a different specification after validation.
+    fn into_specification<TargetSpec: Specification>(self) -> Name<'a, TargetSpec> {
         Name {
             inner: self.inner,
             _spec: PhantomData,
         }
     }
 
+    /// Convert this name into the [`Raw`] specification.
+    pub(crate) fn into_raw(self) -> Name<'a> {
+        self.into_specification::<Raw>()
+    }
+
     #[must_use]
     /// Convert this name into an owned (`'static`) version.
-    pub fn into_owned(self) -> Name<'static, S> {
+    pub fn into_owned(self) -> Name<'static, Spec> {
         Name {
             inner: Cow::Owned(self.inner.into_owned()),
             _spec: PhantomData,
@@ -212,7 +218,7 @@ impl From<String> for Name<'static, Raw> {
     }
 }
 
-impl<S: Specification> Deref for Name<'_, S> {
+impl<Spec: Specification> Deref for Name<'_, Spec> {
     type Target = str;
 
     fn deref(&self) -> &Self::Target {
@@ -220,13 +226,13 @@ impl<S: Specification> Deref for Name<'_, S> {
     }
 }
 
-impl<S: Specification> PartialEq<&str> for Name<'_, S> {
+impl<Spec: Specification> PartialEq<&str> for Name<'_, Spec> {
     fn eq(&self, other: &&str) -> bool {
         self.inner == *other
     }
 }
 
-impl<S: Specification> fmt::Display for Name<'_, S> {
+impl<Spec: Specification> fmt::Display for Name<'_, Spec> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.inner)
     }
@@ -241,7 +247,7 @@ impl<S: Specification> fmt::Display for Name<'_, S> {
     derive(Serialize),
     serde(into = "Vec<Option<String>>")
 )]
-pub enum Value<'a, S: Specification = Raw> {
+pub enum Value<'a, Spec: Specification = Raw> {
     /// A single line value.
     ///
     /// # Example
@@ -260,7 +266,7 @@ pub enum Value<'a, S: Specification = Raw> {
         inner: Option<Cow<'a, str>>,
         /// The values specification.
         #[cfg_attr(feature = "serde", serde(skip))]
-        _spec: PhantomData<S>,
+        _spec: PhantomData<Spec>,
     },
     /// A value spanning over multiple lines.
     ///
@@ -282,11 +288,11 @@ pub enum Value<'a, S: Specification = Raw> {
         inner: Vec<Option<Cow<'a, str>>>,
         /// The values specification.
         #[cfg_attr(feature = "serde", serde(skip))]
-        _spec: PhantomData<S>,
+        _spec: PhantomData<Spec>,
     },
 }
 
-impl<'a, S: Specification> Value<'a, S> {
+impl<'a, Spec: Specification> Value<'a, Spec> {
     /// The number of lines contained.
     ///
     /// # Examples
@@ -372,7 +378,8 @@ impl<'a, S: Specification> Value<'a, S> {
         self.with_content().is_empty()
     }
 
-    fn into_specification<Target: Specification>(self) -> Value<'a, Target> {
+    /// Convert this value into a different specification after passing validation.
+    fn into_specification<TargetSpec: Specification>(self) -> Value<'a, TargetSpec> {
         match self {
             Value::SingleLine { inner, .. } => Value::SingleLine {
                 inner,
@@ -385,9 +392,14 @@ impl<'a, S: Specification> Value<'a, S> {
         }
     }
 
+    /// Convert this value into the [`Raw`] specification.
+    pub(crate) fn into_raw(self) -> Value<'a> {
+        self.into_specification::<Raw>()
+    }
+
     #[must_use]
     /// Convert this value into an owned (`'static`) version.
-    pub fn into_owned(self) -> Value<'static, S> {
+    pub fn into_owned(self) -> Value<'static, Spec> {
         match self {
             Value::SingleLine { inner, .. } => Value::SingleLine {
                 inner: inner.map(|v| Cow::Owned(v.into_owned())),
@@ -510,8 +522,8 @@ where
     }
 }
 
-impl<'a, S: Specification> From<Value<'a, S>> for Vec<Option<String>> {
-    fn from(value: Value<'a, S>) -> Self {
+impl<'a, Spec: Specification> From<Value<'a, Spec>> for Vec<Option<String>> {
+    fn from(value: Value<'a, Spec>) -> Self {
         match value {
             Value::SingleLine { inner, .. } => vec![inner.map(|v| v.to_string())],
             Value::MultiLine { inner, .. } => inner
@@ -522,7 +534,7 @@ impl<'a, S: Specification> From<Value<'a, S>> for Vec<Option<String>> {
     }
 }
 
-impl<S: Specification> PartialEq<&str> for Value<'_, S> {
+impl<Spec: Specification> PartialEq<&str> for Value<'_, Spec> {
     fn eq(&self, other: &&str) -> bool {
         match &self {
             Self::MultiLine { .. } => false,
@@ -534,7 +546,7 @@ impl<S: Specification> PartialEq<&str> for Value<'_, S> {
     }
 }
 
-impl<S: Specification> PartialEq<Vec<&str>> for Value<'_, S> {
+impl<Spec: Specification> PartialEq<Vec<&str>> for Value<'_, Spec> {
     fn eq(&self, other: &Vec<&str>) -> bool {
         if self.lines() != other.len() {
             return false;
@@ -555,7 +567,7 @@ impl<S: Specification> PartialEq<Vec<&str>> for Value<'_, S> {
     }
 }
 
-impl<S: Specification> PartialEq<Vec<Option<&str>>> for Value<'_, S> {
+impl<Spec: Specification> PartialEq<Vec<Option<&str>>> for Value<'_, Spec> {
     fn eq(&self, other: &Vec<Option<&str>>) -> bool {
         if self.lines() != other.len() {
             return false;
@@ -614,8 +626,8 @@ mod tests {
         Attribute::unchecked_single("Ref", "https://rdap.arin.net/registry/autnum/32934"),
         "Ref:            https://rdap.arin.net/registry/autnum/32934\n"
     )]
-    fn attribute_display_single_line<S: Specification>(
-        #[case] attribute: Attribute<S>,
+    fn attribute_display_single_line<Spec: Specification>(
+        #[case] attribute: Attribute<Spec>,
         #[case] expected: &str,
     ) {
         assert_eq!(attribute.to_string(), expected);
@@ -649,8 +661,8 @@ mod tests {
             " \n",
         )
     )]
-    fn attribute_display_multi_line<S: Specification>(
-        #[case] attribute: Attribute<S>,
+    fn attribute_display_multi_line<Spec: Specification>(
+        #[case] attribute: Attribute<Spec>,
         #[case] expected: &str,
     ) {
         assert_eq!(attribute.to_string(), expected);
@@ -693,8 +705,8 @@ mod tests {
         ],
     )]
     #[cfg(feature = "serde")]
-    fn attribute_serialize<S: Specification>(
-        #[case] attribute: Attribute<S>,
+    fn attribute_serialize<Spec: Specification>(
+        #[case] attribute: Attribute<Spec>,
         #[case] expected: &[Token],
     ) {
         assert_ser_tokens(&attribute, expected);
