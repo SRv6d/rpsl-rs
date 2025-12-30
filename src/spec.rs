@@ -12,7 +12,7 @@ pub trait Specification: Debug + Clone + Copy {
     /// # Errors
     /// Returns an [`AttributeError`] when the attribute name or value does not satisfy
     /// the specification's rules.
-    fn validate_attribute(attribute: &Attribute<'_, Self>) -> Result<(), AttributeError<Self>>;
+    fn validate_attribute(attribute: &Attribute<'_, Self>) -> Result<(), AttributeError>;
 }
 
 /// Default specification after parsing, does not perform any validation.
@@ -20,7 +20,7 @@ pub trait Specification: Debug + Clone + Copy {
 pub struct Raw;
 
 impl Specification for Raw {
-    fn validate_attribute(_attribute: &Attribute<'_, Self>) -> Result<(), AttributeError<Self>> {
+    fn validate_attribute(_attribute: &Attribute<'_, Self>) -> Result<(), AttributeError> {
         Ok(())
     }
 }
@@ -30,7 +30,7 @@ impl Specification for Raw {
 pub struct Rfc2622;
 
 impl Rfc2622 {
-    fn validate_name<S: Specification>(name: &Name<S>) -> Result<(), InvalidNameError<S>> {
+    fn validate_name<Spec: Specification>(name: &Name<Spec>) -> Result<(), InvalidNameError> {
         if name.len() < 2 {
             return Err(InvalidNameError::new(
                 name,
@@ -74,7 +74,7 @@ impl Rfc2622 {
         Ok(())
     }
 
-    fn validate_value<S: Specification>(value: &Value<S>) -> Result<(), InvalidValueError<S>> {
+    fn validate_value<Spec: Specification>(value: &Value<Spec>) -> Result<(), InvalidValueError> {
         let validator = |v: &str| {
             if !v.is_ascii() {
                 return Err(InvalidValueError::new(
@@ -108,53 +108,57 @@ impl Rfc2622 {
 }
 
 impl Specification for Rfc2622 {
-    fn validate_attribute(attribute: &Attribute<'_, Self>) -> Result<(), AttributeError<Self>> {
+    fn validate_attribute(attribute: &Attribute<'_, Self>) -> Result<(), AttributeError> {
         Self::validate_name(&attribute.name)?;
         Self::validate_value(&attribute.value)?;
         Ok(())
     }
 }
 
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, PartialEq)]
 /// An invalid attribute was encountered during validation.
-pub enum AttributeError<S: Specification = Raw> {
+pub enum AttributeError {
     /// The name of the attribute is invalid.
     #[error("invalid attribute name {0}")]
-    InvalidName(#[from] InvalidNameError<S>),
+    InvalidName(#[from] InvalidNameError),
     /// The value of the attribute is invalid.
     #[error("invalid attribute value {0}")]
-    InvalidValue(#[from] InvalidValueError<S>),
+    InvalidValue(#[from] InvalidValueError),
 }
 
 /// The attribute has an invalid name.
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, PartialEq)]
 #[error("`{name}`: {message}")]
-pub struct InvalidNameError<S: Specification> {
-    name: Name<'static, S>,
-    message: String,
+pub struct InvalidNameError {
+    /// The invalid attribute name.
+    pub name: Name<'static>,
+    /// Context about why the name is invalid.
+    pub message: String,
 }
 
-impl<S: Specification> InvalidNameError<S> {
-    fn new(name: &Name<S>, message: impl Into<String>) -> Self {
+impl InvalidNameError {
+    pub(crate) fn new<Spec: Specification>(name: &Name<Spec>, message: impl Into<String>) -> Self {
         Self {
-            name: name.clone().into_owned(),
+            name: name.clone().into_owned().into_raw(),
             message: message.into(),
         }
     }
 }
 
 /// The attribute has an invalid value.
-#[derive(thiserror::Error, Debug)]
+#[derive(thiserror::Error, Debug, PartialEq)]
 #[error("`{value:?}`: {message}")]
-pub struct InvalidValueError<S: Specification> {
-    value: Value<'static, S>,
-    message: String,
+pub struct InvalidValueError {
+    /// The invalid attribute value.
+    pub value: Value<'static>,
+    /// Context about why the value is invalid.
+    pub message: String,
 }
 
-impl<S: Specification> InvalidValueError<S> {
-    fn new(value: &Value<S>, message: impl Into<String>) -> Self {
+impl InvalidValueError {
+    fn new<Spec: Specification>(value: &Value<Spec>, message: impl Into<String>) -> Self {
         Self {
-            value: value.clone().into_owned(),
+            value: value.clone().into_owned().into_raw(),
             message: message.into(),
         }
     }

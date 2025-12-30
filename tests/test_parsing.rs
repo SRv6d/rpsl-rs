@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 use proptest::prelude::*;
-use rpsl::parse_object;
+use rpsl::{parse_object, spec::Rfc2622};
 
 proptest! {
     /// Ensure RFC 2622 conformant RPSL is parsed correctly.
@@ -9,8 +9,8 @@ proptest! {
         (object, rpsl) in strategies::rfc_2622_object_w_rpsl()
     ) {
         let parsed = parse_object(&rpsl).unwrap();
-        prop_assert_eq!(parsed, object);
-        // TODO: Ensure object validates correctly against spec.
+        prop_assert_eq!(parsed.clone(), object);
+        parsed.validate::<Rfc2622>().unwrap();
     }
 }
 

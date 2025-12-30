@@ -8,7 +8,7 @@ use std::{
 use serde::Serialize;
 
 use super::Attribute;
-use crate::spec::{Raw, Specification};
+use crate::spec::{AttributeError, Raw, Specification};
 
 /// A RPSL object.
 ///
@@ -180,15 +180,74 @@ use crate::spec::{Raw, Specification};
 #[derive(Debug, Clone)]
 #[cfg_attr(feature = "serde", derive(Serialize), serde(bound = ""))]
 #[allow(clippy::len_without_is_empty)]
-pub struct Object<'a, S: Specification = Raw> {
-    attributes: Vec<Attribute<'a, S>>,
+pub struct Object<'a, Spec: Specification = Raw> {
+    attributes: Vec<Attribute<'a, Spec>>,
     /// Contains the source if the object was created by parsing RPSL.
     #[cfg_attr(feature = "serde", serde(skip))]
     source: Option<Cow<'a, str>>,
 }
 
-impl<'a, S: Specification> Object<'a, S> {
-    // TODO: Allow validating object into a concrete spec.
+impl<'a, Spec: Specification> Object<'a, Spec> {
+    /// Validate that all attributes of this object conform to a target specification.
+    ///
+    /// # Errors
+    /// Returns an [`ObjectValidationError`] if any attribute fails to satisfy the target specification.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rpsl::{object, spec::Rfc2622};
+    /// let obj = object! {
+    ///     "role": "ACME Company";
+    ///     "address": "Packet Street 6";
+    /// };
+    /// obj.validate::<Rfc2622>()?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn validate<TargetSpec: Specification>(&self) -> Result<(), ObjectValidationError> {
+        let mut errors = Vec::new();
+        for (index, attribute) in self.attributes.iter().enumerate() {
+            if let Err(error) = attribute.validate::<TargetSpec>() {
+                errors.push((index, error));
+            }
+        }
+
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(ObjectValidationError::new(errors))
+        }
+    }
+
+    /// Convert every attribute in this object into a target specification.
+    ///
+    /// # Errors
+    /// Returns the first [`AttributeError`] encountered. Use [`Object::validate`] to collect
+    /// all attribute errors before converting.
+    ///
+    /// # Examples
+    /// ```
+    /// # use rpsl::{object, Object, spec::Rfc2622};
+    /// let obj = object! {
+    ///     "role": "ACME Company";
+    /// };
+    /// let validated: Object<Rfc2622> = obj.into_spec()?;
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
+    pub fn into_spec<TargetSpec: Specification>(
+        self,
+    ) -> Result<Object<'a, TargetSpec>, AttributeError> {
+        let Object { attributes, source } = self;
+
+        let mut converted = Vec::with_capacity(attributes.len());
+        for attribute in attributes {
+            converted.push(attribute.into_spec::<TargetSpec>()?);
+        }
+
+        Ok(Object {
+            attributes: converted,
+            source,
+        })
+    }
 
     /// Create a new RPSL object from a vector of attributes.
     ///
@@ -209,7 +268,7 @@ impl<'a, S: Specification> Object<'a, S> {
     /// # }
     /// ```
     #[must_use]
-    pub fn new(attributes: Vec<Attribute<'static, S>>) -> Object<'static, S> {
+    pub fn new(attributes: Vec<Attribute<'static, Spec>>) -> Object<'static, Spec> {
         Object {
             attributes,
             source: None,
@@ -217,7 +276,10 @@ impl<'a, S: Specification> Object<'a, S> {
     }
 
     /// Create a new RPSL object from a text source and it's corresponding parsed attributes.
-    pub(crate) fn new_parsed(source: &'a str, attributes: Vec<Attribute<'a, S>>) -> Object<'a, S> {
+    pub(crate) fn new_parsed(
+        source: &'a str,
+        attributes: Vec<Attribute<'a, Spec>>,
+    ) -> Object<'a, Spec> {
         Object {
             attributes,
             source: Some(Cow::Borrowed(source)),
@@ -256,7 +318,7 @@ impl<'a, S: Specification> Object<'a, S> {
     }
 
     /// Convert this object into an owned (`'static`) variant.
-    pub fn into_owned(self) -> Object<'static, S> {
+    pub fn into_owned(self) -> Object<'static, Spec> {
         Object {
             attributes: self
                 .attributes
@@ -268,24 +330,24 @@ impl<'a, S: Specification> Object<'a, S> {
     }
 }
 
-impl<'a, S: Specification> Index<usize> for Object<'a, S> {
-    type Output = Attribute<'a, S>;
+impl<'a, Spec: Specification> Index<usize> for Object<'a, Spec> {
+    type Output = Attribute<'a, Spec>;
 
     fn index(&self, index: usize) -> &Self::Output {
         &self.attributes[index]
     }
 }
 
-impl<'a, S: Specification> Deref for Object<'a, S> {
-    type Target = Vec<Attribute<'a, S>>;
+impl<'a, Spec: Specification> Deref for Object<'a, Spec> {
+    type Target = Vec<Attribute<'a, Spec>>;
 
     fn deref(&self) -> &Self::Target {
         &self.attributes
     }
 }
 
-impl<'a, S: Specification> IntoIterator for Object<'a, S> {
-    type Item = Attribute<'a, S>;
+impl<'a, Spec: Specification> IntoIterator for Object<'a, Spec> {
+    type Item = Attribute<'a, Spec>;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
@@ -372,6 +434,47 @@ macro_rules! object {
     };
 }
 
+/// Contains all attribute validation errors for an [`Object`].
+#[derive(Debug, thiserror::Error)]
+#[error("{num} attribute(s) failed validation", num = .errors.len())]
+pub struct ObjectValidationError {
+    /// Validation errors paired with the index of the offending attribute.
+    errors: Vec<(usize, AttributeError)>,
+}
+
+impl ObjectValidationError {
+    fn new(errors: Vec<(usize, AttributeError)>) -> Self {
+        Self { errors }
+    }
+
+    /// The number of attributes that failed validation.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.errors.len()
+    }
+
+    /// Returns `true` if no attribute validation errors are contained.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.errors.is_empty()
+    }
+
+    /// Iterate over the attribute errors.
+    pub fn iter_errors(&self) -> impl Iterator<Item = &AttributeError> {
+        self.errors.iter().map(|(_, error)| error)
+    }
+
+    /// Iterate over attribute errors together with the index of the offending attribute.
+    pub fn iter_indexed(&self) -> impl Iterator<Item = (usize, &AttributeError)> {
+        self.errors.iter().map(|(index, error)| (*index, error))
+    }
+
+    /// Return attribute errors together with the index of the offending attribute.
+    pub fn into_errors(self) -> Vec<(usize, AttributeError)> {
+        self.errors
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use rstest::*;
@@ -379,6 +482,10 @@ mod tests {
     use serde_json::json;
 
     use super::*;
+    use crate::{
+        spec::{InvalidNameError, Rfc2622},
+        Name,
+    };
 
     #[rstest]
     #[case(
@@ -775,6 +882,98 @@ mod tests {
     )]
     fn object_from_macro(#[case] from_macro: Object, #[case] expected: Object) {
         assert_eq!(from_macro, expected);
+    }
+
+    #[rstest]
+    #[allow(clippy::used_underscore_binding)]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_single("address", "Packet Street 6"),
+        ]),
+        Rfc2622
+    )]
+    fn object_validate_conformant_object_validates<TargetSpec: Specification>(
+        #[case] object: Object,
+        #[case] _target: TargetSpec,
+    ) {
+        object.validate::<TargetSpec>().unwrap();
+    }
+
+    #[rstest]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_single("a", "Packet Street 6"),
+            Attribute::unchecked_single("1mail", "rpsl-rs@github.com"),
+        ]),
+        Rfc2622,
+        vec![
+            (
+                1,
+                AttributeError::from(
+                    InvalidNameError::new(&Name::new("a"), "must be at least two characters long")
+                ),
+            ),
+            (
+                2,
+                AttributeError::from(
+                    InvalidNameError::new(&Name::new("1mail"), "must start with an ASCII alphabetic character")
+                ),
+            )
+        ]
+    )]
+    #[allow(clippy::used_underscore_binding)]
+    fn object_validate_invalid_object_returns_expected_errors<
+        TargetSpec: Specification + PartialEq,
+    >(
+        #[case] object: Object,
+        #[case] _target: TargetSpec,
+        #[case] expected: Vec<(usize, AttributeError)>,
+    ) {
+        let errors = object.validate::<TargetSpec>().unwrap_err().into_errors();
+        assert_eq!(errors, expected);
+    }
+
+    #[test]
+    fn object_into_spec_preserves_source() {
+        let source = concat!(
+            "role:           ACME Company\n",
+            "source:         RIPE\n",
+            "\n"
+        );
+        let object = Object::new_parsed(
+            source,
+            vec![
+                Attribute::unchecked_single("role", "ACME Company"),
+                Attribute::unchecked_single("source", "RIPE"),
+            ],
+        );
+
+        let converted = object.into_spec::<Rfc2622>().unwrap();
+        assert_eq!(converted.source(), Some(source));
+    }
+
+    #[rstest]
+    #[case(
+        Object::new(vec![
+            Attribute::unchecked_single("role", "ACME Company"),
+            Attribute::unchecked_single("a", "Packet Street 6"),
+            Attribute::unchecked_single("mail", "rpsl-rs@github.com"),
+        ]),
+        Rfc2622,
+        AttributeError::from(
+            InvalidNameError::new(&Name::new("a"), "must be at least two characters long")
+        ),
+    )]
+    #[allow(clippy::used_underscore_binding)]
+    fn object_into_spec_returns_first_validation_error<TargetSpec: Specification + PartialEq>(
+        #[case] object: Object,
+        #[case] _target: TargetSpec,
+        #[case] expected: AttributeError,
+    ) {
+        let error = object.into_spec::<TargetSpec>().unwrap_err();
+        assert_eq!(error, expected);
     }
 
     #[rstest]
