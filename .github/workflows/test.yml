@@ -16,23 +16,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rust_version: [
-            "1.80", # MSRV
-            "", # use rust-toolchain.toml
-          ]
+        toolchain: [msrv, pinned]
 
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
-      # If toolchain is set in matrix, use it
-      - name: Setup Rust ${{ matrix.rust_version }}
-        if: matrix.rust_version != ''
+      - name: Setup MSRV Rust
+        if: matrix.toolchain == 'msrv'
         uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
         with:
-          toolchain: ${{ matrix.rust_version }}
+          toolchain: "1.80" # MSRV
           components: llvm-tools-preview
-      # Otherwise read rust-toolchain.toml
-      - name: Setup Rust
-        if: matrix.rust_version == ''
+      - name: Setup Pinned Rust
+        if: matrix.toolchain == 'pinned'
         uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
         with:
           components: llvm-tools-preview
