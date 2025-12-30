@@ -16,14 +16,27 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        rust_version: ["1.80", "stable"]
+        toolchain: [msrv, pinned]
+
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
+      - name: Setup MSRV Rust
+        if: matrix.toolchain == 'msrv'
+        uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
         with:
-          toolchain: ${{ matrix.rust_version }}
+          toolchain: "1.80" # MSRV
           components: llvm-tools-preview
-      - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5
+      - name: Setup Pinned Rust
+        if: matrix.toolchain == 'pinned'
+        uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
+        with:
+          components: llvm-tools-preview
+      - name: Get rustc version
+        id: rustver
+        shell: bash
+        run: |
+          echo "v=$(rustc --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
       - uses: taiki-e/install-action@3575e532701a5fc614b0c842e4119af4cc5fd16d
         with:
           tool: cargo-llvm-cov
@@ -35,7 +48,7 @@ jobs:
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
         with:
-          name: Rust ${{ matrix.rust_version }}
+          name: Rust ${{ steps.rustver.outputs.v }}
           files: target/coverage/lcov.info
           use_oidc: true
           fail_ci_if_error: true
@@ -43,10 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
-      - uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9
-        with:
-          toolchain: stable
-      - uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5
+      - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
       - uses: taiki-e/install-action@3575e532701a5fc614b0c842e4119af4cc5fd16d
         with:
           tool: cargo-hack
