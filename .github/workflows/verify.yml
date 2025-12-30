@@ -12,7 +12,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
       - uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
 
@@ -20,7 +20,7 @@ jobs:
   check-lockfile:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
       - uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
 
@@ -28,6 +28,6 @@ jobs:
   spellcheck:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - name: check for typos
-        uses: crate-ci/typos@2d0ce569feab1f8752f1dde43cc2f2aa53236e06
+        uses: crate-ci/typos@1a319b54cc9e3b333fed6a5c88ba1a90324da514
