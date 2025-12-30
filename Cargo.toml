@@ -29,11 +29,12 @@ serde = { version = "1.0.219", features = ["derive"], optional = true }
 serde_json = { version = "1.0.140", optional = true }
 
 [dev-dependencies]
+# Pin criterion (and related tooling) explicitly to ensure stable benchmarks
 codspeed-criterion-compat = "=2.10.1"
 criterion = "=0.6.0"
-proptest = "=1.7.0"
-rstest = "=0.25.0"
-serde_test = "=1.0.177"
+proptest = "1.7.0"
+rstest = "0.25.0"
+serde_test = "1.0.177"
 
 [features]
 default = ["simd"]
