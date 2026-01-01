@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   cargo-test:
@@ -17,7 +16,6 @@ jobs:
     strategy:
       matrix:
         toolchain: [msrv, pinned]
-
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - name: Setup MSRV Rust
@@ -25,33 +23,14 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
         with:
           toolchain: "1.80" # MSRV
-          components: llvm-tools-preview
       - name: Setup Pinned Rust
         if: matrix.toolchain == 'pinned'
         uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
-        with:
-          components: llvm-tools-preview
-      - name: Get rustc version
-        id: rustver
-        shell: bash
-        run: |
-          echo "v=$(rustc --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
-
-      - uses: taiki-e/install-action@4c6723ec9c638cccae824b8957c5085b695c8085
-        with:
-          tool: cargo-llvm-cov
       - uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
 
       - name: Test
         run: just test
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de
-        with:
-          name: Rust ${{ steps.rustver.outputs.v }}
-          files: target/coverage/lcov.info
-          use_oidc: true
-          fail_ci_if_error: true
   cargo-hack:
     runs-on: ubuntu-latest
     steps:
@@ -64,3 +43,30 @@ jobs:
 
       - name: Test
         run: just check-features
+
+  cargo-llvm-cov:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
+        id: toolchain
+        with:
+          components: llvm-tools-preview
+      - uses: taiki-e/install-action@a983ca795126a4be4e8a44879ac5c4c3ef66cae1
+        with:
+          tool: cargo-llvm-cov
+      - uses: extractions/setup-just@e33e0265a09d6d736e2ee1e0eb685ef1de4669ff
+
+      - name: Coverage
+        run: just coverage
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de
+        with:
+          name: ${{ steps.toolchain.outputs.rustc-version }}
+          files: target/coverage/lcov.info
+          use_oidc: true
+          fail_ci_if_error: true
