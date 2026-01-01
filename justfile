@@ -19,17 +19,15 @@ lint: lint-justfile
 lint-justfile:
     just --check --fmt --unstable
 
-# Run tests
-test $COV=CI: (_install_llvm_cov COV) && doc-test
-    {{ if COV == "true" { "mkdir -p " + parent_directory(LCOV_FILE) + " && cargo llvm-cov --all-features --lcov --output-path " + LCOV_FILE } else { "cargo test --all-features --locked --lib" } }}
-
-# Run documentation and example tests
-doc-test:
-    cargo test --all-features --locked --doc
+# Run all tests including unit, integration and doc + examples
+test:
+    cargo test --all-features --locked
     cargo test --all-features --locked --examples
 
-# Alias to run tests with coverage
-coverage: (test "true")
+# Get code coverage for unit and integration tests
+coverage: _install_llvm_cov
+    mkdir -p  {{ parent_directory(LCOV_FILE) }}
+    cargo llvm-cov --all-features --locked {{ if CI == "true" { "--lcov --output-path " + LCOV_FILE } else { "--summary-only" } }}
 
 # Check feature combinations
 check-features:
@@ -92,11 +90,12 @@ _validate_semver version:
         exit 1
     fi
 
-_install_llvm_cov $run:
+# Install cargo-llvm-cov when not running in CI
+_install_llvm_cov:
     #!/usr/bin/env bash
     set -euxo pipefail
 
-    if [ $run == true ] && [ $CI = false ]; then
+    if [ $CI = false ]; then
         cargo install cargo-llvm-cov --locked
     fi
 
