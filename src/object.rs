@@ -45,7 +45,7 @@ use crate::spec::{AttributeError, Raw, Specification};
 /// # }
 /// ```
 ///
-/// Although creating an [`Object`] from a vector of [`Attribute`]s works, the more idiomatic way
+/// Although creating an [`Object`] from a vector of [`Attribute`]s works, the easier way
 /// to do it is by using the [`object!`](crate::object!) macro.
 /// ```
 /// # use rpsl::{Attribute, Object, object};
