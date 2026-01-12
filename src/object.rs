@@ -470,6 +470,7 @@ impl ObjectValidationError {
     }
 
     /// Return attribute errors together with the index of the offending attribute.
+    #[must_use]
     pub fn into_errors(self) -> Vec<(usize, AttributeError)> {
         self.errors
     }
