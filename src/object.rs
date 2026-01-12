@@ -45,7 +45,7 @@ use crate::spec::{AttributeError, Raw, Specification};
 /// # }
 /// ```
 ///
-/// Although creating an [`Object`] from a vector of [`Attribute`]s works, the more idiomatic way
+/// Although creating an [`Object`] from a vector of [`Attribute`]s works, the easier way
 /// to do it is by using the [`object!`](crate::object!) macro.
 /// ```
 /// # use rpsl::{Attribute, Object, object};
@@ -470,6 +470,7 @@ impl ObjectValidationError {
     }
 
     /// Return attribute errors together with the index of the offending attribute.
+    #[must_use]
     pub fn into_errors(self) -> Vec<(usize, AttributeError)> {
         self.errors
     }

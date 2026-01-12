@@ -1,6 +1,36 @@
 //! Specifications and validation rules for RPSL objects.
 //!
-//! This module defines specifications that values can optionally be validated into after parsing.
+//! Parsing is intentionally lenient and produces objects typed with [`Raw`], which performs no
+//! validation. This module lets callers opt into stricter checks after parsing by validating
+//! objects against a [`Specification`].
+//!
+//! ## Using a specification
+//!
+//! You can validate after parsing or convert an object into a typed specification:
+//!
+//! ```rust
+//! # use rpsl::{parse_object, Object, spec::Rfc2622};
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
+//! let obj = parse_object("role: ACME Company\nsource: RIPE\n\n")?;
+//! let typed: Object<Rfc2622> = obj.into_spec()?;
+//! # Ok(())
+//! # }
+//! ```
+//!
+//! ## Validation vs conversion
+//!
+//! - Use [`Object::validate`](crate::Object::validate) to keep an object as-is while checking it
+//!   against a specification. This collects all attribute failures so you can report everything
+//!   that is invalid at once.
+//! - Use [`Object::into_spec`](crate::Object::into_spec) to convert into a typed object. This
+//!   validates as it converts and returns the first [`AttributeError`] encountered.
+//!
+//! ## Errors
+//!
+//! The primary error type is [`AttributeError`], which wraps [`InvalidNameError`] and
+//! [`InvalidValueError`]. These errors explain why a single attribute failed validation.
+//!
+//! Implement [`Specification`] to define custom rules by validating each attribute.
 
 use super::attribute::{Attribute, Name, Value};
 use std::fmt::Debug;

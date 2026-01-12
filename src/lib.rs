@@ -4,16 +4,17 @@
 //! 📰 Complete implementation for multiline RPSL values\
 //! 💬 Able to parse objects directly from whois server responses\
 //! 🧠 Low memory footprint by leveraging zero-copy\
-//! 🧪 Robust parsing of any valid input ensured by Property Based Tests
+//! 🧪 Robust parsing of any valid input ensured by Property Based Tests\
+//! 🧩 Optional validation via customizable specifications
 //!
 //! ## Usage
 //!
 //! ### Parsing RPSL objects
 //!
-//! A string containing an object in RPSL notation can be parsed to an [`Object`] using the [`parse_object`] function.
+//! A string containing an object in RPSL notation can be parsed using the [`parse_object`] function.
 //!
 //! ```rust
-//! use rpsl::parse_object;
+//! use rpsl::{parse_object, Object, spec::Raw};
 //!
 //! let role_acme = "
 //! role:        ACME Company
@@ -25,11 +26,11 @@
 //! source:      RIPE
 //!
 //! ";
-//! let parsed = parse_object(role_acme)?;
+//! let parsed: Object<Raw> = parse_object(role_acme)?;
 //! # Ok::<(), Box<dyn std::error::Error>>(())
 //! ```
 //!
-//! This returns an [`Object`], a sorted [`Attribute`] collection which contain string references
+//! This returns an [`Object<Raw>`], a sorted [`Attribute<Raw>`] collection which contain string references
 //! pointing to attributes and their values from the parsed text.
 //!
 //! ```text
@@ -41,6 +42,19 @@
 //! nic-hdl:        RPSL1-RIPE ◀───────────────── &"nic-hdl":   &"RPSL1-RIPE"
 //! source:         RIPE ◀─────────────────────── &"source":    &"RIPE"
 //! ```
+//!
+//! Parsing is intentionally lenient and returns objects typed with [`Raw`](spec::Raw), meaning no
+//! validation has been applied. To ensure the object conforms to a [`Specification`](spec::Specification),
+//! it can be converted to a typed spec after parsing.
+//!
+//! ```rust
+//! # use rpsl::{parse_object, Object, spec::Rfc2622};
+//! # let parsed = parse_object("role: ACME Company\nsource: RIPE\n\n")?;
+//! let validated: Object<Rfc2622> = parsed.into_spec()?;
+//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! ```
+//!
+//! For more information on object validation, see the [`spec`] module.
 //!
 //! ### Parsing a WHOIS server response
 //!
@@ -84,7 +98,7 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
 pub use attribute::{Attribute, Name, Value};
-pub use object::Object;
+pub use object::{Object, ObjectValidationError};
 pub use parser::{parse_object, parse_whois_response, ParseError};
 
 mod attribute;
