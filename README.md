@@ -32,7 +32,8 @@ A Routing Policy Specification Language (RPSL) parser with a focus on speed and 
 📰 Complete implementation for multiline RPSL values\
 💬 Able to parse objects directly from whois server responses\
 🧠 Low memory footprint by leveraging zero-copy\
-🧪 Robust parsing of any valid input ensured by Property Based Tests
+🧪 Robust parsing of any valid input ensured by Property Based Tests\
+🧩 Optional validation via customizable specifications
 
 [<img src="docs/benchmark/graph.svg">](docs/benchmark)
 

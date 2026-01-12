@@ -30,7 +30,9 @@ use crate::{Attribute, Name, Object, Value};
 /// ```
 ///
 /// # Errors
-/// Returns a [`ParseError`] if the input is not valid RPSL.
+/// Returns a [`ParseError`] if the input cannot be parsed into an object. Parsing is lenient
+/// and does not validate attribute names or values; use [`Object::validate`] or
+/// [`Object::into_spec`] to enforce a specification after parsing.
 ///
 /// # Examples
 /// ```
@@ -135,7 +137,9 @@ pub fn parse_object(rpsl: &str) -> Result<Object<'_>, ParseError> {
 /// Parse a WHOIS server response into [`Object`]s contained within.
 ///
 /// # Errors
-/// Returns a [`ParseError`] error if the input is not valid RPSL.
+/// Returns a [`ParseError`] if the input cannot be parsed into objects. Parsing is lenient and
+/// does not validate attribute names or values; use [`Object::validate`] or [`Object::into_spec`]
+/// to enforce a specification after parsing.
 ///
 /// # Examples
 /// ```
