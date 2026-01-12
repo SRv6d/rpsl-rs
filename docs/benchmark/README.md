@@ -8,7 +8,7 @@ Benchmarks comparing performance to other RPSL parsers.
 
 | Parser           | Mean              | Min       | Max       | Compiler / Runtime                              |
 | ---------------- | ----------------- | --------- | --------- | ----------------------------------------------- |
-| **rpsl-rs**      | **508.67 µs**     | 509.11 µs | 509.67 µs | rustc 1.81.0 (eeb90cda1 2024-09-04) LLVM 18.1.7 |
+| **rpsl-rs**      | **454.98 µs**     | 454.76 µs | 455.22 µs | rustc 1.92.0 (ded5c06cf 2025-12-08) LLVM 21.1.3 |
 | [RPSL::Parser]   | 59.4 ms ± 3.2 ms  | 58.1 ms   | 81.3 ms   | perl v5.36.0                                    |
 | [irrdnet/irrd]   | 93.5 ms ± 2.5 ms  | 90.7 ms   | 102.4 ms  | Python 3.11.2                                   |
 | [RIPE-NCC/whois] | 114.7 ms ± 6.3 ms | 106.5 ms  | 124.6 ms  | openjdk version "17.0.12" 2024-07-16            |
