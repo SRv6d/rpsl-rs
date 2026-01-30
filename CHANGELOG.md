@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-01-30
+
 ### Added
 
 - A `Specification` trait that allows defining how objects should be validated.
@@ -88,7 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Complete refactor
 
-[unreleased]: https://github.com/SRv6d/rpsl-rs/compare/v2.0.1...HEAD
+[unreleased]: https://github.com/SRv6d/rpsl-rs/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/SRv6d/rpsl-rs/compare/v2.0.1...v3.0.0
 [2.0.1]: https://github.com/SRv6d/rpsl-rs/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/SRv6d/rpsl-rs/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/SRv6d/rpsl-rs/compare/v1.0.0...v1.0.1
