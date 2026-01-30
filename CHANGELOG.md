@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The parser itself is now more permissive and no longer returns an error if RPSL does not strictly conform to RFC2622. Objects can optionally be validated after parsing using the newly introduced `Specification`.
 
+**Migration note**: if you relied on parse-time RFC2622 validation, call `Object::validate::<spec::Rfc2622>()` or `Object::into_spec::<spec::Rfc2622>()` after parsing.
+
 ## [2.0.1] - 2025-07-09
 
 ### Changed
