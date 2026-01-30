@@ -1,7 +1,7 @@
 <h1 align="center"><code>rpsl-rs</code></h1>
 <div align="center">
-  <a href="https://github.com/srv6d/rpsl-rs/actions">
-    <img src="https://github.com/srv6d/rpsl-rs/workflows/CI/badge.svg" alt="CI status" />
+  <a href="https://github.com/SRv6d/rpsl-rs/actions/workflows/test.yml">
+    <img src="https://github.com/SRv6d/rpsl-rs/actions/workflows/test.yml/badge.svg?branch=main" alt="Test status" />
   </a>
   <a href="https://codecov.io/github/SRv6d/rpsl-rs">
     <img src="https://codecov.io/github/SRv6d/rpsl-rs/graph/badge.svg?token=M9F79BNTJ9" />
