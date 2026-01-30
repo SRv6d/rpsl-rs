@@ -607,6 +607,7 @@ mod tests {
     use serde_test::{assert_ser_tokens, Token};
 
     use super::*;
+    use crate::spec::Rfc2622;
 
     #[rstest]
     #[case(
@@ -710,6 +711,20 @@ mod tests {
         #[case] expected: &[Token],
     ) {
         assert_ser_tokens(&attribute, expected);
+    }
+
+    #[test]
+    fn attribute_validate_invalid_returns_error() {
+        let attribute = Attribute::new("a", "Packet Street 6");
+        attribute.validate::<Rfc2622>().unwrap_err();
+    }
+
+    #[test]
+    fn attribute_into_spec_converts_on_valid_input() {
+        let attribute = Attribute::new("role", "ACME Company");
+        let converted: Attribute<'_, Rfc2622> = attribute.into_spec().unwrap();
+        assert_eq!(converted.name, "role");
+        assert_eq!(converted.value, "ACME Company");
     }
 
     #[rstest]
