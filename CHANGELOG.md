@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-01-30
+
 ### Added
 
 - A `Specification` trait that allows defining how objects should be validated.
@@ -14,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The parser itself is now more permissive and no longer returns an error if RPSL does not strictly conform to RFC2622. Objects can optionally be validated after parsing using the newly introduced `Specification`.
+
+**Migration note**: if you relied on parse-time RFC2622 validation, call `Object::validate::<spec::Rfc2622>()` or `Object::into_spec::<spec::Rfc2622>()` after parsing.
 
 ## [2.0.1] - 2025-07-09
 
@@ -86,7 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Complete refactor
 
-[unreleased]: https://github.com/SRv6d/rpsl-rs/compare/v2.0.1...HEAD
+[unreleased]: https://github.com/SRv6d/rpsl-rs/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/SRv6d/rpsl-rs/compare/v2.0.1...v3.0.0
 [2.0.1]: https://github.com/SRv6d/rpsl-rs/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/SRv6d/rpsl-rs/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/SRv6d/rpsl-rs/compare/v1.0.0...v1.0.1
