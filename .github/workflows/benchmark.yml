@@ -15,16 +15,16 @@ jobs:
   benchmark:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
       - uses: actions-rust-lang/setup-rust-toolchain@1780873c7b576612439a134613cc4cc74ce5538c # v1.15.2
-      - uses: taiki-e/install-action@a983ca795126a4be4e8a44879ac5c4c3ef66cae1
+      - uses: taiki-e/install-action@650c5ca14212efbbf3e580844b04bdccf68dac31
         with:
           tool: cargo-codspeed
 
       - name: Build the benchmark target(s)
         run: cargo codspeed build
       - name: Run the benchmarks
-        uses: CodSpeedHQ/action@972e3437949c89e1357ebd1a2dbc852fcbc57245
+        uses: CodSpeedHQ/action@208425962c215de49ed713e18c4b9bde9bda5c52
         with:
           run: cargo codspeed run
           mode: instrumentation
