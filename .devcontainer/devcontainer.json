@@ -1,9 +1,11 @@
 {
-  "name": "Rust",
-  "image": "mcr.microsoft.com/devcontainers/rust",
+  "name": "NIX",
+  "image": "mcr.microsoft.com/devcontainers/base:noble",
   "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/guiyomh/features/just:0": {}
+    "ghcr.io/devcontainers/features/nix:1": {
+      		"extraNixConfig": "experimental-features = nix-command flakes"
+    	},
+		"ghcr.io/devcontainers-community/features/direnv:1": {}
   },
   "customizations": {
     "vscode": {
@@ -11,11 +13,18 @@
         "rust-lang.rust-analyzer",
         "fill-labs.dependi",
         "tamasfe.even-better-toml",
-        "nefrob.vscode-just-syntax"
+        "nefrob.vscode-just-syntax",
+        "jnoortheen.nix-ide"
       ],
       "settings": {
-        "rust-analyzer.updates.askBeforeDownload": false
+        "rust-analyzer.server.useBundled": false,
+        "rust-analyzer.server.path": "rust-analyzer",
+        "rust-analyzer.updates.askBeforeDownload": false,
       }
     }
-  }
+  },
+  "remoteEnv": {
+    "PATH": "/home/vscode/.nix-profile/bin:/nix/var/nix/profiles/default/bin:${containerEnv:PATH}"
+  },
+  "postCreateCommand": "nix profile add .#rust-toolchain .#rust-analyzer"
 }
