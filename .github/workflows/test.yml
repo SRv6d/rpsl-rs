@@ -22,7 +22,7 @@ jobs:
         if: matrix.toolchain == 'msrv'
         uses: actions-rust-lang/setup-rust-toolchain@a0b538fa0b742a6aa35d6e2c169b4bd06d225a98 # v1.15.3
         with:
-          toolchain: "1.80" # MSRV
+          toolchain: "1.84" # MSRV
       - name: Setup Pinned Rust
         if: matrix.toolchain == 'pinned'
         uses: actions-rust-lang/setup-rust-toolchain@a0b538fa0b742a6aa35d6e2c169b4bd06d225a98 # v1.15.3
