@@ -1,29 +1,50 @@
+---
+# This configuration tries to achieve the following goals:
+# - keep routine dependency maintenance low-noise
+# - keep major updates visible by leaving them ungrouped
+# - avoid adopting brand-new releases immediately
+# - avoid unnecessary dependency churn for consumers
 version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
+    cooldown:
+      default-days: 5
+    open-pull-requests-limit: 4
     groups:
       actions-non-major:
+        patterns: ["*"]
         update-types: [minor, patch]
-  # Minor version lockfile updates every month
+
   - package-ecosystem: cargo
     directory: /
-    versioning-strategy: lockfile-only
     schedule:
-      interval: monthly
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+      interval: weekly
+    versioning-strategy: widen
+    cooldown:
+      default-days: 5
+    open-pull-requests-limit: 8
     groups:
-      development-non-major:
+      cargo-development-non-major:
         dependency-type: development
+        patterns: ["*"]
+        update-types: [minor, patch]
+      cargo-production-non-major:
+        dependency-type: production
+        patterns: ["*"]
+        update-types: [minor, patch]
+
   - package-ecosystem: rust-toolchain
     directory: /
     schedule:
-      interval: quarterly
+      interval: monthly
+
   - package-ecosystem: devcontainers
     directory: /
     schedule:
       interval: monthly
+    cooldown:
+      default-days: 5
+    open-pull-requests-limit: 3
