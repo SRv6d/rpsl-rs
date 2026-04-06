@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Bumped MSRV to 1.84.
+- Bumped MSRV to 1.86.
 
 ## [3.0.0] - 2026-01-30
 
