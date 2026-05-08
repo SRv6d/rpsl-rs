@@ -1,24 +1,27 @@
 ---
-name: Cargo Deny
+name: Security
 
 on:
   pull_request:
     paths:
-      - "**/Cargo.lock"
-      - "**/Cargo.toml"
-      - "deny.toml"
+      - ".github/workflows/**"
+      - ".github/actions/**"
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
-  cargo-deny:
+  zizmor:
     runs-on: ubuntu-latest
+    permissions:
+      security-events: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - uses: EmbarkStudios/cargo-deny-action@91bf2b620e09e18d6eb78b92e7861937469acedb # v2.0.17
+
+      - uses: zizmorcore/zizmor-action@b1d7e1fb5de872772f31590499237e7cce841e8e # v0.5.3
         with:
-          command: check bans licenses sources advisories
+          persona: pedantic
