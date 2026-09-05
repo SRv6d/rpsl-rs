@@ -11,11 +11,6 @@ targets = [
 all-features = true
 exclude-dev = true
 
-[advisories]
-version = 2
-db-path = "$CARGO_HOME/advisory-dbs"
-db-urls = ["https://github.com/rustsec/advisory-db"]
-
 [licenses]
 version = 2
 allow = ["MIT", "Apache-2.0", "Unicode-3.0"]
