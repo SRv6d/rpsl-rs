@@ -607,6 +607,7 @@ mod tests {
     use serde_test::{assert_ser_tokens, Token};
 
     use super::*;
+    use crate::spec::{InvalidNameError, InvalidValueError, Rfc2622};
 
     #[rstest]
     #[case(
@@ -710,6 +711,36 @@ mod tests {
         #[case] expected: &[Token],
     ) {
         assert_ser_tokens(&attribute, expected);
+    }
+
+    #[rstest]
+    #[case(
+        Attribute::new("a", "Packet Street 6"),
+        AttributeError::from(InvalidNameError {
+            name: Name::new("a"),
+            message: "must be at least two characters long".to_string(),
+        }),
+    )]
+    #[case(
+        Attribute::new("address", " Packet Street 6"),
+        AttributeError::from(InvalidValueError {
+            value: Value::new_single(" Packet Street 6"),
+            message: "must not start with whitespace".to_string(),
+        }),
+    )]
+    fn attribute_validate_invalid_returns_expected_error(
+        #[case] attribute: Attribute,
+        #[case] expected: AttributeError,
+    ) {
+        assert_eq!(attribute.validate::<Rfc2622>().unwrap_err(), expected);
+    }
+
+    #[test]
+    fn attribute_into_spec_converts_on_valid_input() {
+        let attribute = Attribute::new("role", "ACME Company");
+        let converted: Attribute<'_, Rfc2622> = attribute.into_spec().unwrap();
+        assert_eq!(converted.name, "role");
+        assert_eq!(converted.value, "ACME Company");
     }
 
     #[rstest]
