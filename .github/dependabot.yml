@@ -22,9 +22,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
-    # `widen` or `increase-if-necessary` not supported for cargo
-    # https://github.com/SRv6d/rpsl-rs/issues/276
-    versioning-strategy: lockfile-only
+    versioning-strategy: increase-if-necessary
     cooldown:
       default-days: 5
     open-pull-requests-limit: 8
