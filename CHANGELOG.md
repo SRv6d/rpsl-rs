@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Bumped MSRV to 1.86.
+- Accepted a final RPSL object terminated by end-of-input instead of a blank line.
 
 ## [3.0.0] - 2026-01-30
 
