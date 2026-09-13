@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 use proptest::prelude::*;
-use rpsl::{parse_object, parse_whois_response, spec::Rfc2622, ParseErrorKind};
+use rpsl::{object, parse_object, parse_whois_response, spec::Rfc2622, ParseErrorKind};
 
 proptest! {
     /// Ensure RFC 2622 conformant RPSL is parsed correctly.
@@ -50,15 +50,15 @@ fn unterminated_attribute_reports_end_of_its_line() {
 }
 
 #[test]
-fn unterminated_object_reports_missing_blank_line() {
+fn final_object_may_end_after_its_last_attribute_line() {
     let input = "role: ACME\n";
 
-    let error = parse_object(input).unwrap_err();
-
-    assert_eq!(error.kind(), ParseErrorKind::MissingObjectTerminator);
-    assert_eq!(error.offset(), input.len());
-    assert_eq!(error.line(), 2);
-    assert_eq!(error.column(), 1);
+    assert_eq!(
+        parse_object(input).unwrap(),
+        object! {
+            "role": "ACME";
+        }
+    );
 }
 
 #[test]

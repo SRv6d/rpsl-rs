@@ -205,17 +205,17 @@ pub fn parse_whois_response(response: &str) -> Result<Vec<Object<'_>>, ParseErro
 /// Parse a list of attributes that make up an object.
 ///
 /// Consumes optional surrounding whitespace, then reads attributes
-/// until the mandatory blank line that terminates the object.
+/// until a blank line or the end of the input.
 fn object_block<'s>() -> impl Parser<&'s str, Object<'s>, ErrMode<ContextError>> {
     // Stop only at a blank line or EOF. Once a non-blank line starts, malformed attributes
     // are fatal instead of being mistaken for the end of the repeated list.
     let next_attribute = preceded(not(alt((newline.void(), eof.void()))), cut_err(attribute()));
     let object = terminated(
         repeat(1.., next_attribute),
-        newline
+        alt((newline.void(), eof.void()))
             .context(StrContext::Label("object terminator"))
             .context(StrContext::Expected(StrContextValue::Description(
-                "a blank line",
+                "a blank line or the end of input",
             ))),
     );
 
@@ -421,7 +421,7 @@ pub enum ParseErrorKind {
     InvalidSeparator,
     /// An attribute was not terminated by a newline.
     MissingLineEnding,
-    /// An object was not terminated by a blank line.
+    /// An object was not terminated by a blank line or the end of the input.
     MissingObjectTerminator,
     /// The input did not contain a complete object.
     InvalidObject,
@@ -468,16 +468,6 @@ mod tests {
         let parsed = parser.parse_next(rpsl).unwrap();
 
         assert_eq!(parsed.source().unwrap(), source);
-    }
-
-    #[test]
-    fn object_block_without_newline_termination_is_err() {
-        let object = &mut concat!(
-            "email:       rpsl-rs@github.com\n",
-            "nic-hdl:     RPSL1-RIPE\n",
-        );
-        let mut parser = object_block();
-        assert!(parser.parse_next(object).is_err());
     }
 
     #[rstest]
