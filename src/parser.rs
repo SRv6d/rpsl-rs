@@ -1,7 +1,7 @@
 use std::fmt;
 use winnow::{
     ascii::{multispace0, newline, space0},
-    combinator::{alt, cut_err, delimited, peek, preceded, repeat, terminated},
+    combinator::{alt, cut_err, delimited, eof, not, peek, preceded, repeat, terminated},
     error::{ContextError, ErrMode, StrContext, StrContextValue},
     token::{one_of, take_till, take_while},
     Parser,
@@ -207,8 +207,17 @@ pub fn parse_whois_response(response: &str) -> Result<Vec<Object<'_>>, ParseErro
 /// Consumes optional surrounding whitespace, then reads attributes
 /// until the mandatory blank line that terminates the object.
 fn object_block<'s>() -> impl Parser<&'s str, Object<'s>, ErrMode<ContextError>> {
-    // a list of attributes that ends when a blank line is encountered, as per RFC 2622.
-    let object = terminated(repeat(1.., attribute()), newline);
+    // Stop only at a blank line or EOF. Once a non-blank line starts, malformed attributes
+    // are fatal instead of being mistaken for the end of the repeated list.
+    let next_attribute = preceded(not(alt((newline.void(), eof.void()))), cut_err(attribute()));
+    let object = terminated(
+        repeat(1.., next_attribute),
+        newline
+            .context(StrContext::Label("object terminator"))
+            .context(StrContext::Expected(StrContextValue::Description(
+                "a blank line",
+            ))),
+    );
 
     // allow for some optional padding
     delimited(multispace0, object, multispace0)
@@ -272,7 +281,14 @@ fn attribute<'s>() -> impl Parser<&'s str, Attribute<'s>, ErrMode<ContextError>>
 /// Parse an attribute value with optional continuation lines.
 fn attribute_value<'s>() -> impl Parser<&'s str, Value<'s>, ErrMode<ContextError>> {
     move |input: &mut &'s str| {
-        let value = || terminated(take_till(0.., |c| c == '\n'), newline);
+        let value = || {
+            terminated(
+                take_till(0.., |c| c == '\n'),
+                newline
+                    .context(StrContext::Label("attribute line ending"))
+                    .context(StrContext::Expected(StrContextValue::CharLiteral('\n'))),
+            )
+        };
 
         let first = value().parse_next(input)?;
 
@@ -296,19 +312,119 @@ fn continuation_char<'s>() -> impl Parser<&'s str, char, ErrMode<ContextError>> 
 }
 
 /// An error that can occur when parsing RPSL text.
+///
+/// The error exposes both a structured [`ParseErrorKind`] and its exact location in the
+/// complete parser input. [`ParseError::offset`] is a zero-based byte offset, while
+/// [`ParseError::line`] and [`ParseError::column`] are one-based. The column counts characters,
+/// not bytes. Its [`Display`](fmt::Display) representation includes the relevant source line and
+/// a description of the expected syntax.
+///
+/// # Example
+///
+/// ```
+/// use rpsl::{parse_object, ParseErrorKind};
+///
+/// let input = "role: ACME\nbroken; value\n\n";
+/// let error = parse_object(input).unwrap_err();
+///
+/// assert_eq!(error.kind(), ParseErrorKind::InvalidSeparator);
+/// assert_eq!(error.offset(), 17);
+/// assert_eq!((error.line(), error.column()), (2, 7));
+/// assert!(error.to_string().contains("expected `:`"));
+/// ```
 #[derive(thiserror::Error, Debug)]
-pub struct ParseError(String);
+pub struct ParseError {
+    message: String,
+    kind: ParseErrorKind,
+    offset: usize,
+    line: usize,
+    column: usize,
+}
 
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
+impl ParseError {
+    /// Return the category of the parsing failure.
+    #[must_use]
+    pub const fn kind(&self) -> ParseErrorKind {
+        self.kind
+    }
+
+    /// Return the byte offset of the failure within the complete input.
+    #[must_use]
+    pub const fn offset(&self) -> usize {
+        self.offset
+    }
+
+    /// Return the one-based line number of the failure.
+    #[must_use]
+    pub const fn line(&self) -> usize {
+        self.line
+    }
+
+    /// Return the one-based character column of the failure.
+    #[must_use]
+    pub const fn column(&self) -> usize {
+        self.column
     }
 }
 
-impl From<winnow::error::ParseError<&str, winnow::error::ContextError>> for ParseError {
-    fn from(value: winnow::error::ParseError<&str, winnow::error::ContextError>) -> Self {
-        Self(value.to_string())
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(&self.message)
     }
+}
+
+impl From<winnow::error::ParseError<&str, ContextError>> for ParseError {
+    fn from(value: winnow::error::ParseError<&str, ContextError>) -> Self {
+        let input = *value.input();
+        let offset = value.offset();
+        let kind = value
+            .inner()
+            .context()
+            .find_map(|context| match context {
+                StrContext::Label("attribute name") => Some(ParseErrorKind::MissingAttributeName),
+                StrContext::Label("separator") => Some(ParseErrorKind::InvalidSeparator),
+                StrContext::Label("attribute line ending") => {
+                    Some(ParseErrorKind::MissingLineEnding)
+                }
+                StrContext::Label("object terminator") => {
+                    Some(ParseErrorKind::MissingObjectTerminator)
+                }
+                _ => None,
+            })
+            .unwrap_or(ParseErrorKind::InvalidObject);
+        let prefix = &input[..offset];
+        let line = prefix.bytes().filter(|byte| *byte == b'\n').count() + 1;
+        let column = prefix
+            .rsplit_once('\n')
+            .map_or(prefix, |(_, current_line)| current_line)
+            .chars()
+            .count()
+            + 1;
+
+        Self {
+            message: value.to_string(),
+            kind,
+            offset,
+            line,
+            column,
+        }
+    }
+}
+
+/// The category of a parsing failure.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum ParseErrorKind {
+    /// An attribute started without a name.
+    MissingAttributeName,
+    /// The separator following an attribute name was not `:`.
+    InvalidSeparator,
+    /// An attribute was not terminated by a newline.
+    MissingLineEnding,
+    /// An object was not terminated by a blank line.
+    MissingObjectTerminator,
+    /// The input did not contain a complete object.
+    InvalidObject,
 }
 
 #[cfg(test)]
