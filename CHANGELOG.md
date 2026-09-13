@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Structured parser diagnostics with stable error categories and exact byte, line, and column locations.
+
 ### Changed
 
 - Bumped MSRV to 1.86.
