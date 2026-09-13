@@ -312,6 +312,26 @@ fn continuation_char<'s>() -> impl Parser<&'s str, char, ErrMode<ContextError>> 
 }
 
 /// An error that can occur when parsing RPSL text.
+///
+/// The error exposes both a structured [`ParseErrorKind`] and its exact location in the
+/// complete parser input. [`ParseError::offset`] is a zero-based byte offset, while
+/// [`ParseError::line`] and [`ParseError::column`] are one-based. The column counts characters,
+/// not bytes. Its [`Display`](fmt::Display) representation includes the relevant source line and
+/// a description of the expected syntax.
+///
+/// # Example
+///
+/// ```
+/// use rpsl::{parse_object, ParseErrorKind};
+///
+/// let input = "role: ACME\nbroken; value\n\n";
+/// let error = parse_object(input).unwrap_err();
+///
+/// assert_eq!(error.kind(), ParseErrorKind::InvalidSeparator);
+/// assert_eq!(error.offset(), 17);
+/// assert_eq!((error.line(), error.column()), (2, 7));
+/// assert!(error.to_string().contains("expected `:`"));
+/// ```
 #[derive(thiserror::Error, Debug)]
 pub struct ParseError {
     message: String,
