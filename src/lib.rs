@@ -99,7 +99,7 @@
 
 pub use attribute::{Attribute, Name, Value};
 pub use object::{Object, ObjectValidationError};
-pub use parser::{parse_object, parse_whois_response, ParseError};
+pub use parser::{parse_object, parse_whois_response, ParseError, ParseErrorKind};
 
 mod attribute;
 mod object;

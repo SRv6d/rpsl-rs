@@ -297,18 +297,98 @@ fn continuation_char<'s>() -> impl Parser<&'s str, char, ErrMode<ContextError>> 
 
 /// An error that can occur when parsing RPSL text.
 #[derive(thiserror::Error, Debug)]
-pub struct ParseError(String);
+pub struct ParseError {
+    message: String,
+    kind: ParseErrorKind,
+    offset: usize,
+    line: usize,
+    column: usize,
+}
 
-impl fmt::Display for ParseError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
+impl ParseError {
+    /// Return the category of the parsing failure.
+    #[must_use]
+    pub const fn kind(&self) -> ParseErrorKind {
+        self.kind
+    }
+
+    /// Return the byte offset of the failure within the complete input.
+    #[must_use]
+    pub const fn offset(&self) -> usize {
+        self.offset
+    }
+
+    /// Return the one-based line number of the failure.
+    #[must_use]
+    pub const fn line(&self) -> usize {
+        self.line
+    }
+
+    /// Return the one-based character column of the failure.
+    #[must_use]
+    pub const fn column(&self) -> usize {
+        self.column
     }
 }
 
-impl From<winnow::error::ParseError<&str, winnow::error::ContextError>> for ParseError {
-    fn from(value: winnow::error::ParseError<&str, winnow::error::ContextError>) -> Self {
-        Self(value.to_string())
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(&self.message)
     }
+}
+
+impl From<winnow::error::ParseError<&str, ContextError>> for ParseError {
+    fn from(value: winnow::error::ParseError<&str, ContextError>) -> Self {
+        let input = *value.input();
+        let offset = value.offset();
+        let kind = value
+            .inner()
+            .context()
+            .find_map(|context| match context {
+                StrContext::Label("attribute name") => Some(ParseErrorKind::MissingAttributeName),
+                StrContext::Label("separator") => Some(ParseErrorKind::InvalidSeparator),
+                StrContext::Label("attribute line ending") => {
+                    Some(ParseErrorKind::MissingLineEnding)
+                }
+                StrContext::Label("object terminator") => {
+                    Some(ParseErrorKind::MissingObjectTerminator)
+                }
+                _ => None,
+            })
+            .unwrap_or(ParseErrorKind::InvalidObject);
+        let prefix = &input[..offset];
+        let line = prefix.bytes().filter(|byte| *byte == b'\n').count() + 1;
+        let column = prefix
+            .rsplit_once('\n')
+            .map_or(prefix, |(_, current_line)| current_line)
+            .chars()
+            .count()
+            + 1;
+
+        Self {
+            message: value.to_string(),
+            kind,
+            offset,
+            line,
+            column,
+        }
+    }
+}
+
+/// The category of a parsing failure.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum ParseErrorKind {
+    /// An attribute started without a name.
+    MissingAttributeName,
+    /// The separator following an attribute name was not `:`.
+    InvalidSeparator,
+    /// An attribute was not terminated by a newline.
+    MissingLineEnding,
+    /// An object was not terminated by a blank line.
+    MissingObjectTerminator,
+    /// The input did not contain a complete object.
+    InvalidObject,
 }
 
 #[cfg(test)]

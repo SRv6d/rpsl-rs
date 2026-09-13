@@ -1,6 +1,6 @@
 #![allow(missing_docs)]
 use proptest::prelude::*;
-use rpsl::{parse_object, spec::Rfc2622};
+use rpsl::{parse_object, parse_whois_response, spec::Rfc2622, ParseErrorKind};
 
 proptest! {
     /// Ensure RFC 2622 conformant RPSL is parsed correctly.
@@ -22,6 +22,67 @@ proptest! {
         let parsed = parse_object(&rpsl).unwrap();
         prop_assert_eq!(parsed, object);
     }
+}
+
+#[test]
+fn invalid_separator_reports_reason_and_exact_location() {
+    let input = "role: ACME\nbroken; value\n\n";
+
+    let error = parse_object(input).unwrap_err();
+
+    assert_eq!(error.kind(), ParseErrorKind::InvalidSeparator);
+    assert_eq!(error.offset(), 17);
+    assert_eq!(error.line(), 2);
+    assert_eq!(error.column(), 7);
+    assert!(error.to_string().contains("expected `:`"));
+}
+
+#[test]
+fn unterminated_attribute_reports_end_of_its_line() {
+    let input = "role: ACME";
+
+    let error = parse_object(input).unwrap_err();
+
+    assert_eq!(error.kind(), ParseErrorKind::MissingLineEnding);
+    assert_eq!(error.offset(), input.len());
+    assert_eq!(error.line(), 1);
+    assert_eq!(error.column(), 11);
+}
+
+#[test]
+fn unterminated_object_reports_missing_blank_line() {
+    let input = "role: ACME\n";
+
+    let error = parse_object(input).unwrap_err();
+
+    assert_eq!(error.kind(), ParseErrorKind::MissingObjectTerminator);
+    assert_eq!(error.offset(), input.len());
+    assert_eq!(error.line(), 2);
+    assert_eq!(error.column(), 1);
+}
+
+#[test]
+fn empty_attribute_name_reports_start_of_attribute() {
+    let input = ": ACME\n\n";
+
+    let error = parse_object(input).unwrap_err();
+
+    assert_eq!(error.kind(), ParseErrorKind::MissingAttributeName);
+    assert_eq!(error.offset(), 0);
+    assert_eq!(error.line(), 1);
+    assert_eq!(error.column(), 1);
+}
+
+#[test]
+fn whois_error_location_is_relative_to_complete_response() {
+    let input = "role: One\n\nrole; Two\n\n";
+
+    let error = parse_whois_response(input).unwrap_err();
+
+    assert_eq!(error.kind(), ParseErrorKind::InvalidSeparator);
+    assert_eq!(error.offset(), 15);
+    assert_eq!(error.line(), 3);
+    assert_eq!(error.column(), 5);
 }
 
 mod strategies {
