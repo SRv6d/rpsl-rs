@@ -8,6 +8,7 @@
       cargo-deny
       git
       just
+      python3
       gh
     ];
   };
