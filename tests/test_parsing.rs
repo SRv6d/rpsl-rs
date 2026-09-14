@@ -1,4 +1,11 @@
 #![allow(missing_docs)]
+use std::{
+    env,
+    fs::File,
+    io::{BufRead, BufReader},
+    time::Instant,
+};
+
 use proptest::prelude::*;
 use rpsl::{object, parse_object, parse_whois_response, spec::Rfc2622, ParseErrorKind};
 
@@ -83,6 +90,106 @@ fn whois_error_location_is_relative_to_complete_response() {
     assert_eq!(error.offset(), 15);
     assert_eq!(error.line(), 3);
     assert_eq!(error.column(), 5);
+}
+
+#[test]
+#[ignore = "run `just test-ripe-db`"]
+fn ripe_database_parses() {
+    let started = Instant::now();
+    let DatabaseStats {
+        objects,
+        attributes,
+        decompressed_bytes,
+    } = parse_ripe_database(open_ripe_database());
+
+    assert_ne!(objects, 0, "RIPE database contained no objects");
+    eprintln!(
+        "parsed {objects} objects with {attributes} attributes from \
+         {decompressed_bytes} decompressed bytes in {:?}",
+        started.elapsed(),
+    );
+}
+
+fn open_ripe_database() -> impl BufRead {
+    let path = env::var_os("RIPE_DATABASE").expect("run the test with `just test-ripe-db`");
+    BufReader::new(File::open(path).expect("open the RIPE database"))
+}
+
+#[derive(Debug, Default)]
+struct DatabaseStats {
+    objects: usize,
+    attributes: usize,
+    decompressed_bytes: u64,
+}
+
+/// Parse every object in a RIPE Database dump without retaining parsed objects.
+fn parse_ripe_database(mut database: impl BufRead) -> DatabaseStats {
+    let mut stats = DatabaseStats::default();
+    let mut line = String::new();
+    let mut object_source = String::with_capacity(1024);
+    let mut line_number = 0_usize;
+    let mut object_start_line = 0_usize;
+
+    loop {
+        line.clear();
+        let bytes_read = database
+            .read_line(&mut line)
+            .expect("read the RIPE database as UTF-8");
+        let end_of_file = bytes_read == 0;
+
+        if !end_of_file {
+            line_number += 1;
+            stats.decompressed_bytes += bytes_read as u64;
+
+            // Ignore dump metadata between objects.
+            if object_source.is_empty() && is_metadata_line(&line) {
+                continue;
+            }
+            if !is_empty_line(&line) {
+                if object_source.is_empty() {
+                    object_start_line = line_number;
+                }
+                object_source.push_str(&line);
+                continue;
+            }
+        }
+
+        // Blank lines and EOF finish the buffered object.
+        if !object_source.is_empty() {
+            let object_number = stats.objects + 1;
+            let object_type = object_source
+                .split_once(':')
+                .map_or("<unknown>", |(object_type, _)| object_type);
+            let object = parse_object(&object_source)
+                .map_err(|error| {
+                    let dump_line = object_start_line + error.line() - 1;
+                    format!(
+                        "failed to parse RIPE {object_type} object {object_number}, \
+                         starting at dump line {object_start_line}; \
+                         failure at dump line {dump_line}:\n{error}"
+                    )
+                })
+                .unwrap();
+
+            stats.attributes += object.len();
+            stats.objects = object_number;
+            object_source.clear();
+        }
+
+        if end_of_file {
+            break;
+        }
+    }
+
+    stats
+}
+
+fn is_metadata_line(line: &str) -> bool {
+    line.starts_with('#') || line.starts_with('%')
+}
+
+fn is_empty_line(line: &str) -> bool {
+    line == "\n" || line == "\r\n"
 }
 
 mod strategies {
