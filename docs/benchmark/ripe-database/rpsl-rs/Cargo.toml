@@ -1,0 +1,26 @@
+[package]
+name = "ripe-database-benchmark"
+version = "0.0.0"
+edition = "2021"
+rust-version = "1.86"
+publish = false
+
+[[bin]]
+name = "prepare-ripe-database"
+path = "src/prepare.rs"
+
+[[bin]]
+name = "parse-ripe-database-rpsl-rs"
+path = "src/main.rs"
+
+[dependencies]
+flate2 = "1.1.10"
+rpsl = { package = "rpsl-rs", path = "../../../.." }
+ureq = { version = "3.4.2", default-features = false, features = ["rustls"] }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+pedantic = { priority = -1, level = "warn" }
+panic = "forbid"

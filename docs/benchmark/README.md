@@ -25,6 +25,31 @@ With the exception of [RIPE-NCC/whois], the AS3257 object is included as a strin
 Benchmarks for the parser itself are done using `cargo bench`, while any external parser is benchmarked using [hyperfine].\
 To run a specific benchmark execute `just bench-$PARSER-NAME` or `just benchmark-comparison` to run all benchmarks. This will setup required dependencies and run `sudo` so it is only recommended to be used in an isolated environment and is only tested using the devcontainer, other platforms might require additional dependencies to be installed. A working installation of `just` and `cargo` is assumed.
 
+## Complete RIPE Database
+
+The complete-database benchmark downloads and caches the latest UTF-8 RIPE Database dump, then
+benchmarks parsing the decompressed corpus with Hyperfine:
+
+```sh
+just benchmark-ripe-database
+```
+
+Downloading and decompressing the corpus are setup steps and are not timed. The cached database is
+refreshed when RIPE publishes a response with a different `ETag` or `Last-Modified` value.
+
+Complete-database parser adapters follow a shared contract:
+
+- Accept the decompressed UTF-8 database path as their only argument.
+- Include opening and reading the file, framing objects, and parsing every object in the timed run.
+- Ignore `#` and `%` metadata lines between objects, and use empty lines as object separators.
+- Discard parsed objects after consuming their result, keeping memory bounded by the largest object.
+- Exit unsuccessfully on the first parse error and include its database location in the diagnostic.
+- Print `objects`, `attributes`, and input `bytes` totals after a successful run.
+
+The complete database changes over time, so comparisons are only valid when every adapter uses the
+same cached snapshot. This benchmark is separate from the AS3257 microbenchmark above: it measures
+end-to-end corpus ingestion rather than isolated parsing of one unusually large object.
+
 [RPSL::Parser]: https://metacpan.org/pod/RPSL::Parser
 [irrdnet/irrd]: https://github.com/irrdnet/irrd
 [RIPE-NCC/whois]: https://github.com/RIPE-NCC/whois
