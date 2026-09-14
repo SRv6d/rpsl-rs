@@ -4,6 +4,8 @@ export CI := env("CI", "false")
 CHANGELOG_FILE := "CHANGELOG.md"
 REPO_URL := "https://github.com/SRv6d/rpsl-rs"
 LCOV_FILE := "target/coverage/lcov.info"
+RIPE_DATABASE_URL := "https://ftp.ripe.net/ripe/dbase/ripe.db.utf8.gz"
+RIPE_DATABASE := "target/benchmark/ripe-database/ripe.db.utf8"
 
 default: check-lockfile lint test
 
@@ -23,6 +25,14 @@ lint-justfile:
 test:
     cargo test --all-features --locked
     cargo test --all-features --locked --examples
+
+# Download, decompress, and cache the latest RIPE database dump
+get-ripe-db:
+    python3 docs/benchmark/get-ripe-db.py "{{ RIPE_DATABASE_URL }}" "{{ RIPE_DATABASE }}"
+
+# Run an integration test that parses the entire RIPE database dump
+test-ripe-db: get-ripe-db
+    RIPE_DATABASE="{{ RIPE_DATABASE }}" cargo test --release --locked ripe_database_parses -- --ignored --exact --nocapture
 
 # Get code coverage for unit and integration tests
 coverage: _install_llvm_cov
