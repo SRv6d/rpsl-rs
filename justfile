@@ -32,7 +32,7 @@ get-ripe-db:
 
 # Run an integration test that parses the entire RIPE database dump
 test-ripe-db: get-ripe-db
-    RIPE_DATABASE="{{ RIPE_DATABASE }}" cargo test --locked ripe_database_parses -- --ignored --exact --nocapture
+    RIPE_DATABASE="{{ RIPE_DATABASE }}" cargo test --release --locked ripe_database_parses -- --ignored --exact --nocapture
 
 # Get code coverage for unit and integration tests
 coverage: _install_llvm_cov
