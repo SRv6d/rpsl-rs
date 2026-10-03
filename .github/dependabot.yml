@@ -10,8 +10,8 @@ multi-ecosystem-groups:
     # rust-overlay publishes new stable manifests later on release day.
     # The Nix entry bypasses cooldown so this selects that release-day manifest.
     schedule:
-      interval: monthly
-      time: "23:30"
+      interval: daily
+      time: "23:15"
       timezone: Etc/UTC
 
 updates:
