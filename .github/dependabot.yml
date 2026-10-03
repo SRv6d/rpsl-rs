@@ -5,6 +5,14 @@
 # - avoid adopting brand-new releases immediately
 # - avoid unnecessary dependency churn for consumers
 version: 2
+multi-ecosystem-groups:
+  rust-environment:
+    # rust-overlay publishes new stable manifests later on release day.
+    schedule:
+      interval: monthly
+      time: "23:30"
+      timezone: Etc/UTC
+
 updates:
   - package-ecosystem: github-actions
     directory: /
@@ -36,10 +44,20 @@ updates:
         patterns: ["*"]
         update-types: [minor, patch]
 
+  # rust-overlay must know about a Rust release before Nix can evaluate it.
+  # Keep both pins in one PR instead of repairing flake.lock by hand.
   - package-ecosystem: rust-toolchain
     directory: /
-    schedule:
-      interval: monthly
+    patterns: ["*"]
+    multi-ecosystem-group: rust-environment
+
+  - package-ecosystem: nix
+    directory: /
+    patterns: ["rust-overlay"]
+    # The default cooldown can select an overlay that predates the Rust release.
+    cooldown:
+      exclude: ["rust-overlay"]
+    multi-ecosystem-group: rust-environment
 
   - package-ecosystem: devcontainers
     directory: /
