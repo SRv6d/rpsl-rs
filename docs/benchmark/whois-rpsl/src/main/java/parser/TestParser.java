@@ -1,23 +1,19 @@
 package parser;
 
-import java.util.Set;
-import java.util.HashSet;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.io.IOException;
 
-import net.ripe.db.whois.common.io.RpslObjectStringReader;
 import net.ripe.db.whois.common.rpsl.RpslObject;
 
-public class TestParser {
-	public static void main(String[] args)
-		throws IOException
-	 {
-		Path RpslFilepath = Path.of(args[0]);
-		String RPSL = Files.readString(RpslFilepath); 
+public final class TestParser {
+    private TestParser() {}
 
-		RpslObjectStringReader reader = new RpslObjectStringReader(RPSL);
-		for(String objectString : reader)
-			RpslObject.parse(objectString);
-	}
+    public static void main(final String[] arguments) throws IOException {
+        if (arguments.length != 1) {
+            throw new IllegalArgumentException("usage: TestParser RPSL_OBJECT");
+        }
+
+        RpslObject.parse(Files.readString(Path.of(arguments[0])));
+    }
 }
