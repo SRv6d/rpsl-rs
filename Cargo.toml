@@ -72,5 +72,5 @@ lto = true
 [profile.test.package.proptest]
 opt-level = 3
 
-[profile.test.package.rand_chacha]
+[profile.test.package.chacha20]
 opt-level = 3
