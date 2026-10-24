@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Bumped MSRV to 1.86.
+- Bumped MSRV to 1.88.
 - Accepted a final RPSL object terminated by end-of-input instead of a blank line.
 - Grouped Rust toolchain and Nix rust-overlay dependency updates.
 
