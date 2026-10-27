@@ -48,7 +48,18 @@ bump-version $VERSION: _check_clean_working (_validate_semver VERSION) && (_chan
     #!/usr/bin/env bash
     set -euxo pipefail
 
-    sed -i 's/^version = .*/version = "'$VERSION'"/g' Cargo.toml
+    TMP_FILE=$(mktemp)
+    trap 'rm -f "$TMP_FILE"' EXIT
+    awk -v version="$VERSION" '
+      $0 == "[package]" { in_package = 1 }
+      in_package && /^version = / {
+        print "version = \"" version "\""
+        in_package = 0
+        next
+      }
+      { print }
+    ' Cargo.toml > "$TMP_FILE"
+    cat "$TMP_FILE" > Cargo.toml
     cargo update -w --offline
 
     git add Cargo.toml Cargo.lock
@@ -83,7 +94,7 @@ _check_clean_working:
 _validate_version_tag:
     #!/usr/bin/env bash
     set -euxo pipefail
-    PROJECT_VERSION="$(grep -Po '(?<=^version = ").*(?=")' Cargo.toml)"
+    PROJECT_VERSION="$(sed -n '/^\[package\]$/,/^\[/ s/^version = "\([^"]*\)"$/\1/p' Cargo.toml)"
     GIT_TAG="$(git describe --exact-match --tags)"
 
     if [ ! $PROJECT_VERSION == ${GIT_TAG:1} ]; then
@@ -113,11 +124,28 @@ _install_llvm_cov:
 _changelog_add_version version filename=CHANGELOG_FILE:
     #!/usr/bin/env bash
     set -euxo pipefail
-    PREV_VERSION=$(sed -n "/^\[unreleased\]:/ { n; s/^\[\([^]]*\)\].*/\1/p }" {{ filename }})
-
-    sed -i "/^## \[Unreleased\]$/ { N; s/\n/\n\n## [{{ version }}] - {{ datetime('%Y-%m-%d') }}\n/ }" {{ filename }}
-    sed -i "/^\[unreleased\]:/ s/v[0-9.]\+\b/v{{ version }}.../; /^\[unreleased\]:/ a\
-    [{{ version }}]: {{ REPO_URL }}/compare/v$PREV_VERSION...v{{ version }}" {{ filename }}
+    PREV_VERSION=$(sed -n '/^\[unreleased\]:/ { n; s/^\[\([^]]*\)\].*/\1/p; }' "{{ filename }}")
+    TMP_FILE=$(mktemp)
+    trap 'rm -f "$TMP_FILE"' EXIT
+    awk \
+      -v version="{{ version }}" \
+      -v date="{{ datetime("%Y-%m-%d") }}" \
+      -v repo="{{ REPO_URL }}" \
+      -v previous="$PREV_VERSION" '
+      $0 == "## [Unreleased]" {
+        print
+        print ""
+        print "## [" version "] - " date
+        next
+      }
+      /^\[unreleased\]:/ {
+        print "[unreleased]: " repo "/compare/v" version "...HEAD"
+        print "[" version "]: " repo "/compare/v" previous "...v" version
+        next
+      }
+      { print }
+    ' "{{ filename }}" > "$TMP_FILE"
+    cat "$TMP_FILE" > "{{ filename }}"
 
     git add {{ filename }}
     git commit -m "Update {{ filename }}"

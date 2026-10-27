@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Accepted a final RPSL object terminated by end-of-input instead of a blank line.
 - Grouped Rust toolchain and Nix rust-overlay dependency updates.
 
+### Internal
+
+- Make release recipes portable across GNU/Linux and macOS.
+
 ## [3.0.0] - 2026-01-30
 
 ### Added
