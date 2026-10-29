@@ -2,7 +2,7 @@ import "docs/benchmark/benchmark.just"
 
 export CI := env("CI", "false")
 CHANGELOG_FILE := "CHANGELOG.md"
-REPO_URL := "https://github.com/SRv6d/rpsl-rs"
+REPO_URL := "https://github.com/marvinvogt/rpsl-rs"
 LCOV_FILE := "target/coverage/lcov.info"
 RIPE_DATABASE_URL := "https://ftp.ripe.net/ripe/dbase/ripe.db.utf8.gz"
 RIPE_DATABASE := "target/benchmark/ripe-database/ripe.db.utf8"
