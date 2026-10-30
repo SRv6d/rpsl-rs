@@ -1,12 +1,12 @@
 <h1 align="center"><code>rpsl-rs</code></h1>
 <div align="center">
-  <a href="https://github.com/SRv6d/rpsl-rs/actions/workflows/test.yml">
-    <img src="https://github.com/SRv6d/rpsl-rs/actions/workflows/test.yml/badge.svg?branch=main" alt="Test status" />
+  <a href="https://github.com/marvinvogt/rpsl-rs/actions/workflows/test.yml">
+    <img src="https://github.com/marvinvogt/rpsl-rs/actions/workflows/test.yml/badge.svg?branch=main" alt="Test status" />
   </a>
-  <a href="https://codecov.io/github/SRv6d/rpsl-rs">
-    <img src="https://codecov.io/github/SRv6d/rpsl-rs/graph/badge.svg?token=M9F79BNTJ9" />
+  <a href="https://codecov.io/github/marvinvogt/rpsl-rs">
+    <img src="https://codecov.io/github/marvinvogt/rpsl-rs/graph/badge.svg?token=M9F79BNTJ9" />
   </a>
-  <a href="https://codspeed.io/SRv6d/rpsl-rs">
+  <a href="https://codspeed.io/marvinvogt/rpsl-rs">
     <img src="https://img.shields.io/endpoint?url=https://codspeed.io/badge.json" alt="CodSpeed Badge" />
   </a>
   <a href="https://crates.io/crates/rpsl-rs">
@@ -17,8 +17,8 @@
   </a>
 </div>
 <div align="center">
-  <a href="https://scorecard.dev/viewer/?uri=github.com/SRv6d/rpsl-rs">
-    <img src="https://api.scorecard.dev/projects/github.com/SRv6d/rpsl-rs/badge" />
+  <a href="https://scorecard.dev/viewer/?uri=github.com/marvinvogt/rpsl-rs">
+    <img src="https://api.scorecard.dev/projects/github.com/marvinvogt/rpsl-rs/badge" />
   </a>
   <a href="https://www.bestpractices.dev/projects/9525">
     <img src="https://www.bestpractices.dev/projects/9525/badge" />
@@ -37,7 +37,7 @@ A Routing Policy Specification Language (RPSL) parser with a focus on speed and 
 
 [<img src="docs/benchmark/graph.svg">](docs/benchmark)
 
-### [**Docs**](https://docs.rs/rpsl-rs/latest/rpsl/) | [**Performance**](https://github.com/SRv6d/rpsl-rs/tree/main/docs/benchmark)
+### [**Docs**](https://docs.rs/rpsl-rs/latest/rpsl/) | [**Performance**](https://github.com/marvinvogt/rpsl-rs/tree/main/docs/benchmark)
 
 ## MSRV Policy
 
